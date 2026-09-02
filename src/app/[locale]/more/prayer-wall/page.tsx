@@ -46,12 +46,15 @@ export default function PrayerWallPage() {
     const newIds = new Set(prayedIds).add(id);
     setPrayedIds(newIds);
     localStorage.setItem("prayedIds", JSON.stringify([...newIds]));
-    setPrayers((prev) => prev.map((p) => p.id === id ? { ...p, pray_count: p.pray_count + 1 } : p));
-    await fetch("/api/prayer/pray", {
+    const res = await fetch("/api/prayer/pray", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ id }),
     });
+    const data = await res.json();
+    if (data.pray_count !== undefined) {
+      setPrayers((prev) => prev.map((p) => p.id === id ? { ...p, pray_count: data.pray_count } : p));
+    }
   }
 
   return (
