@@ -1,80 +1,26 @@
 "use client";
 import { useState } from "react";
 import { useLocale } from "next-intl";
+import Image from "next/image";
 import PageHeader from "@/components/PageHeader";
-
-const GAMES = [
-  {
-    key: "verseUp",
-    titleEn: "Verse Up Arena",
-    titleAr: "ساحة الآيات",
-    icon: "🎮",
-    url: "https://verse-up-arena.vercel.app",
-    descEn: "Bible verse challenge game",
-    descAr: "تحدي آيات الكتاب المقدس",
-  },
-  {
-    key: "holyWordle",
-    titleEn: "HolyWordle",
-    titleAr: "ووردل المقدس",
-    icon: "🟩",
-    url: null,
-    descEn: "Coming soon",
-    descAr: "قريباً",
-  },
-  {
-    key: "crossword",
-    titleEn: "Crossword",
-    titleAr: "الكلمات المتقاطعة",
-    icon: "🔤",
-    url: null,
-    descEn: "Coming soon",
-    descAr: "قريباً",
-  },
-  {
-    key: "whoAmI",
-    titleEn: "Who Am I?",
-    titleAr: "من أنا؟",
-    icon: "🤔",
-    url: null,
-    descEn: "Coming soon",
-    descAr: "قريباً",
-  },
-  {
-    key: "emojiBible",
-    titleEn: "Emoji Bible",
-    titleAr: "إيموجي الكتاب المقدس",
-    icon: "😇",
-    url: null,
-    descEn: "Coming soon",
-    descAr: "قريباً",
-  },
-] as const;
 
 export default function GamesPage() {
   const locale = useLocale();
   const isAr = locale === "ar";
-  const [activeGame, setActiveGame] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
-  const game = GAMES.find((g) => g.key === activeGame);
-
-  // Full-screen iframe view
-  if (activeGame && game?.url) {
+  if (open) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col bg-black">
-        {/* Top bar */}
         <div className="flex items-center gap-3 bg-blue-dark px-4 py-3 shrink-0">
-          <button onClick={() => setActiveGame(null)}
-            className="text-white/80 text-xl leading-none">‹</button>
-          <span className="text-sm font-semibold text-white">
-            {isAr ? game.titleAr : game.titleEn}
-          </span>
+          <button onClick={() => setOpen(false)} className="text-white/80 text-xl leading-none">‹</button>
+          <span className="text-sm font-semibold text-white">Verse Up Arena</span>
         </div>
         <iframe
-          src={game.url}
+          src="https://verse-up-arena.vercel.app"
           className="flex-1 w-full border-none"
           allow="fullscreen"
-          title={game.titleEn}
+          title="Verse Up Arena"
         />
       </div>
     );
@@ -83,27 +29,21 @@ export default function GamesPage() {
   return (
     <div className="min-h-dvh" style={{ background: "radial-gradient(ellipse at 50% 0%, #1a4db5 0%, #0f1f5c 70%)" }}>
       <PageHeader title={isAr ? "الألعاب" : "Games"} icon="🎮" />
-      <div className="grid grid-cols-2 gap-4 p-4">
-        {GAMES.map((game) => (
-          <button key={game.key}
-            onClick={() => game.url ? setActiveGame(game.key) : null}
-            className={`flex flex-col items-center gap-3 rounded-2xl border p-6 text-center backdrop-blur-sm transition active:scale-95 ${
-              game.url
-                ? "border-blue-accent/40 bg-blue-primary/40 hover:bg-blue-mid/50 cursor-pointer"
-                : "border-blue-mid/20 bg-blue-primary/20 opacity-50 cursor-not-allowed"
-            }`}>
-            <span className="text-4xl">{game.icon}</span>
-            <div>
-              <p className="text-sm font-semibold text-white">{isAr ? game.titleAr : game.titleEn}</p>
-              <p className="text-xs text-blue-light/50 mt-0.5">{isAr ? game.descAr : game.descEn}</p>
-            </div>
-            {game.url && (
-              <span className="rounded-full bg-blue-accent/20 px-2 py-0.5 text-xs text-blue-accent">
-                {isAr ? "العب الآن" : "Play Now"}
-              </span>
-            )}
-          </button>
-        ))}
+
+      <div className="flex flex-col items-center px-6 pt-8">
+        <button onClick={() => setOpen(true)}
+          className="w-full max-w-sm rounded-3xl border border-yellow-400/30 bg-blue-primary/40 p-6 text-center backdrop-blur-sm transition hover:bg-blue-mid/50 active:scale-95 shadow-xl shadow-yellow-400/10">
+          <div className="relative mx-auto mb-4 h-48 w-48">
+            <Image src="/verse-up-logo.png" alt="Verse Up Arena" fill className="object-contain drop-shadow-2xl" />
+          </div>
+          <p className="text-lg font-bold text-white">Verse Up Arena</p>
+          <p className="mt-1 text-sm text-blue-light/60">
+            {isAr ? "تحدي آيات الكتاب المقدس" : "Bible verse challenge game"}
+          </p>
+          <span className="mt-4 inline-block rounded-full bg-yellow-400 px-6 py-2 text-sm font-bold text-blue-dark">
+            {isAr ? "العب الآن ▶" : "Play Now ▶"}
+          </span>
+        </button>
       </div>
     </div>
   );
