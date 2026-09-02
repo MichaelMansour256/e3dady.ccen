@@ -4,35 +4,48 @@ import { useDropzone } from "react-dropzone";
 import Image from "next/image";
 
 type Photo = { id: string; url: string; width: number; height: number };
-type Event = { name: string; path: string; photos: Photo[] };
+type GalleryEvent = { name: string; path: string; photos: Photo[] };
+type SpecialEvent = { id: string; title: string; titleAr: string; date: string; time: string; description?: string; descriptionAr?: string };
+
+const inputCls = "w-full rounded-xl bg-blue-dark/60 px-4 py-2 text-white placeholder-blue-light/40 outline-none ring-1 ring-blue-mid/40 focus:ring-blue-accent text-sm";
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
   const [authError, setAuthError] = useState(false);
+  const [tab, setTab] = useState<"gallery" | "events">("gallery");
 
-  const [events, setEvents] = useState<Event[]>([]);
+  // Gallery state
+  const [folders, setFolders] = useState<GalleryEvent[]>([]);
   const [selectedFolder, setSelectedFolder] = useState("");
   const [newFolder, setNewFolder] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
 
+  // Events state
+  const [specialEvents, setSpecialEvents] = useState<SpecialEvent[]>([]);
+  const [newEvent, setNewEvent] = useState({ title: "", titleAr: "", date: "", time: "12:30", description: "", descriptionAr: "" });
+
   const headers = { "x-admin-password": password };
 
-  const fetchEvents = useCallback(async () => {
+  const fetchFolders = useCallback(async () => {
     const res = await fetch("/api/gallery");
-    const data = await res.json();
-    setEvents(data);
+    setFolders(await res.json());
   }, []);
 
-  useEffect(() => { if (authed) fetchEvents(); }, [authed, fetchEvents]);
+  const fetchSpecialEvents = useCallback(async () => {
+    const res = await fetch("/api/events");
+    const data = await res.json();
+    setSpecialEvents(Array.isArray(data) ? data : []);
+  }, []);
+
+  useEffect(() => {
+    if (authed) { fetchFolders(); fetchSpecialEvents(); }
+  }, [authed, fetchFolders, fetchSpecialEvents]);
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    fetch("/api/admin/auth", {
-      method: "POST",
-      headers,
-    }).then((r) => {
+    fetch("/api/admin/auth", { method: "POST", headers }).then((r) => {
       if (r.status === 401) { setAuthError(true); return; }
       setAuthed(true);
     });
@@ -46,30 +59,25 @@ export default function AdminPage() {
       body: JSON.stringify({ name: newFolder.trim() }),
     });
     setNewFolder("");
-    fetchEvents();
+    fetchFolders();
   }
 
   const onDrop = useCallback(async (files: File[]) => {
     if (!selectedFolder) return alert("Select an event folder first");
     setUploading(true);
-    setUploadProgress(`Uploading 0 / ${files.length}`);
-
     for (let i = 0; i < files.length; i++) {
+      setUploadProgress(`Uploading ${i + 1} / ${files.length}`);
       const fd = new FormData();
       fd.append("folder", selectedFolder);
       fd.append("files", files[i]);
       await fetch("/api/admin/upload", { method: "POST", headers, body: fd });
-      setUploadProgress(`Uploading ${i + 1} / ${files.length}`);
     }
-
     setUploading(false);
     setUploadProgress("");
-    fetchEvents();
-  }, [selectedFolder, headers, fetchEvents]);
+    fetchFolders();
+  }, [selectedFolder, headers, fetchFolders]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop, accept: { "image/*": [] }, multiple: true,
-  });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: { "image/*": [] }, multiple: true });
 
   async function deletePhoto(publicId: string) {
     if (!confirm("Delete this photo?")) return;
@@ -78,12 +86,32 @@ export default function AdminPage() {
       headers: { ...headers, "content-type": "application/json" },
       body: JSON.stringify({ publicId }),
     });
-    fetchEvents();
+    fetchFolders();
   }
 
-  const currentPhotos = events.find((e) => e.path === selectedFolder)?.photos ?? [];
+  async function addSpecialEvent() {
+    if (!newEvent.title || !newEvent.date || !newEvent.time) return alert("Title, date and time are required");
+    await fetch("/api/admin/events", {
+      method: "POST",
+      headers: { ...headers, "content-type": "application/json" },
+      body: JSON.stringify(newEvent),
+    });
+    setNewEvent({ title: "", titleAr: "", date: "", time: "12:30", description: "", descriptionAr: "" });
+    fetchSpecialEvents();
+  }
 
-  // Login screen
+  async function deleteSpecialEvent(id: string) {
+    if (!confirm("Delete this event?")) return;
+    await fetch("/api/admin/events", {
+      method: "DELETE",
+      headers: { ...headers, "content-type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    fetchSpecialEvents();
+  }
+
+  const currentPhotos = folders.find((e) => e.path === selectedFolder)?.photos ?? [];
+
   if (!authed) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-6"
@@ -91,16 +119,11 @@ export default function AdminPage() {
         <div className="w-full max-w-sm rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-8 backdrop-blur-sm">
           <h1 className="mb-6 text-center text-2xl font-bold text-white">Admin Login</h1>
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
+            <input type="password" placeholder="Password" value={password}
               onChange={(e) => { setPassword(e.target.value); setAuthError(false); }}
-              className="rounded-xl bg-blue-dark/60 px-4 py-3 text-white placeholder-blue-light/40 outline-none ring-1 ring-blue-mid/40 focus:ring-blue-accent"
-            />
+              className={inputCls} />
             {authError && <p className="text-sm text-red-400">Wrong password</p>}
-            <button type="submit"
-              className="rounded-xl bg-blue-accent py-3 font-semibold text-white transition hover:bg-blue-mid">
+            <button type="submit" className="rounded-xl bg-blue-accent py-3 font-semibold text-white hover:bg-blue-mid">
               Login
             </button>
           </form>
@@ -113,77 +136,119 @@ export default function AdminPage() {
     <div className="min-h-dvh px-4 py-6"
       style={{ background: "radial-gradient(ellipse at 50% 0%, #1a4db5 0%, #0f1f5c 70%)" }}>
       <div className="mx-auto max-w-2xl">
-        <h1 className="mb-6 text-2xl font-bold text-white">🛠 Admin — Gallery</h1>
+        <h1 className="mb-4 text-2xl font-bold text-white">🛠 Admin Dashboard</h1>
 
-        {/* Create event folder */}
-        <section className="mb-6 rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
-          <h2 className="mb-3 font-semibold text-white">Create Event Folder</h2>
-          <div className="flex gap-2">
-            <input
-              value={newFolder}
-              onChange={(e) => setNewFolder(e.target.value)}
-              placeholder="Event name (e.g. Camp 2025)"
-              className="flex-1 rounded-xl bg-blue-dark/60 px-4 py-2 text-white placeholder-blue-light/40 outline-none ring-1 ring-blue-mid/40 focus:ring-blue-accent text-sm"
-            />
-            <button onClick={createFolder}
-              className="rounded-xl bg-blue-accent px-4 py-2 text-sm font-semibold text-white hover:bg-blue-mid">
-              Create
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          {(["gallery", "events"] as const).map((t) => (
+            <button key={t} onClick={() => setTab(t)}
+              className={`flex-1 rounded-xl py-2 text-sm font-semibold transition ${tab === t ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}>
+              {t === "gallery" ? "🖼️ Gallery" : "📅 Events"}
             </button>
-          </div>
-        </section>
+          ))}
+        </div>
 
-        {/* Select folder + upload */}
-        <section className="mb-6 rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
-          <h2 className="mb-3 font-semibold text-white">Upload Photos</h2>
-          <select
-            value={selectedFolder}
-            onChange={(e) => setSelectedFolder(e.target.value)}
-            className="mb-3 w-full rounded-xl bg-blue-dark/60 px-4 py-2 text-white outline-none ring-1 ring-blue-mid/40 focus:ring-blue-accent text-sm">
-            <option value="">— Select event folder —</option>
-            {events.map((e) => (
-              <option key={e.path} value={e.path}>{e.name}</option>
-            ))}
-          </select>
-
-          <div {...getRootProps()}
-            className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed py-10 transition cursor-pointer ${
-              isDragActive ? "border-blue-accent bg-blue-accent/10" : "border-blue-mid/40 hover:border-blue-accent/60"
-            }`}>
-            <input {...getInputProps()} />
-            <span className="text-3xl mb-2">📸</span>
-            <p className="text-sm text-blue-light/70">
-              {isDragActive ? "Drop photos here…" : "Drag & drop photos or tap to select"}
-            </p>
-          </div>
-
-          {uploading && (
-            <p className="mt-2 text-center text-sm text-blue-accent animate-pulse">{uploadProgress}</p>
-          )}
-        </section>
-
-        {/* Photos in selected folder */}
-        {selectedFolder && (
-          <section className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
-            <h2 className="mb-3 font-semibold text-white">
-              {events.find((e) => e.path === selectedFolder)?.name} — {currentPhotos.length} photos
-            </h2>
-            {currentPhotos.length === 0 ? (
-              <p className="text-sm text-blue-light/50">No photos yet</p>
-            ) : (
-              <div className="grid grid-cols-3 gap-2">
-                {currentPhotos.map((photo) => (
-                  <div key={photo.id} className="relative aspect-square overflow-hidden rounded-xl group">
-                    <Image src={photo.url} alt="" fill className="object-cover" sizes="33vw" />
-                    <button
-                      onClick={() => deletePhoto(photo.id)}
-                      className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition text-white text-2xl">
-                      🗑
-                    </button>
-                  </div>
-                ))}
+        {/* ── GALLERY TAB ── */}
+        {tab === "gallery" && (
+          <>
+            <section className="mb-4 rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
+              <h2 className="mb-3 font-semibold text-white">Create Event Folder</h2>
+              <div className="flex gap-2">
+                <input value={newFolder} onChange={(e) => setNewFolder(e.target.value)}
+                  placeholder="Event name (e.g. Camp 2025)" className={inputCls} />
+                <button onClick={createFolder}
+                  className="rounded-xl bg-blue-accent px-4 py-2 text-sm font-semibold text-white hover:bg-blue-mid shrink-0">
+                  Create
+                </button>
               </div>
+            </section>
+
+            <section className="mb-4 rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
+              <h2 className="mb-3 font-semibold text-white">Upload Photos</h2>
+              <select value={selectedFolder} onChange={(e) => setSelectedFolder(e.target.value)} className={`${inputCls} mb-3`}>
+                <option value="">— Select event folder —</option>
+                {folders.map((e) => <option key={e.path} value={e.path}>{e.name}</option>)}
+              </select>
+              <div {...getRootProps()}
+                className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed py-10 cursor-pointer transition ${isDragActive ? "border-blue-accent bg-blue-accent/10" : "border-blue-mid/40 hover:border-blue-accent/60"}`}>
+                <input {...getInputProps()} />
+                <span className="text-3xl mb-2">📸</span>
+                <p className="text-sm text-blue-light/70">{isDragActive ? "Drop photos here…" : "Drag & drop or tap to select"}</p>
+              </div>
+              {uploading && <p className="mt-2 text-center text-sm text-blue-accent animate-pulse">{uploadProgress}</p>}
+            </section>
+
+            {selectedFolder && (
+              <section className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
+                <h2 className="mb-3 font-semibold text-white">
+                  {folders.find((e) => e.path === selectedFolder)?.name} — {currentPhotos.length} photos
+                </h2>
+                {currentPhotos.length === 0 ? (
+                  <p className="text-sm text-blue-light/50">No photos yet</p>
+                ) : (
+                  <div className="grid grid-cols-3 gap-2">
+                    {currentPhotos.map((photo) => (
+                      <div key={photo.id} className="relative aspect-square overflow-hidden rounded-xl group">
+                        <Image src={photo.url} alt="" fill className="object-cover" sizes="33vw" />
+                        <button onClick={() => deletePhoto(photo.id)}
+                          className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition text-white text-2xl">
+                          🗑
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
             )}
-          </section>
+          </>
+        )}
+
+        {/* ── EVENTS TAB ── */}
+        {tab === "events" && (
+          <>
+            <section className="mb-4 rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
+              <h2 className="mb-3 font-semibold text-white">Add Special Event</h2>
+              <div className="flex flex-col gap-2">
+                <input placeholder="Title (English)" value={newEvent.title}
+                  onChange={(e) => setNewEvent((p) => ({ ...p, title: e.target.value }))} className={inputCls} />
+                <input placeholder="العنوان (عربي)" value={newEvent.titleAr}
+                  onChange={(e) => setNewEvent((p) => ({ ...p, titleAr: e.target.value }))} className={inputCls} dir="rtl" />
+                <div className="flex gap-2">
+                  <input type="date" value={newEvent.date}
+                    onChange={(e) => setNewEvent((p) => ({ ...p, date: e.target.value }))} className={`${inputCls} flex-1`} />
+                  <input type="time" value={newEvent.time}
+                    onChange={(e) => setNewEvent((p) => ({ ...p, time: e.target.value }))} className={`${inputCls} w-32`} />
+                </div>
+                <input placeholder="Description (English)" value={newEvent.description}
+                  onChange={(e) => setNewEvent((p) => ({ ...p, description: e.target.value }))} className={inputCls} />
+                <input placeholder="الوصف (عربي)" value={newEvent.descriptionAr}
+                  onChange={(e) => setNewEvent((p) => ({ ...p, descriptionAr: e.target.value }))} className={inputCls} dir="rtl" />
+                <button onClick={addSpecialEvent}
+                  className="rounded-xl bg-blue-accent py-2 text-sm font-semibold text-white hover:bg-blue-mid">
+                  Add Event
+                </button>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
+              <h2 className="mb-3 font-semibold text-white">Special Events ({specialEvents.length})</h2>
+              {specialEvents.length === 0 ? (
+                <p className="text-sm text-blue-light/50">No special events yet</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {specialEvents.map((e) => (
+                    <div key={e.id} className="flex items-center justify-between rounded-xl bg-blue-dark/40 px-4 py-3">
+                      <div>
+                        <p className="text-sm font-semibold text-white">{e.title}</p>
+                        <p className="text-xs text-blue-light/50">{e.date} · {e.time}</p>
+                      </div>
+                      <button onClick={() => deleteSpecialEvent(e.id)} className="text-red-400 text-lg hover:text-red-300">🗑</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
         )}
       </div>
     </div>
