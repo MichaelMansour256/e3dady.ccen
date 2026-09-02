@@ -1,0 +1,39 @@
+{
+  "nav": {
+    "home": "Home",
+    "events": "Events",
+    "bible": "Bible",
+    "games": "Games",
+    "more": "More"
+  },
+  "home": {
+    "welcome": "Welcome to E3dady",
+    "subtitle": "E3dady Youth Meeting · Christ Church – Ezbet El Nakhl"
+  },
+  "events": {
+    "title": "Events",
+    "upcoming": "Upcoming",
+    "past": "Past Events"
+  },
+  "bible": {
+    "title": "Bible",
+    "verseOfWeek": "Verse of the Week",
+    "studies": "Studies",
+    "resources": "Resources"
+  },
+  "games": {
+    "title": "Games",
+    "holyWordle": "HolyWordle",
+    "crossword": "Crossword",
+    "whoAmI": "Who Am I?",
+    "emojiBible": "Emoji Bible"
+  },
+  "more": {
+    "title": "More",
+    "about": "About Us",
+    "gallery": "Gallery",
+    "servants": "Servants",
+    "prayerWall": "Prayer Wall",
+    "contact": "Contact"
+  }
+}

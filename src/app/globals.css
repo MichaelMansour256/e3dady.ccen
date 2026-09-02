@@ -1,0 +1,42 @@
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;600;700&display=swap");
+@import "tailwindcss";
+
+:root {
+  --blue-dark: #0f1f5c;
+  --blue-primary: #1a3a8f;
+  --blue-mid: #1e40af;
+  --blue-accent: #3b82f6;
+  --blue-light: #93c5fd;
+  --white: #ffffff;
+}
+
+@theme inline {
+  --color-blue-dark: var(--blue-dark);
+  --color-blue-primary: var(--blue-primary);
+  --color-blue-mid: var(--blue-mid);
+  --color-blue-accent: var(--blue-accent);
+  --color-blue-light: var(--blue-light);
+}
+
+html[lang="ar"],
+html[lang="ar"] body {
+  font-family: "Cairo", sans-serif;
+  direction: rtl;
+}
+
+html[lang="en"],
+html[lang="en"] body {
+  font-family: "Inter", sans-serif;
+  direction: ltr;
+}
+
+body {
+  background: var(--blue-dark);
+  color: var(--white);
+  min-height: 100dvh;
+}
+
+/* Safe area for mobile bottom nav */
+.pb-safe {
+  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
