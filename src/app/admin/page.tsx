@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
+import { BIBLE_BOOKS } from "@/lib/bibleBooks";
 
 type Photo = { id: string; url: string; width: number; height: number };
 type GalleryEvent = { name: string; path: string; photos: Photo[] };
@@ -13,7 +14,7 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
   const [authError, setAuthError] = useState(false);
-  const [tab, setTab] = useState<"gallery" | "events">("gallery");
+  const [tab, setTab] = useState<"gallery" | "events" | "verse">("gallery");
 
   // Gallery state
   const [folders, setFolders] = useState<GalleryEvent[]>([]);
@@ -25,6 +26,10 @@ export default function AdminPage() {
   // Events state
   const [specialEvents, setSpecialEvents] = useState<SpecialEvent[]>([]);
   const [newEvent, setNewEvent] = useState({ title: "", titleAr: "", date: "", time: "12:30", description: "", descriptionAr: "" });
+
+  // Verse state
+  const [verseForm, setVerseForm] = useState({ book: "19", chapter: "23", verse: "1", note: "" });
+  const [verseSaved, setVerseSaved] = useState(false);
 
   const headers = { "x-admin-password": password };
 
@@ -140,10 +145,10 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6">
-          {(["gallery", "events"] as const).map((t) => (
+          {(["gallery", "events", "verse"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`flex-1 rounded-xl py-2 text-sm font-semibold transition ${tab === t ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}>
-              {t === "gallery" ? "🖼️ Gallery" : "📅 Events"}
+              {t === "gallery" ? "🖼️ Gallery" : t === "events" ? "📅 Events" : "✨ Verse"}
             </button>
           ))}
         </div>
@@ -201,6 +206,40 @@ export default function AdminPage() {
               </section>
             )}
           </>
+        )}
+
+        {/* ── VERSE TAB ── */}
+        {tab === "verse" && (
+          <section className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
+            <h2 className="mb-3 font-semibold text-white">✨ Verse of the Week</h2>
+            <div className="flex flex-col gap-2">
+              <select value={verseForm.book} onChange={(e) => setVerseForm((p) => ({ ...p, book: e.target.value }))} className={inputCls} dir="rtl">
+                {BIBLE_BOOKS.map((b) => (
+                  <option key={b.nr} value={String(b.nr)}>{b.name}</option>
+                ))}
+              </select>
+              <div className="flex gap-2">
+                <input type="number" min={1} placeholder="Chapter" value={verseForm.chapter}
+                  onChange={(e) => setVerseForm((p) => ({ ...p, chapter: e.target.value }))} className={`${inputCls} flex-1`} />
+                <input type="number" min={1} placeholder="Verse" value={verseForm.verse}
+                  onChange={(e) => setVerseForm((p) => ({ ...p, verse: e.target.value }))} className={`${inputCls} flex-1`} />
+              </div>
+              <input placeholder="ملاحظة (اختياري)" value={verseForm.note} dir="rtl"
+                onChange={(e) => setVerseForm((p) => ({ ...p, note: e.target.value }))} className={inputCls} />
+              <button onClick={async () => {
+                const book = BIBLE_BOOKS.find((b) => b.nr === Number(verseForm.book));
+                await fetch("/api/admin/verse", {
+                  method: "POST",
+                  headers: { ...headers, "content-type": "application/json" },
+                  body: JSON.stringify({ book: Number(verseForm.book), bookName: book?.name, chapter: Number(verseForm.chapter), verse: Number(verseForm.verse), note: verseForm.note }),
+                });
+                setVerseSaved(true);
+                setTimeout(() => setVerseSaved(false), 2000);
+              }} className="rounded-xl bg-blue-accent py-2 text-sm font-semibold text-white hover:bg-blue-mid">
+                {verseSaved ? "✅ Saved!" : "Save Verse"}
+              </button>
+            </div>
+          </section>
         )}
 
         {/* ── EVENTS TAB ── */}
