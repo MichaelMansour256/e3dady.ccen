@@ -14,7 +14,12 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
   const [authError, setAuthError] = useState(false);
-  const [tab, setTab] = useState<"gallery" | "events" | "verse">("gallery");
+  const [tab, setTab] = useState<"gallery" | "events" | "verse" | "prayer">("gallery");
+
+  // Prayer state
+  type PrayerRequest = { id: string; name: string; request: string; pray_count: number; status: string; created_at: string };
+  const [prayers, setPrayers] = useState<PrayerRequest[]>([]);
+  const [prayerFilter, setPrayerFilter] = useState<"pending" | "approved" | "rejected">("pending");
 
   // Gallery state
   const [folders, setFolders] = useState<GalleryEvent[]>([]);
@@ -44,9 +49,15 @@ export default function AdminPage() {
     setSpecialEvents(Array.isArray(data) ? data : []);
   }, []);
 
+  const fetchPrayers = useCallback(async () => {
+    const res = await fetch("/api/admin/prayer", { headers });
+    const data = await res.json();
+    setPrayers(Array.isArray(data) ? data : []);
+  }, [password]);
+
   useEffect(() => {
-    if (authed) { fetchFolders(); fetchSpecialEvents(); }
-  }, [authed, fetchFolders, fetchSpecialEvents]);
+    if (authed) { fetchFolders(); fetchSpecialEvents(); fetchPrayers(); }
+  }, [authed, fetchFolders, fetchSpecialEvents, fetchPrayers]);
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -144,11 +155,11 @@ export default function AdminPage() {
         <h1 className="mb-4 text-2xl font-bold text-white">🛠 Admin Dashboard</h1>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          {(["gallery", "events", "verse"] as const).map((t) => (
+        <div className="grid grid-cols-2 gap-2 mb-6">
+          {(["gallery", "events", "verse", "prayer"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
-              className={`flex-1 rounded-xl py-2 text-sm font-semibold transition ${tab === t ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}>
-              {t === "gallery" ? "🖼️ Gallery" : t === "events" ? "📅 Events" : "✨ Verse"}
+              className={`rounded-xl py-2 text-sm font-semibold transition ${tab === t ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}>
+              {t === "gallery" ? "🖼️ Gallery" : t === "events" ? "📅 Events" : t === "verse" ? "✨ Verse" : "🙏 Prayer"}
             </button>
           ))}
         </div>
@@ -206,6 +217,76 @@ export default function AdminPage() {
               </section>
             )}
           </>
+        )}
+
+        {/* ── PRAYER TAB ── */}
+        {tab === "prayer" && (
+          <section className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
+            <h2 className="mb-3 font-semibold text-white">🙏 Prayer Requests</h2>
+
+            {/* Filter */}
+            <div className="flex gap-2 mb-4">
+              {(["pending", "approved", "rejected"] as const).map((f) => (
+                <button key={f} onClick={() => setPrayerFilter(f)}
+                  className={`flex-1 rounded-xl py-1.5 text-xs font-semibold transition ${
+                    prayerFilter === f ? "bg-blue-accent text-white" : "bg-blue-dark/40 text-blue-light/60"
+                  }`}>
+                  {f === "pending" ? `⏳ Pending (${prayers.filter(p => p.status === "pending").length})` :
+                   f === "approved" ? `✅ Approved` : `❌ Rejected`}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-3">
+              {prayers.filter((p) => p.status === prayerFilter).length === 0 ? (
+                <p className="text-sm text-blue-light/50 text-center py-4">No {prayerFilter} requests</p>
+              ) : (
+                prayers.filter((p) => p.status === prayerFilter).map((prayer) => (
+                  <div key={prayer.id} dir="rtl"
+                    className="rounded-xl bg-blue-dark/40 p-4 border border-blue-mid/20">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div>
+                        <p className="text-sm font-semibold text-white">{prayer.name}</p>
+                        <p className="text-xs text-blue-light/40">
+                          {new Date(prayer.created_at).toLocaleDateString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                      </div>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        prayer.status === "pending" ? "bg-yellow-400/20 text-yellow-400" :
+                        prayer.status === "approved" ? "bg-green-400/20 text-green-400" :
+                        "bg-red-400/20 text-red-400"
+                      }`}>{prayer.status}</span>
+                    </div>
+                    <p className="text-sm text-white/80 mb-3 leading-relaxed">{prayer.request}</p>
+                    <div className="flex gap-2">
+                      {prayer.status !== "approved" && (
+                        <button onClick={async () => {
+                          await fetch("/api/admin/prayer", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ id: prayer.id, status: "approved" }) });
+                          fetchPrayers();
+                        }} className="flex-1 rounded-lg bg-green-500/20 py-1.5 text-xs font-semibold text-green-400 hover:bg-green-500/30">
+                          ✅ Approve
+                        </button>
+                      )}
+                      {prayer.status !== "rejected" && (
+                        <button onClick={async () => {
+                          await fetch("/api/admin/prayer", { method: "PATCH", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ id: prayer.id, status: "rejected" }) });
+                          fetchPrayers();
+                        }} className="flex-1 rounded-lg bg-red-500/20 py-1.5 text-xs font-semibold text-red-400 hover:bg-red-500/30">
+                          ❌ Reject
+                        </button>
+                      )}
+                      <button onClick={async () => {
+                        await fetch("/api/admin/prayer", { method: "DELETE", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ id: prayer.id }) });
+                        fetchPrayers();
+                      }} className="rounded-lg bg-blue-dark/60 px-3 py-1.5 text-xs text-blue-light/50 hover:text-red-400">
+                        🗑
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
         )}
 
         {/* ── VERSE TAB ── */}
