@@ -29,15 +29,12 @@ export default function AdminPage() {
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    // We verify by making a test request
-    fetch("/api/admin/folder", {
+    fetch("/api/admin/auth", {
       method: "POST",
-      headers: { ...headers, "content-type": "application/json" },
-      body: JSON.stringify({ name: "__test_auth__" }),
+      headers,
     }).then((r) => {
       if (r.status === 401) { setAuthError(true); return; }
       setAuthed(true);
-      // Delete the test folder silently
     });
   }
 
