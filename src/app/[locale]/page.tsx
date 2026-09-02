@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
+import SocialLinks from "@/components/SocialLinks";
 
 export default function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const t = useTranslations("home");
@@ -23,6 +24,7 @@ export default function HomePage({ params }: { params: Promise<{ locale: string 
         </div>
         <h1 className="text-3xl font-bold text-white">{t("welcome")}</h1>
         <p className="mt-2 text-sm text-blue-light/80">{t("subtitle")}</p>
+        <SocialLinks className="mt-4" />
       </div>
 
       {/* Quick nav grid */}
