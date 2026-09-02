@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   title: "E3dady Youth Meeting",
   description: "E3dady Youth Meeting – Christ Church Ezbet El Nakhl",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export const viewport = {
