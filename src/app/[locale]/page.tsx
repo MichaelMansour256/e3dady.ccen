@@ -28,28 +28,18 @@ export default function HomePage() {
       {/* Hero */}
       <div className="relative z-10 flex flex-col items-center px-6 pt-14 pb-6 text-center">
 
-        {/* Logo — no circle crop, full logo with glow */}
-        <div className="animate-fade-up relative mb-5">
-          {/* Glow ring behind logo */}
-          <div className="absolute inset-0 rounded-full bg-blue-accent/20 blur-2xl scale-110" />
-          <Image
-            src="/logo.png"
-            alt="E3dady Logo"
-            width={220}
-            height={220}
-            className="relative drop-shadow-2xl"
-            priority
-          />
+        {/* Circle logo */}
+        <div className="animate-fade-up relative mb-6">
+          <div className="absolute inset-0 rounded-full bg-blue-accent/25 blur-2xl scale-125" />
+          <div className="relative h-40 w-40 overflow-hidden rounded-full shadow-2xl shadow-blue-accent/40 ring-4 ring-blue-accent/50">
+            <Image src="/logo.png" alt="E3dady Logo" width={160} height={160} className="h-full w-full object-cover" priority />
+          </div>
         </div>
 
         {/* Text */}
         <div className="animate-fade-up-delay flex flex-col items-center gap-1">
-          <h1 className="text-3xl font-bold text-white drop-shadow-lg">
-            {t("welcome")}
-          </h1>
-          <p className="text-sm text-blue-light/70 max-w-xs leading-relaxed">
-            {t("subtitle")}
-          </p>
+          <h1 className="text-3xl font-bold text-white drop-shadow-lg">{t("welcome")}</h1>
+          <p className="text-sm text-blue-light/70 max-w-xs leading-relaxed">{t("subtitle")}</p>
         </div>
 
         {/* Divider */}
@@ -75,9 +65,6 @@ export default function HomePage() {
           </Link>
         ))}
       </div>
-
-      {/* Bottom fade */}
-      <div className="pointer-events-none absolute bottom-16 left-0 right-0 h-16 bg-gradient-to-t from-[#060d2e]/60 to-transparent" />
     </div>
   );
 }
