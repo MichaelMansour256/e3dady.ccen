@@ -71,20 +71,6 @@ export default async function LocaleLayout({
                 }
               });
               console.log("OneSignal initialized successfully");
-              
-              // Handle subscription changes
-              OneSignal.on('subscriptionChange', function(isSubscribed) {
-                console.log("Subscription changed. Is subscribed:", isSubscribed);
-                if (isSubscribed) {
-                  console.log("User subscribed to notifications");
-                }
-              });
-
-              // Handle permission changes
-              OneSignal.on('permissionChanged', function(permission) {
-                console.log("Permission changed to:", permission);
-              });
-              
             } catch (error) {
               console.error("OneSignal initialization error:", error);
             }
