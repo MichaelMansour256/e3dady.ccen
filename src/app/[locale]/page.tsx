@@ -1,4 +1,4 @@
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import SocialLinks from "@/components/SocialLinks";
@@ -6,6 +6,7 @@ import SocialLinks from "@/components/SocialLinks";
 export default function HomePage() {
   const t = useTranslations("home");
   const tNav = useTranslations("nav");
+  const locale = useLocale();
 
   const quickLinks = [
     { key: "events", href: "events", icon: "📅" },
@@ -58,7 +59,7 @@ export default function HomePage() {
       {/* Quick nav grid */}
       <div className="animate-fade-up-delay-2 relative z-10 grid w-full max-w-sm grid-cols-2 gap-3 px-5 pb-4">
         {quickLinks.map(({ key, href, icon }) => (
-          <Link key={key} href={href}
+          <Link key={key} href={`/${locale}/${href}`}
             className="group flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-white/5 p-5 text-center backdrop-blur-md transition hover:bg-white/10 hover:border-blue-accent/40 active:scale-95">
             <span className="text-4xl transition group-hover:scale-110">{icon}</span>
             <span className="text-sm font-semibold text-white/90">{tNav(key)}</span>
