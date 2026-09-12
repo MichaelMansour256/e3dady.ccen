@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 const tabs = [
@@ -14,6 +14,13 @@ const tabs = [
 export default function BottomNav({ locale }: { locale: string }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const router = useRouter();
+
+  function toggleLocale() {
+    const next = locale === "ar" ? "en" : "ar";
+    const newPath = pathname.replace(`/${locale}`, `/${next}`);
+    router.push(newPath);
+  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-blue-mid/40 bg-blue-dark/95 backdrop-blur-sm"
@@ -33,6 +40,12 @@ export default function BottomNav({ locale }: { locale: string }) {
           </Link>
         );
       })}
+      {/* Language toggle */}
+      <button onClick={toggleLocale}
+        className="flex flex-1 flex-col items-center gap-0.5 py-2 text-xs text-blue-light/60 hover:text-blue-light transition-colors">
+        <span className="text-xl">{locale === "ar" ? "🇬🇧" : "🇪🇬"}</span>
+        <span>{locale === "ar" ? "EN" : "عر"}</span>
+      </button>
     </nav>
   );
 }
