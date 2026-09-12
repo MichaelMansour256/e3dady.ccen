@@ -12,7 +12,7 @@ export async function GET(req: Request) {
     const result = await sendNotification({
       headingAr: "تذكير باجتماع الغد ✝️",
       headingEn: "Meeting Tomorrow ✝️",
-      messageAr: "اجتماع الجمعة غداً الساعة ١٢:٣٠ ظهراً — كنيسة المسيح عزبة النخل 🙏",
+      messageAr: "اجتماع الجمعة غداً — الساعة ١٢:٣٠ — كنيسة المسيح عزبة النخل 🙏",
       messageEn: "Friday meeting is tomorrow at 12:30 PM — Christ Church Ezbet El Nakhl 🙏",
       url: "/events",
     });
