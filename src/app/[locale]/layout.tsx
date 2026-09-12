@@ -90,7 +90,7 @@ export default async function LocaleLayout({
         console.log("Subscription ID:", event.current.id);
       }
     );
-
+      await OneSignal.Slidedown.promptPush();
   } catch (error) {
     console.error("OneSignal initialization error:", error);
   }
