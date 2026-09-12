@@ -54,11 +54,12 @@ export default async function LocaleLayout({
                 serviceWorkerPath: "/OneSignalSDKWorker.js",
                 serviceWorkerUpdaterPath: "/OneSignalSDKUpdaterWorker.js",
                 allowLocalhost: true,
+                autoResubscribe: true,
                 promptOptions: {
                   slidedown: {
                     prompts: [{
                       type: "push",
-                      autoPrompt: true,
+                      autoPrompt: false,
                       text: {
                         actionMessage: "اشترك في الإشعارات لتصلك تذكيرات الاجتماع وآية الأسبوع",
                         acceptButton: "اشترك",
@@ -70,6 +71,20 @@ export default async function LocaleLayout({
                 }
               });
               console.log("OneSignal initialized successfully");
+              
+              // Listen for subscription changes
+              OneSignal.on('subscriptionChange', function(isSubscribed) {
+                console.log("Subscription changed. Is subscribed:", isSubscribed);
+                if (isSubscribed) {
+                  console.log("User subscribed to notifications");
+                }
+              });
+
+              // Listen for permission changes
+              OneSignal.on('permissionChanged', function(permission) {
+                console.log("Permission changed to:", permission);
+              });
+              
             } catch (error) {
               console.error("OneSignal initialization error:", error);
             }
