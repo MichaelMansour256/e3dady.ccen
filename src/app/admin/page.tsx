@@ -32,6 +32,13 @@ export default function AdminPage() {
   const [specialEvents, setSpecialEvents] = useState<SpecialEvent[]>([]);
   const [newEvent, setNewEvent] = useState({ title: "", titleAr: "", date: "", time: "12:30", description: "", descriptionAr: "" });
 
+  // Invitations state
+  type Invitation = { date: string; url: string; publicId: string };
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [invDate, setInvDate] = useState("");
+  const [invFile, setInvFile] = useState<File | null>(null);
+  const [invUploading, setInvUploading] = useState(false);
+
   // Verse state
   const [verseForm, setVerseForm] = useState({ book: "19", chapter: "23", verse: "1", note: "" });
   const [verseSaved, setVerseSaved] = useState(false);
@@ -49,6 +56,12 @@ export default function AdminPage() {
     setSpecialEvents(Array.isArray(data) ? data : []);
   }, []);
 
+  const fetchInvitations = useCallback(async () => {
+    const res = await fetch("/api/invitations");
+    const data = await res.json();
+    setInvitations(Array.isArray(data) ? data : []);
+  }, []);
+
   const fetchPrayers = useCallback(async () => {
     const res = await fetch("/api/admin/prayer", { headers });
     const data = await res.json();
@@ -56,8 +69,8 @@ export default function AdminPage() {
   }, [password]);
 
   useEffect(() => {
-    if (authed) { fetchFolders(); fetchSpecialEvents(); fetchPrayers(); }
-  }, [authed, fetchFolders, fetchSpecialEvents, fetchPrayers]);
+    if (authed) { fetchFolders(); fetchSpecialEvents(); fetchInvitations(); fetchPrayers(); }
+  }, [authed, fetchFolders, fetchSpecialEvents, fetchInvitations, fetchPrayers]);
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -363,6 +376,45 @@ export default function AdminPage() {
                         <p className="text-xs text-blue-light/50">{e.date} · {e.time}</p>
                       </div>
                       <button onClick={() => deleteSpecialEvent(e.id)} className="text-red-400 text-lg hover:text-red-300">🗑</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Invitations */}
+            <section className="mt-4 rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
+              <h2 className="mb-3 font-semibold text-white">📸 Invitation Photos</h2>
+              <div className="flex flex-col gap-2 mb-4">
+                <input type="date" value={invDate} onChange={(e) => setInvDate(e.target.value)} className={inputCls} />
+                <input type="file" accept="image/*" onChange={(e) => setInvFile(e.target.files?.[0] ?? null)}
+                  className="text-sm text-blue-light/70 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-accent file:px-3 file:py-1 file:text-sm file:text-white" />
+                <button onClick={async () => {
+                  if (!invDate || !invFile) return alert("Date and photo required");
+                  setInvUploading(true);
+                  const fd = new FormData();
+                  fd.append("date", invDate);
+                  fd.append("file", invFile);
+                  await fetch("/api/admin/invitations", { method: "POST", headers, body: fd });
+                  setInvDate(""); setInvFile(null); setInvUploading(false);
+                  fetchInvitations();
+                }} disabled={invUploading}
+                  className="rounded-xl bg-blue-accent py-2 text-sm font-semibold text-white hover:bg-blue-mid disabled:opacity-50">
+                  {invUploading ? "Uploading…" : "Upload Invitation"}
+                </button>
+              </div>
+              {invitations.length === 0 ? (
+                <p className="text-sm text-blue-light/50">No invitations yet</p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {invitations.map((inv) => (
+                    <div key={inv.publicId} className="relative aspect-square overflow-hidden rounded-xl group">
+                      <Image src={inv.url} alt={inv.date} fill className="object-cover" sizes="33vw" />
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 py-0.5 text-center text-xs text-white/80">{inv.date}</div>
+                      <button onClick={async () => {
+                        await fetch("/api/admin/invitations", { method: "DELETE", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify({ publicId: inv.publicId }) });
+                        fetchInvitations();
+                      }} className="absolute top-1 right-1 rounded-full bg-black/50 p-1 text-xs text-white opacity-0 group-hover:opacity-100 transition">🗑</button>
                     </div>
                   ))}
                 </div>
