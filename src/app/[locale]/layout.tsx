@@ -26,10 +26,10 @@ export default async function LocaleLayout({
         <meta name="apple-mobile-web-app-title" content="E3dady" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         {/* Apple touch icons */}
-        <link rel="apple-touch-icon" sizes="180x180" href="/appstore-images/ios/180.png" />
-        <link rel="apple-touch-icon" sizes="167x167" href="/appstore-images/ios/167.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/appstore-images/ios/152.png" />
-        <link rel="apple-touch-icon" sizes="120x120" href="/appstore-images/ios/120.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/app-icon.png" />
+        <link rel="apple-touch-icon" sizes="167x167" href="/app-icon.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/app-icon.png" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/app-icon.png" />
         {/* Apple splash screens */}
         <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" href="/appstore-images/windows/SplashScreen.scale-400.png" />
         <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" href="/appstore-images/windows/SplashScreen.scale-400.png" />

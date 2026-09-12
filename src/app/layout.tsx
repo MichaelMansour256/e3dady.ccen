@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   description: "E3dady Youth Meeting – Christ Church Ezbet El Nakhl",
   manifest: "/manifest.json",
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: "/app-icon.png",
+    apple: "/app-icon.png",
   },
 };
 
