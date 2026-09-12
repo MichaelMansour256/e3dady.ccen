@@ -42,37 +42,45 @@ export default async function LocaleLayout({
         <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="/appstore-images/windows/SplashScreen.scale-200.png" />
         <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="/appstore-images/windows/SplashScreen.scale-150.png" />
         <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" href="/appstore-images/windows/SplashScreen.scale-200.png" />
+        {/* OneSignal SDK */}
+        <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+        <script dangerouslySetInnerHTML={{ __html: `
+          window.OneSignalDeferred = window.OneSignalDeferred || [];
+          OneSignalDeferred.push(async function(OneSignal) {
+            try {
+              await OneSignal.init({
+                appId: "${process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID}",
+                notifyButton: { enable: false },
+                serviceWorkerPath: "/OneSignalSDKWorker.js",
+                serviceWorkerUpdaterPath: "/OneSignalSDKUpdaterWorker.js",
+                allowLocalhost: true,
+                promptOptions: {
+                  slidedown: {
+                    prompts: [{
+                      type: "push",
+                      autoPrompt: true,
+                      text: {
+                        actionMessage: "اشترك في الإشعارات لتصلك تذكيرات الاجتماع وآية الأسبوع",
+                        acceptButton: "اشترك",
+                        cancelButton: "لاحقاً"
+                      },
+                      delay: { pageViews: 1, timeDelay: 5 }
+                    }]
+                  }
+                }
+              });
+              console.log("OneSignal initialized successfully");
+            } catch (error) {
+              console.error("OneSignal initialization error:", error);
+            }
+          });
+        `}} />
       </head>
       <body>
         <NextIntlClientProvider messages={messages}>
           <main className="pb-safe min-h-dvh">{children}</main>
           <BottomNav locale={locale} />
         </NextIntlClientProvider>
-        <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-        <script dangerouslySetInnerHTML={{ __html: `
-          window.OneSignalDeferred = window.OneSignalDeferred || [];
-          OneSignalDeferred.push(async function(OneSignal) {
-            await OneSignal.init({
-              appId: "${process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID}",
-              notifyButton: { enable: false },
-              serviceWorkerPath: "OneSignalSDKWorker.js",
-              promptOptions: {
-                slidedown: {
-                  prompts: [{
-                    type: "push",
-                    autoPrompt: true,
-                    text: {
-                      actionMessage: "اشترك في الإشعارات لتصلك تذكيرات الاجتماع وآية الأسبوع",
-                      acceptButton: "اشترك",
-                      cancelButton: "لاحقاً"
-                    },
-                    delay: { pageViews: 1, timeDelay: 5 }
-                  }]
-                }
-              }
-            });
-          });
-        `}} />
       </body>
     </html>
   );
