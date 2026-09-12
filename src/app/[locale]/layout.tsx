@@ -55,6 +55,7 @@ export default async function LocaleLayout({
             await OneSignal.init({
               appId: "${process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID}",
               notifyButton: { enable: false },
+              serviceWorkerPath: "OneSignalSDKWorker.js",
               promptOptions: {
                 slidedown: {
                   prompts: [{
