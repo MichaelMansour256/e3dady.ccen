@@ -49,7 +49,7 @@ export default async function LocaleLayout({
           OneSignalDeferred.push(async function(OneSignal) {
             try {
               await OneSignal.init({
-                appId: "c59cf2d3-73f3-4f50-914d-2f2cf85fd3d7",
+                appId: "${process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID}",
                 notifyButton: { enable: false },
                 serviceWorkerPath: "/OneSignalSDKWorker.js",
                 serviceWorkerUpdaterPath: "/OneSignalSDKUpdaterWorker.js",
@@ -59,7 +59,7 @@ export default async function LocaleLayout({
                   slidedown: {
                     prompts: [{
                       type: "push",
-                      autoPrompt: false,
+                      autoPrompt: true,
                       text: {
                         actionMessage: "اشترك في الإشعارات لتصلك تذكيرات الاجتماع وآية الأسبوع",
                         acceptButton: "اشترك",
@@ -71,29 +71,23 @@ export default async function LocaleLayout({
                 }
               });
               console.log("OneSignal initialized successfully");
+              
+              // Handle subscription changes
+              OneSignal.on('subscriptionChange', function(isSubscribed) {
+                console.log("Subscription changed. Is subscribed:", isSubscribed);
+                if (isSubscribed) {
+                  console.log("User subscribed to notifications");
+                }
+              });
 
-    console.log(
-      "Opted in:",
-      OneSignal.User.PushSubscription.optedIn
-    );
-
-    console.log(
-      "Subscription ID:",
-      OneSignal.User.PushSubscription.id
-    );
-
-    OneSignal.User.PushSubscription.addEventListener(
-      "change",
-      (event) => {
-        console.log("Subscription changed:", event);
-        console.log("Opted in:", event.current.optedIn);
-        console.log("Subscription ID:", event.current.id);
-      }
-    );
-      await OneSignal.Slidedown.promptPush();
-  } catch (error) {
-    console.error("OneSignal initialization error:", error);
-  }
+              // Handle permission changes
+              OneSignal.on('permissionChanged', function(permission) {
+                console.log("Permission changed to:", permission);
+              });
+              
+            } catch (error) {
+              console.error("OneSignal initialization error:", error);
+            }
           });
         `}} />
       </head>
