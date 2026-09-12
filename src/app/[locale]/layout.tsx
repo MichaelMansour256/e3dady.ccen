@@ -43,6 +43,30 @@ export default async function LocaleLayout({
           <main className="pb-safe min-h-dvh">{children}</main>
           <BottomNav locale={locale} />
         </NextIntlClientProvider>
+        <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+        <script dangerouslySetInnerHTML={{ __html: `
+          window.OneSignalDeferred = window.OneSignalDeferred || [];
+          OneSignalDeferred.push(async function(OneSignal) {
+            await OneSignal.init({
+              appId: "${process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID}",
+              notifyButton: { enable: false },
+              promptOptions: {
+                slidedown: {
+                  prompts: [{
+                    type: "push",
+                    autoPrompt: true,
+                    text: {
+                      actionMessage: "اشترك في الإشعارات لتصلك تذكيرات الاجتماع وآية الأسبوع",
+                      acceptButton: "اشترك",
+                      cancelButton: "لاحقاً"
+                    },
+                    delay: { pageViews: 1, timeDelay: 5 }
+                  }]
+                }
+              }
+            });
+          });
+        `}} />
       </body>
     </html>
   );
