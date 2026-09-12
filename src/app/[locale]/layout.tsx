@@ -71,23 +71,29 @@ export default async function LocaleLayout({
                 }
               });
               console.log("OneSignal initialized successfully");
-              
-              // Listen for subscription changes
-              OneSignal.on('subscriptionChange', function(isSubscribed) {
-                console.log("Subscription changed. Is subscribed:", isSubscribed);
-                if (isSubscribed) {
-                  console.log("User subscribed to notifications");
-                }
-              });
 
-              // Listen for permission changes
-              OneSignal.on('permissionChanged', function(permission) {
-                console.log("Permission changed to:", permission);
-              });
-              
-            } catch (error) {
-              console.error("OneSignal initialization error:", error);
-            }
+    console.log(
+      "Opted in:",
+      OneSignal.User.PushSubscription.optedIn
+    );
+
+    console.log(
+      "Subscription ID:",
+      OneSignal.User.PushSubscription.id
+    );
+
+    OneSignal.User.PushSubscription.addEventListener(
+      "change",
+      (event) => {
+        console.log("Subscription changed:", event);
+        console.log("Opted in:", event.current.optedIn);
+        console.log("Subscription ID:", event.current.id);
+      }
+    );
+
+  } catch (error) {
+    console.error("OneSignal initialization error:", error);
+  }
           });
         `}} />
       </head>
