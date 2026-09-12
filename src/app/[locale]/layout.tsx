@@ -49,7 +49,7 @@ export default async function LocaleLayout({
           OneSignalDeferred.push(async function(OneSignal) {
             try {
               await OneSignal.init({
-                appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID,
+                appId: "c59cf2d3-73f3-4f50-914d-2f2cf85fd3d7",
                 notifyButton: { enable: false },
                 serviceWorkerPath: "/OneSignalSDKWorker.js",
                 serviceWorkerUpdaterPath: "/OneSignalSDKUpdaterWorker.js",
