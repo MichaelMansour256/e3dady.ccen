@@ -17,7 +17,7 @@ export async function GET(req: Request) {
       headingEn: "✨ Verse of the Week",
       messageAr: `${ref.bookName} ${ref.chapter}:${ref.verse}`,
       messageEn: `${ref.bookName} ${ref.chapter}:${ref.verse}`,
-      url: "/bible/verse",
+      url: "/ar/bible/verse",
     });
     return NextResponse.json({ success: true, result });
   } catch (e) {

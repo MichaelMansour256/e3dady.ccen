@@ -3,7 +3,7 @@ export async function sendNotification({
   headingEn,
   messageAr,
   messageEn,
-  url = "/",
+  url = "/ar",
 }: {
   headingAr: string;
   headingEn: string;
@@ -11,21 +11,50 @@ export async function sendNotification({
   messageEn: string;
   url?: string;
 }) {
-  const res = await fetch("https://onesignal.com/api/v1/notifications", {
+  const appId = process.env.ONESIGNAL_APP_ID;
+  const apiKey = process.env.ONESIGNAL_API_KEY;
+  if (!appId || !apiKey) {
+    throw new Error("Missing ONESIGNAL_APP_ID / ONESIGNAL_API_KEY env vars");
+  }
+
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://e3dady-ccen.vercel.app";
+  const fullUrl = `${siteUrl}${url}`;
+
+  const res = await fetch("https://api.onesignal.com/notifications", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Basic ${process.env.ONESIGNAL_API_KEY}`,
+      // NOTE: keep the `Basic` scheme because your key is the legacy REST API
+      // key (dashboard shows "Delivered", so auth already works).
+      // If you generate a *new* REST API key, OneSignal docs use `Key <key>`.
+      Authorization: `Basic ${apiKey}`,
     },
     body: JSON.stringify({
-      app_id: process.env.ONESIGNAL_APP_ID,
-      included_segments: ["All"],
-      headings: { ar: headingAr, en: headingEn },
-      contents: { ar: messageAr, en: messageEn },
-      url: `https://e3dady-ccen.vercel.app${url}`,
-      chrome_web_icon: "https://e3dady-ccen.vercel.app/app-icon.png",
+      app_id: appId,
+      target_channel: "push",
+      // "Subscribed Users" is the canonical segment for the REST API.
+      // "All" is not a valid API segment and can resolve to 0 recipients
+      // or test-only delivery.
+      included_segments: ["Subscribed Users"],
+      headings: { en: headingEn, ar: headingAr },
+      contents: { en: messageEn, ar: messageAr },
+      // `web_url` is the field the Web SDK service worker uses for click-through.
+      // `url` is kept as well for mobile / legacy clients.
+      web_url: fullUrl,
+      url: fullUrl,
+      chrome_web_icon: `${siteUrl}/app-icon.png`,
+      chrome_icon: `${siteUrl}/app-icon.png`,
+      firefox_icon: `${siteUrl}/app-icon.png`,
     }),
   });
 
-  return res.json();
+  const data = await res.json();
+  if (!res.ok || (data as { errors?: unknown }).errors) {
+    console.error("OneSignal API error:", JSON.stringify(data));
+    throw new Error(`OneSignal API error: ${JSON.stringify(data)}`);
+  }
+
+  return data;
 }
+

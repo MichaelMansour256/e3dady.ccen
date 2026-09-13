@@ -14,7 +14,7 @@ export async function GET(req: Request) {
       headingEn: "Meeting Tomorrow ✝️",
       messageAr: "اجتماع الجمعة غداً — الساعة ١٢:٣٠ — كنيسة المسيح عزبة النخل 🙏",
       messageEn: "Friday meeting is tomorrow at 12:30 PM — Christ Church Ezbet El Nakhl 🙏",
-      url: "/events",
+      url: "/ar/events",
     });
     return NextResponse.json({ success: true, result });
   } catch (e) {

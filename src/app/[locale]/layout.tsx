@@ -3,6 +3,7 @@ import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import BottomNav from "@/components/BottomNav";
+import OneSignalInit from "@/components/OneSignalInit";
 import { Cairo, Inter } from "next/font/google";
 
 const cairo = Cairo({ subsets: ["arabic"], weight: ["400", "600", "700"], variable: "--font-cairo", display: "swap" });
@@ -42,42 +43,10 @@ export default async function LocaleLayout({
         <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" href="/appstore-images/windows/SplashScreen.scale-200.png" />
         <link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" href="/appstore-images/windows/SplashScreen.scale-150.png" />
         <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" href="/appstore-images/windows/SplashScreen.scale-200.png" />
-        {/* OneSignal SDK */}
-        <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-        <script dangerouslySetInnerHTML={{ __html: `
-          window.OneSignalDeferred = window.OneSignalDeferred || [];
-          OneSignalDeferred.push(async function(OneSignal) {
-            try {
-              await OneSignal.init({
-                appId: "${process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID}",
-                notifyButton: { enable: false },
-                serviceWorkerPath: "/OneSignalSDKWorker.js",
-                serviceWorkerUpdaterPath: "/OneSignalSDKUpdaterWorker.js",
-                allowLocalhost: true,
-                autoResubscribe: true,
-                promptOptions: {
-                  slidedown: {
-                    prompts: [{
-                      type: "push",
-                      autoPrompt: true,
-                      text: {
-                        actionMessage: "اشترك في الإشعارات لتصلك تذكيرات الاجتماع وآية الأسبوع",
-                        acceptButton: "اشترك",
-                        cancelButton: "لاحقاً"
-                      },
-                      delay: { pageViews: 1, timeDelay: 5 }
-                    }]
-                  }
-                }
-              });
-              console.log("OneSignal initialized successfully");
-            } catch (error) {
-              console.error("OneSignal initialization error:", error);
-            }
-          });
-        `}} />
       </head>
       <body>
+        {/* OneSignal Web SDK v16 - next/script in component, init only after SDK loads */}
+        <OneSignalInit />
         <NextIntlClientProvider messages={messages}>
           <main className="pb-safe min-h-dvh">{children}</main>
           <BottomNav locale={locale} />
