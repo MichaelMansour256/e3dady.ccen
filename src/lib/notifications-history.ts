@@ -1,7 +1,8 @@
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
+// Notification history storage using Supabase
+// Replaces the previous file-based storage (public/notifications-history.json)
+// which doesn't work on Vercel/serverless (read-only filesystem)
 
-const HISTORY_FILE = join(process.cwd(), 'public', 'notifications-history.json');
+import { supabase } from "./supabase";
 
 export interface NotificationRecord {
   id: string;
@@ -13,63 +14,91 @@ export interface NotificationRecord {
   url: string;
   image: string | null;
   onesignalId: string | null;
-  status: 'sent' | 'failed_no_subscribers' | 'failed_error' | string;
+  status: "sent" | "failed_no_subscribers" | "failed_error" | string;
   recipients: number | null;
   createdAt: string;
   error?: string;
 }
 
-function readHistory(): { notifications: NotificationRecord[] } {
-  if (!existsSync(HISTORY_FILE)) {
-    return { notifications: [] };
-  }
-  try {
-    return JSON.parse(readFileSync(HISTORY_FILE, 'utf8'));
-  } catch {
-    return { notifications: [] };
-  }
-}
-
-function writeHistory(data: { notifications: NotificationRecord[] }): void {
-  writeFileSync(HISTORY_FILE, JSON.stringify(data, null, 2), 'utf8');
-}
-
 /**
- * Save a notification record to history.
+ * Save a notification record to Supabase.
  */
-export function putNotificationRecord(record: Omit<NotificationRecord, 'createdAt'>): Promise<void> {
-  return new Promise((resolve, reject) => {
-    try {
-      const history = readHistory();
-      const newRecord = { ...record, createdAt: new Date().toISOString() };
-      history.notifications.unshift(newRecord);
-      // Keep last 100 notifications max
-      if (history.notifications.length > 100) {
-        history.notifications = history.notifications.slice(0, 100);
-      }
-      writeHistory(history);
-      resolve();
-    } catch (e) {
-      reject(e);
-    }
+export async function putNotificationRecord(
+  record: Omit<NotificationRecord, "createdAt">
+): Promise<void> {
+  const { error } = await supabase.from("notifications_history").insert({
+    ...record,
+    created_at: new Date().toISOString(),
   });
+
+  if (error) {
+    console.error("Failed to save notification record to Supabase:", error);
+    throw error;
+  }
 }
 
 /**
  * Get all notification records, newest first.
  */
-export function getNotificationHistory(): NotificationRecord[] {
-  const history = readHistory();
-  return [...history.notifications].sort(
-    (a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime()
-  );
+export async function getNotificationHistory(): Promise<NotificationRecord[]> {
+  const { data, error } = await supabase
+    .from("notifications_history")
+    .select("*")
+    .order("sent_at", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    console.error("Failed to fetch notification history from Supabase:", error);
+    return [];
+  }
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    sentAt: row.sent_at,
+    headingAr: row.heading_ar,
+    headingEn: row.heading_en,
+    messageAr: row.message_ar,
+    messageEn: row.message_en,
+    url: row.url,
+    image: row.image,
+    onesignalId: row.onesignal_id,
+    status: row.status,
+    recipients: row.recipients,
+    createdAt: row.created_at,
+    error: row.error,
+  }));
 }
 
 /**
  * Get a single notification record by ID.
  */
-export function getNotificationById(id: string): NotificationRecord | null {
-  const history = readHistory();
-  return history.notifications.find(n => n.id === id) || null;
+export async function getNotificationById(
+  id: string
+): Promise<NotificationRecord | null> {
+  const { data, error } = await supabase
+    .from("notifications_history")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return {
+    id: data.id,
+    sentAt: data.sent_at,
+    headingAr: data.heading_ar,
+    headingEn: data.heading_en,
+    messageAr: data.message_ar,
+    messageEn: data.message_en,
+    url: data.url,
+    image: data.image,
+    onesignalId: data.onesignal_id,
+    status: data.status,
+    recipients: data.recipients,
+    createdAt: data.created_at,
+    error: data.error,
+  };
 }
 

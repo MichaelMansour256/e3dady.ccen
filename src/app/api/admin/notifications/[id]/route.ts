@@ -11,7 +11,7 @@ export async function GET(
   }
 
   const { id } = await params;
-  const record = getNotificationById(id);
+  const record = await getNotificationById(id);
 
   if (!record) {
     return NextResponse.json({ error: "Notification not found" }, { status: 404 });

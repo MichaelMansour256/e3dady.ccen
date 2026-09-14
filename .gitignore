@@ -36,7 +36,8 @@ yarn-error.log*
 # vercel
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Files with secrets - NEVER commit these
 test-onesignal-filters.js
+test-*.js
+public/notifications-history.json
+

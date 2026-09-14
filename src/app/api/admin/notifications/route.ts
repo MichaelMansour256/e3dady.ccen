@@ -1,42 +1,33 @@
 import { NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
-import { readFileSync, existsSync } from "fs";
-import { join } from "path";
-
-const HISTORY_FILE = join(process.cwd(), "public", "notifications-history.json");
+import { getNotificationHistory, getNotificationById } from "@/lib/notifications-history";
 
 export async function GET(req: Request) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Prefer the local history file (works even if OneSignal list API is unavailable).
-  if (existsSync(HISTORY_FILE)) {
-    try {
-      const history = JSON.parse(readFileSync(HISTORY_FILE, "utf8"));
-      const sorted = [...history.notifications].sort(
-        (a: any, b: any) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime()
-      );
-      return NextResponse.json({
-        notifications: sorted.map((n: any) => ({
-          id: n.id,
-          headingEn: n.headingEn ?? "",
-          headingAr: n.headingAr ?? "",
-          messageEn: n.messageEn ?? "",
-          messageAr: n.messageAr ?? "",
-          url: n.url ?? "/ar",
-          image: n.image ?? null,
-          onesignalId: n.onesignalId ?? null,
-          status: n.status ?? "sent",
-          recipients: n.recipients ?? null,
-          createdAt: n.createdAt,
-          sentAt: n.sentAt,
-        })),
-        source: "local-history",
-      });
-    } catch {
-      // fall through to OneSignal API
-    }
+  // Try to get history from Supabase first
+  let history = await getNotificationHistory();
+  
+  if (history.length > 0) {
+    return NextResponse.json({
+      notifications: history.map((n) => ({
+        id: n.id,
+        headingEn: n.headingEn ?? "",
+        headingAr: n.headingAr ?? "",
+        messageEn: n.messageEn ?? "",
+        messageAr: n.messageAr ?? "",
+        url: n.url ?? "/ar",
+        image: n.image ?? null,
+        onesignalId: n.onesignalId ?? null,
+        status: n.status ?? "sent",
+        recipients: n.recipients ?? null,
+        createdAt: n.createdAt,
+        sentAt: n.sentAt,
+      })),
+      source: "supabase",
+    });
   }
 
   // Fallback: OneSignal notifications list API.
