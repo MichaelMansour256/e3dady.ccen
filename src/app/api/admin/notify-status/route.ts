@@ -29,20 +29,17 @@ export async function GET(req: Request) {
   }
 
   try {
-    // NOTE: /players is the legacy Player model. Web SDK v16 subscriptions
-    // sometimes don't appear here promptly (or at all) — the "Subscribed
-    // Users" segment and actual sending are the source of truth, not this list.
-    // So: query the list AND do a real dry-run count via the notifications
-    // endpoint pattern. We only READ here (no send) — recipients come from
-    // the last-send echo if available.
-    const res = await fetch(
+    const headers = { Authorization: `Basic ${apiKey}` };
+
+    // 1) Legacy /players list (stale for v16, but shows raw values).
+    const playersRes = await fetch(
       `https://api.onesignal.com/players?app_id=${serverAppId}&limit=300&offset=0`,
-      { headers: { Authorization: `Basic ${apiKey}` } }
+      { headers }
     );
-    const data = await res.json();
-    if (!res.ok) {
+    const playersData = await playersRes.json();
+    if (!playersRes.ok) {
       return NextResponse.json(
-        { appIdConfigured: true, error: `OneSignal players API: ${JSON.stringify(data)}` },
+        { appIdConfigured: true, error: `OneSignal players API: ${JSON.stringify(playersData)}` },
         { status: 500 }
       );
     }
@@ -53,13 +50,35 @@ export async function GET(req: Request) {
       invalid_identifier?: boolean;
       device_type?: number;
       last_active?: number;
-    }> = Array.isArray(data.players) ? data.players : [];
+    }> = Array.isArray(playersData.players) ? playersData.players : [];
 
-    // Legacy semantics: notification_types=1 means opted IN at the player
-    // level. Anything else (-2, 0, …) historically meant out — BUT web push
-    // v16 rows can report odd values while still receiving via segment.
     const optedIn = players.filter((p) => p.notification_types === 1);
     const validToken = players.filter((p) => p.invalid_identifier !== true);
+
+    // 2) Modern Subscriptions API — the real v16 source of truth.
+    // GET /apps/{app_id}/subscriptions?limit=.. (org API key style auth varies;
+    // try legacy Basic first, fall back to reporting players-only on failure).
+    let subsSummary: unknown = null;
+    try {
+      const subsRes = await fetch(
+        `https://api.onesignal.com/apps/${serverAppId}/subscriptions?limit=50`,
+        { headers }
+      );
+      const subsData = await subsRes.json();
+      if (subsRes.ok && Array.isArray((subsData as { subscriptions?: unknown }).subscriptions)) {
+        const subs = (subsData as { subscriptions: Array<{ status?: string; type?: string }> }).subscriptions;
+        const counts: Record<string, number> = {};
+        for (const s of subs) {
+          const k = `${s.type ?? "?"}:${s.status ?? "?"}`;
+          counts[k] = (counts[k] ?? 0) + 1;
+        }
+        subsSummary = { sampleSize: subs.length, counts };
+      } else {
+        subsSummary = { error: JSON.stringify(subsData).slice(0, 300) };
+      }
+    } catch (e) {
+      subsSummary = { error: String(e).slice(0, 300) };
+    }
 
     // Raw sample for debugging (ids truncated, no tokens).
     const sample = players.slice(0, 10).map((p) => ({
@@ -67,6 +86,7 @@ export async function GET(req: Request) {
       notification_types: p.notification_types,
       invalid_identifier: p.invalid_identifier,
       device_type: p.device_type,
+      last_active: p.last_active,
     }));
 
     return NextResponse.json({
@@ -75,10 +95,11 @@ export async function GET(req: Request) {
       // Never leak the full IDs — just prefixes for visual comparison.
       serverAppIdPrefix: serverAppId.slice(0, 8),
       clientAppIdPrefix: clientAppId ? clientAppId.slice(0, 8) : "(missing)",
-      totalCount: data.total_count ?? players.length,
+      totalCount: playersData.total_count ?? players.length,
       legacyOptedIn: optedIn.length,
       validTokens: validToken.length,
-      note: "Legacy /players model — v16 web subs may receive via segment even when this list looks stale. Actual send result is the truth.",
+      subsSummary,
+      note: "If legacyOptedIn=0 but subsSummary shows subscribed WebPush rows, sending to 'Subscribed Users' should work — otherwise compare Site URL / app id.",
       sample,
     });
   } catch (error) {
