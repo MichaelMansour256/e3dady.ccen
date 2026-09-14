@@ -44,16 +44,56 @@ export default function AdminPage() {
   const [verseSaved, setVerseSaved] = useState(false);
 
   // Immediate-notification state (🔔 Notify tab)
+  // `urlMode`: quick-pick a destination, or type a custom launch URL.
   const [notifForm, setNotifForm] = useState({
     headingAr: "",
     headingEn: "",
     messageAr: "",
     messageEn: "",
-    url: "/ar",
+    urlMode: "home" as "home" | "events" | "verse" | "custom",
+    customUrl: "",
     image: "",
   });
+  const [notifImgUploading, setNotifImgUploading] = useState(false);
   const [notifSending, setNotifSending] = useState(false);
   const [notifResult, setNotifResult] = useState<string>("");
+
+  function notifLaunchUrl(): string {
+    if (notifForm.urlMode === "custom") {
+      const raw = notifForm.customUrl.trim();
+      if (!raw) return "/ar";
+      // Absolute URL (https://…) or site-relative path (/ar/…) both accepted.
+      // Site-relative is normalized to start with "/".
+      if (/^https?:\/\//i.test(raw)) return raw;
+      return raw.startsWith("/") ? raw : `/${raw}`;
+    }
+    return notifForm.urlMode === "events"
+      ? "/ar/events"
+      : notifForm.urlMode === "verse"
+        ? "/ar/bible/verse"
+        : "/ar";
+  }
+
+  async function uploadNotifImage(file: File) {
+    setNotifImgUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/notify-image", {
+        method: "POST",
+        headers,
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error ?? "Image upload failed");
+        return;
+      }
+      setNotifForm((p) => ({ ...p, image: data.url }));
+    } finally {
+      setNotifImgUploading(false);
+    }
+  }
 
   async function sendImmediateNotification(e: React.FormEvent) {
     e.preventDefault();
@@ -68,7 +108,7 @@ export default function AdminPage() {
           headingEn: notifForm.headingEn,
           messageAr: notifForm.messageAr,
           messageEn: notifForm.messageEn,
-          url: notifForm.url || "/ar",
+          url: notifLaunchUrl(),
           ...(notifForm.image ? { image: notifForm.image } : {}),
         }),
       });
@@ -487,21 +527,35 @@ export default function AdminPage() {
                   onChange={(e) => setNotifForm((p) => ({ ...p, messageAr: e.target.value }))} className={`${inputCls} flex-1`} />
               </div>
               <div className="flex gap-2">
-                <button type="button" onClick={() => setNotifForm((p) => ({ ...p, url: "/ar" }))}
-                  className={`flex-1 rounded-xl py-2 text-xs font-semibold transition ${notifForm.url === "/ar" ? "bg-blue-accent text-white" : "bg-blue-dark/40 text-blue-light/60"}`}>
-                  🏠 Home
-                </button>
-                <button type="button" onClick={() => setNotifForm((p) => ({ ...p, url: "/ar/events" }))}
-                  className={`flex-1 rounded-xl py-2 text-xs font-semibold transition ${notifForm.url === "/ar/events" ? "bg-blue-accent text-white" : "bg-blue-dark/40 text-blue-light/60"}`}>
-                  📅 Events
-                </button>
-                <button type="button" onClick={() => setNotifForm((p) => ({ ...p, url: "/ar/bible/verse" }))}
-                  className={`flex-1 rounded-xl py-2 text-xs font-semibold transition ${notifForm.url === "/ar/bible/verse" ? "bg-blue-accent text-white" : "bg-blue-dark/40 text-blue-light/60"}`}>
-                  ✨ Verse
-                </button>
+                {([["home", "🏠 Home"], ["events", "📅 Events"], ["verse", "✨ Verse"], ["custom", "🔗 Custom"]] as const).map(([mode, label]) => (
+                  <button key={mode} type="button" onClick={() => setNotifForm((p) => ({ ...p, urlMode: mode }))}
+                    className={`flex-1 rounded-xl py-2 text-xs font-semibold transition ${notifForm.urlMode === mode ? "bg-blue-accent text-white" : "bg-blue-dark/40 text-blue-light/60"}`}>
+                    {label}
+                  </button>
+                ))}
               </div>
-              <input placeholder="Image URL (optional — big picture)" value={notifForm.image}
-                onChange={(e) => setNotifForm((p) => ({ ...p, image: e.target.value }))} className={inputCls} dir="ltr" />
+              {notifForm.urlMode === "custom" && (
+                <input placeholder="Launch URL — e.g. /ar/more/gallery or https://…"
+                  value={notifForm.customUrl} dir="ltr"
+                  onChange={(e) => setNotifForm((p) => ({ ...p, customUrl: e.target.value }))} className={inputCls} />
+              )}
+              <div className="flex flex-col gap-2 rounded-xl bg-blue-dark/40 p-3">
+                <label className="text-xs font-semibold text-blue-light/70">
+                  🖼️ Notification image (from your device — big picture)
+                </label>
+                <input type="file" accept="image/*"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadNotifImage(f); }}
+                  disabled={notifImgUploading}
+                  className="text-sm text-blue-light/70 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-accent file:px-3 file:py-1 file:text-sm file:text-white disabled:opacity-50" />
+                {notifImgUploading && <p className="text-xs text-blue-light/50">Uploading image…</p>}
+                {notifForm.image && (
+                  <div className="flex items-center gap-2">
+                    <Image src={notifForm.image} alt="notification preview" width={120} height={80} className="rounded-lg object-cover max-h-20" />
+                    <button type="button" onClick={() => setNotifForm((p) => ({ ...p, image: "" }))}
+                      className="text-xs text-red-400 hover:text-red-300">Remove</button>
+                  </div>
+                )}
+              </div>
               <button type="submit" disabled={notifSending}
                 className="rounded-xl bg-blue-accent py-2 text-sm font-semibold text-white hover:bg-blue-mid disabled:opacity-50">
                 {notifSending ? "Sending…" : "📤 Send Now"}

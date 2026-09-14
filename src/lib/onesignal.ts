@@ -22,7 +22,9 @@ export async function sendNotification({
 
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://e3dady-ccen.vercel.app";
-  const fullUrl = `${siteUrl}${url}`;
+  // `url` may be a site-relative path (/ar/events) or a full https:// URL
+  // typed in the admin Notify tab ("custom" launch URL).
+  const fullUrl = /^https?:\/\//i.test(url) ? url : `${siteUrl}${url}`;
 
   const res = await fetch("https://api.onesignal.com/notifications", {
     method: "POST",
