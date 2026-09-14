@@ -144,7 +144,7 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setNotifResult(`❌ ${data.error ?? "Failed"}${data.details ? ` — ${data.details}` : ""}`);
+        setNotifResult(`🚫 No subscribers — ${data.message ?? data.error ?? "Failed"}${data.details ? ` (${data.details})` : ""}`);
       } else {
         const nid = data.result?.id ? ` (id: ${data.result.id})` : "";
         const rec = data.result?.recipients ? ` — recipients: ${data.result.recipients}` : "";
@@ -598,7 +598,7 @@ export default function AdminPage() {
                 {notifSending ? "Sending…" : "📤 Send Now"}
               </button>
               {notifResult && (
-                <p className={`text-sm ${notifResult.startsWith("✅") ? "text-green-400" : "text-red-400"}`}>{notifResult}</p>
+                <p className={`text-sm ${notifResult.startsWith("✅") ? "text-green-400" : notifResult.startsWith("🚫") ? "text-yellow-400" : "text-red-400"}`}>{notifResult}</p>
               )}
             </form>
           </section>
