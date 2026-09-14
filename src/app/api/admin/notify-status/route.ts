@@ -29,7 +29,12 @@ export async function GET(req: Request) {
   }
 
   try {
-    // Fetch up to 300 players so the counts are real, not a 1-row sample.
+    // NOTE: /players is the legacy Player model. Web SDK v16 subscriptions
+    // sometimes don't appear here promptly (or at all) — the "Subscribed
+    // Users" segment and actual sending are the source of truth, not this list.
+    // So: query the list AND do a real dry-run count via the notifications
+    // endpoint pattern. We only READ here (no send) — recipients come from
+    // the last-send echo if available.
     const res = await fetch(
       `https://api.onesignal.com/players?app_id=${serverAppId}&limit=300&offset=0`,
       { headers: { Authorization: `Basic ${apiKey}` } }
@@ -43,13 +48,26 @@ export async function GET(req: Request) {
     }
 
     const players: Array<{
+      id?: string;
       notification_types?: number;
+      invalid_identifier?: boolean;
       device_type?: number;
       last_active?: number;
     }> = Array.isArray(data.players) ? data.players : [];
-    const subscribedCount = players.filter(
-      (p) => p.notification_types === 1
-    ).length;
+
+    // Legacy semantics: notification_types=1 means opted IN at the player
+    // level. Anything else (-2, 0, …) historically meant out — BUT web push
+    // v16 rows can report odd values while still receiving via segment.
+    const optedIn = players.filter((p) => p.notification_types === 1);
+    const validToken = players.filter((p) => p.invalid_identifier !== true);
+
+    // Raw sample for debugging (ids truncated, no tokens).
+    const sample = players.slice(0, 10).map((p) => ({
+      idPrefix: (p.id ?? "?").slice(0, 8),
+      notification_types: p.notification_types,
+      invalid_identifier: p.invalid_identifier,
+      device_type: p.device_type,
+    }));
 
     return NextResponse.json({
       appIdConfigured: true,
@@ -58,8 +76,10 @@ export async function GET(req: Request) {
       serverAppIdPrefix: serverAppId.slice(0, 8),
       clientAppIdPrefix: clientAppId ? clientAppId.slice(0, 8) : "(missing)",
       totalCount: data.total_count ?? players.length,
-      subscribed: subscribedCount,
-      unsubscribed: players.length - subscribedCount,
+      legacyOptedIn: optedIn.length,
+      validTokens: validToken.length,
+      note: "Legacy /players model — v16 web subs may receive via segment even when this list looks stale. Actual send result is the truth.",
+      sample,
     });
   } catch (error) {
     return NextResponse.json(

@@ -80,14 +80,8 @@ export default function AdminPage() {
         );
         return;
       }
-      if ((data.subscribed ?? 0) === 0) {
-        setNotifStatus(
-          `❌ All ${data.totalCount} devices are UNSUBSCRIBED (opted out / permission blocked / token expired). Open the site on the phone → allow notifications → accept اشترك → then Send Now.`
-        );
-        return;
-      }
       setNotifStatus(
-        `✅ App IDs match [${data.serverAppIdPrefix}…] · subscribed: ${data.subscribed}/${data.totalCount} (unsubscribed: ${data.unsubscribed}). Ready to send.`
+        `App IDs match [${data.serverAppIdPrefix}…] · records: ${data.totalCount} (legacy opted-in: ${data.legacyOptedIn}, valid tokens: ${data.validTokens}). The legacy list can lie for v16 web — just hit Send Now, the send result is the truth.`
       );
     } catch (err) {
       setNotifStatus(`❌ ${String(err)}`);
