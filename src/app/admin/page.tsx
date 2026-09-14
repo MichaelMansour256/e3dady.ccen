@@ -3,49 +3,38 @@ import { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
 import { BIBLE_BOOKS } from "@/lib/bibleBooks";
-
 type Photo = { id: string; url: string; width: number; height: number };
 type GalleryEvent = { name: string; path: string; photos: Photo[] };
 type SpecialEvent = { id: string; title: string; titleAr: string; date: string; time: string; description?: string; descriptionAr?: string };
-
 const inputCls = "w-full rounded-xl bg-blue-dark/60 px-4 py-2 text-white placeholder-blue-light/40 outline-none ring-1 ring-blue-mid/40 focus:ring-blue-accent text-sm";
-
 export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
   const [authError, setAuthError] = useState(false);
   const [tab, setTab] = useState<"gallery" | "events" | "verse" | "prayer" | "notify" | "history">("gallery");
-
   // Prayer state
   type PrayerRequest = { id: string; name: string; request: string; pray_count: number; status: string; created_at: string };
   const [prayers, setPrayers] = useState<PrayerRequest[]>([]);
   const [prayerFilter, setPrayerFilter] = useState<"pending" | "approved" | "rejected">("pending");
-
   // Gallery state
   const [folders, setFolders] = useState<GalleryEvent[]>([]);
   const [selectedFolder, setSelectedFolder] = useState("");
   const [newFolder, setNewFolder] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
-
   // Events state
   const [specialEvents, setSpecialEvents] = useState<SpecialEvent[]>([]);
   const [newEvent, setNewEvent] = useState({ title: "", titleAr: "", date: "", time: "12:30", description: "", descriptionAr: "" });
-
   // Invitations state
   type Invitation = { date: string; url: string; publicId: string };
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [invDate, setInvDate] = useState("");
   const [invFile, setInvFile] = useState<File | null>(null);
   const [invUploading, setInvUploading] = useState(false);
-
   // Verse state
   const [verseForm, setVerseForm] = useState({ book: "19", chapter: "23", verse: "1", note: "" });
   const [verseSaved, setVerseSaved] = useState(false);
-
-              
-  
-  // Immediate-notification state (🔔 Notify tab)
+// Immediate-notification state (🔔 Notify tab)
   // `urlMode`: quick-pick a destination, or type a custom launch URL.
   const [notifForm, setNotifForm] = useState({
     headingAr: "",
@@ -56,7 +45,6 @@ export default function AdminPage() {
     customUrl: "",
     image: "",
   });
-
   // Sync bilingual fields: when one language is filled and the other is empty,
   // copy the value to the empty field.
   useEffect(() => {
@@ -69,16 +57,13 @@ export default function AdminPage() {
     if (messageEn && !messageAr) { next.messageAr = messageEn; updated = true; }
     if (updated) { setNotifForm(next); }
   }, [notifForm.headingAr, notifForm.headingEn, notifForm.messageAr, notifForm.messageEn]);
-
   const [notifImgUploading, setNotifImgUploading] = useState(false);
   const [notifSending, setNotifSending] = useState(false);
   const [notifResult, setNotifResult] = useState<string>("");
   const [notifStatus, setNotifStatus] = useState<string>("");
-
   // Notification history state (📜 History tab)
   const [notifHistory, setNotifHistory] = useState<any[]>([]);
   const [notifHistoryLoading, setNotifHistoryLoading] = useState(false);
-
   async function fetchNotifHistory() {
     setNotifHistoryLoading(true);
     try {
@@ -97,7 +82,6 @@ export default function AdminPage() {
       setNotifHistoryLoading(false);
     }
   }
-
   async function checkNotifStatus() {
     setNotifStatus("Checking…");
     try {
@@ -126,7 +110,6 @@ export default function AdminPage() {
       setNotifStatus(`❌ ${String(err)}`);
     }
   }
-
   function notifLaunchUrl(): string {
     if (notifForm.urlMode === "custom") {
       const raw = notifForm.customUrl.trim();
@@ -142,7 +125,6 @@ export default function AdminPage() {
         ? "/ar/bible/verse"
         : "/ar";
   }
-
   async function uploadNotifImage(file: File) {
     setNotifImgUploading(true);
     try {
@@ -163,7 +145,6 @@ export default function AdminPage() {
       setNotifImgUploading(false);
     }
   }
-
   async function sendImmediateNotification(e: React.FormEvent) {
     e.preventDefault();
     setNotifSending(true);
@@ -199,36 +180,29 @@ export default function AdminPage() {
       setNotifSending(false);
     }
   }
-
   const headers = { "x-admin-password": password };
-
   const fetchFolders = useCallback(async () => {
     const res = await fetch("/api/gallery");
     setFolders(await res.json());
   }, []);
-
   const fetchSpecialEvents = useCallback(async () => {
     const res = await fetch("/api/events");
     const data = await res.json();
     setSpecialEvents(Array.isArray(data) ? data : []);
   }, []);
-
   const fetchInvitations = useCallback(async () => {
     const res = await fetch("/api/invitations");
     const data = await res.json();
     setInvitations(Array.isArray(data) ? data : []);
   }, []);
-
   const fetchPrayers = useCallback(async () => {
     const res = await fetch("/api/admin/prayer", { headers });
     const data = await res.json();
     setPrayers(Array.isArray(data) ? data : []);
   }, [password]);
-
   useEffect(() => {
     if (authed) { fetchFolders(); fetchSpecialEvents(); fetchInvitations(); fetchPrayers(); }
   }, [authed, fetchFolders, fetchSpecialEvents, fetchInvitations, fetchPrayers]);
-
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     fetch("/api/admin/auth", { method: "POST", headers }).then((r) => {
@@ -236,7 +210,6 @@ export default function AdminPage() {
       setAuthed(true);
     });
   }
-
   async function createFolder() {
     if (!newFolder.trim()) return;
     await fetch("/api/admin/folder", {
@@ -247,7 +220,6 @@ export default function AdminPage() {
     setNewFolder("");
     fetchFolders();
   }
-
   const onDrop = useCallback(async (files: File[]) => {
     if (!selectedFolder) return alert("Select an event folder first");
     setUploading(true);
@@ -262,9 +234,7 @@ export default function AdminPage() {
     setUploadProgress("");
     fetchFolders();
   }, [selectedFolder, headers, fetchFolders]);
-
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: { "image/*": [] }, multiple: true });
-
   async function deletePhoto(publicId: string) {
     if (!confirm("Delete this photo?")) return;
     await fetch("/api/admin/delete", {
@@ -274,7 +244,6 @@ export default function AdminPage() {
     });
     fetchFolders();
   }
-
   async function addSpecialEvent() {
     if (!newEvent.title || !newEvent.date || !newEvent.time) return alert("Title, date and time are required");
     await fetch("/api/admin/events", {
@@ -285,7 +254,6 @@ export default function AdminPage() {
     setNewEvent({ title: "", titleAr: "", date: "", time: "12:30", description: "", descriptionAr: "" });
     fetchSpecialEvents();
   }
-
   async function deleteSpecialEvent(id: string) {
     if (!confirm("Delete this event?")) return;
     await fetch("/api/admin/events", {
@@ -295,9 +263,7 @@ export default function AdminPage() {
     });
     fetchSpecialEvents();
   }
-
   const currentPhotos = folders.find((e) => e.path === selectedFolder)?.photos ?? [];
-
   if (!authed) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-6"
@@ -317,13 +283,11 @@ export default function AdminPage() {
       </div>
     );
   }
-
   return (
     <div className="min-h-dvh px-4 py-6"
       style={{ background: "radial-gradient(ellipse at 50% 0%, #1a4db5 0%, #0f1f5c 70%)" }}>
       <div className="mx-auto max-w-2xl">
         <h1 className="mb-4 text-2xl font-bold text-white">🛠 Admin Dashboard</h1>
-
         {/* Tabs */}
         <div className="grid grid-cols-2 gap-2 mb-6">
           {(["gallery", "events", "verse", "prayer", "notify", "history"] as const).map((t) => (
@@ -333,7 +297,6 @@ export default function AdminPage() {
             </button>
           ))}
         </div>
-
         {/* ── GALLERY TAB ── */}
         {tab === "gallery" && (
           <>
@@ -348,7 +311,6 @@ export default function AdminPage() {
                 </button>
               </div>
             </section>
-
             <section className="mb-4 rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
               <h2 className="mb-3 font-semibold text-white">Upload Photos</h2>
               <select value={selectedFolder} onChange={(e) => setSelectedFolder(e.target.value)} className={`${inputCls} mb-3`}>
@@ -363,7 +325,6 @@ export default function AdminPage() {
               </div>
               {uploading && <p className="mt-2 text-center text-sm text-blue-accent animate-pulse">{uploadProgress}</p>}
             </section>
-
             {selectedFolder && (
               <section className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
                 <h2 className="mb-3 font-semibold text-white">
@@ -388,12 +349,10 @@ export default function AdminPage() {
             )}
           </>
         )}
-
         {/* ── PRAYER TAB ── */}
         {tab === "prayer" && (
           <section className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
             <h2 className="mb-3 font-semibold text-white">🙏 Prayer Requests</h2>
-
             {/* Filter */}
             <div className="flex gap-2 mb-4">
               {(["pending", "approved", "rejected"] as const).map((f) => (
@@ -406,7 +365,6 @@ export default function AdminPage() {
                 </button>
               ))}
             </div>
-
             <div className="flex flex-col gap-3">
               {prayers.filter((p) => p.status === prayerFilter).length === 0 ? (
                 <p className="text-sm text-blue-light/50 text-center py-4">No {prayerFilter} requests</p>
@@ -458,7 +416,6 @@ export default function AdminPage() {
             </div>
           </section>
         )}
-
         {/* ── VERSE TAB ── */}
         {tab === "verse" && (
           <section className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
@@ -492,7 +449,6 @@ export default function AdminPage() {
             </div>
           </section>
         )}
-
         {/* ── EVENTS TAB ── */}
         {tab === "events" && (
           <>
@@ -519,7 +475,6 @@ export default function AdminPage() {
                 </button>
               </div>
             </section>
-
             <section className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
               <h2 className="mb-3 font-semibold text-white">Special Events ({specialEvents.length})</h2>
               {specialEvents.length === 0 ? (
@@ -538,7 +493,6 @@ export default function AdminPage() {
                 </div>
               )}
             </section>
-
             {/* Invitations */}
             <section className="mt-4 rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
               <h2 className="mb-3 font-semibold text-white">📸 Invitation Photos</h2>
@@ -720,4 +674,4 @@ export default function AdminPage() {
       </div>
     </div>
   );
-}
+}
