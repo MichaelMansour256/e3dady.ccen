@@ -144,10 +144,14 @@ export default function AdminPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setNotifResult(`🚫 No subscribers — ${data.message ?? data.error ?? "Failed"}${data.details ? ` (${data.details})` : ""}`);
+        setNotifResult(`🚫 ${data.message ?? data.error ?? "Failed"}${data.details ? ` (${data.details})` : ""}`);
+      } else if (data.success === false) {
+        // Backend returned success: false (e.g., no subscribers)
+        setNotifResult(`🚫 ${data.message ?? data.error ?? "Failed"}${data.details ? ` (${data.details})` : ""}`);
       } else {
-        const nid = data.result?.id ? ` (id: ${data.result.id})` : "";
-        const rec = data.result?.recipients ? ` — recipients: ${data.result.recipients}` : "";
+        // Success - data contains notification info
+        const nid = data.id ? ` (id: ${data.id})` : "";
+        const rec = data.recipients ? ` — recipients: ${data.recipients}` : "";
         setNotifResult(`✅ Sent!${nid}${rec}`);
       }
     } catch (err) {
