@@ -2,17 +2,10 @@
   "crons": [
     {
       "path": "/api/cron/meeting-reminder",
-      // (3) Thursday ~19:00 Cairo.
-      // Vercel cron = UTC. Cairo = UTC+2 (winter) / UTC+3 (summer, ~last Fri Apr → last Thu Oct).
-      // 17:00 UTC = 19:00 EET winter / 20:00 EEST summer — we accept the 1h
-      // summer drift rather than editing twice a year.
-      // For exact 19:00 year-round use 17:00 UTC in winter, 16:00 UTC in summer.
       "schedule": "0 17 * * 4"
     },
     {
       "path": "/api/cron/verse-notification",
-      // (3) Sunday ~09:00 Cairo → 07:00 UTC = 09:00 EET winter / 10:00 EEST summer.
-      // Same accepted 1h summer drift; exact 09:00 year-round = 07:00 winter / 06:00 summer.
       "schedule": "0 7 * * 0"
     }
   ]
