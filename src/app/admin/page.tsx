@@ -59,6 +59,29 @@ export default function AdminPage() {
   const [notifResult, setNotifResult] = useState<string>("");
   const [notifStatus, setNotifStatus] = useState<string>("");
 
+  // Notification history state (📜 History tab)
+  const [notifHistory, setNotifHistory] = useState<any[]>([]);
+  const [notifHistoryLoading, setNotifHistoryLoading] = useState(false);
+
+  async function fetchNotifHistory() {
+    setNotifHistoryLoading(true);
+    try {
+      const res = await fetch("/api/admin/notifications", { headers });
+      const data = await res.json();
+      if (res.ok) {
+        setNotifHistory(data.notifications ?? []);
+      } else {
+        console.error("Failed to fetch notification history:", data.error);
+        setNotifHistory([]);
+      }
+    } catch (err) {
+      console.error("Error fetching notification history:", err);
+      setNotifHistory([]);
+    } finally {
+      setNotifHistoryLoading(false);
+    }
+  }
+
   async function checkNotifStatus() {
     setNotifStatus("Checking…");
     try {
@@ -606,6 +629,78 @@ export default function AdminPage() {
               )}
             </form>
           </section>
+
+        {/* ── HISTORY TAB ── */}
+        {tab === "history" && (
+          <section className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-white">📜 Notification History</h2>
+              <button
+                onClick={fetchNotifHistory}
+                disabled={notifHistoryLoading}
+                className="rounded-xl bg-blue-dark/60 px-3 py-1.5 text-xs font-semibold text-blue-light/80 hover:bg-blue-mid disabled:opacity-50"
+              >
+                {notifHistoryLoading ? "Loading…" : "Refresh"}
+              </button>
+            </div>
+            {notifHistory.length === 0 ? (
+              <p className="text-sm text-blue-light/50">
+                {notifHistoryLoading ? "Loading notifications…" : "No notifications sent yet."}
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {notifHistory.map((n) => (
+                  <div
+                    key={n.id}
+                    className="rounded-xl border border-blue-mid/30 bg-blue-primary/20 p-3"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div>
+                        <h3 className="text-sm font-semibold text-white">
+                          {n.headingEn || n.headingAr}
+                        </h3>
+                        <p className="text-xs text-blue-light/60 mt-0.5">
+                          {n.sentAt ? new Date(n.sentAt).toLocaleString() : "Unknown date"}
+                        </p>
+                      </div>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          n.status === "sent"
+                            ? "bg-green-500/20 text-green-400"
+                            : n.status === "failed_no_subscribers"
+                            ? "bg-yellow-500/20 text-yellow-400"
+                            : "bg-red-500/20 text-red-400"
+                        }`}
+                      >
+                        {n.status === "sent" ? "Sent" : n.status === "failed_no_subscribers" ? "No Subscribers" : "Failed"}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <p className="text-xs text-blue-light/70 col-span-2">
+                        {n.messageEn}
+                      </p>
+                      {n.messageAr && (
+                        <p className="text-xs text-blue-light/70 col-span-2" dir="rtl">
+                          {n.messageAr}
+                        </p>
+                      )}
+                    </div>
+                    {n.recipients !== null && (
+                      <p className="text-xs text-blue-light/50 mt-1">
+                        Recipients: {n.recipients}
+                      </p>
+                    )}
+                    {n.onesignalId && (
+                      <p className="text-xs text-blue-light/40 mt-0.5 font-mono">
+                        ID: {n.onesignalId.substring(0, 8)}…
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
         )}
       </div>
     </div>
