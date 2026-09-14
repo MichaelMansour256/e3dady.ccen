@@ -83,7 +83,8 @@ export async function sendNotification({
 
   // OneSignal returns 200 even when the target resolves to 0 recipients.
   // Surface that as a clear "no subscribers" case rather than a generic 500.
-  if (!res.ok || (data as { errors?: unknown }).errors) {
+  if (!res.ok) {
+    // HTTP error (not 200)
     const errors = (data as { errors?: string[] }).errors ?? [];
     if (
       errors.some(
@@ -104,6 +105,32 @@ export async function sendNotification({
     );
   }
 
+  // Check if OneSignal returned errors in the response body (even with 200)
+  // This happens when the notification was "created" but couldn't be delivered
+  const responseErrors = data?.errors;
+  if (Array.isArray(responseErrors) && responseErrors.length > 0) {
+    const errors = responseErrors as string[];
+    if (
+      errors.some(
+        (e) =>
+          e.includes("not subscribed") ||
+          e.includes("no subscribers") ||
+          e.includes("No players")
+      )
+    ) {
+      throw new Error(
+        "No subscribed devices are currently available. " +
+          "Users may have unsubscribed, blocked push, or not yet subscribed. " +
+          "Have them open the site and accept the notification prompt."
+      );
+    }
+    // Other errors - still throw but with the actual error message
+    throw new Error(`OneSignal notification errors: ${JSON.stringify(errors)}`);
+  }
+
+  // Success - notification was created and delivered
+  // OneSignal response includes: id, recipients, etc.
+  console.log("OneSignal notification sent successfully, id:", data?.id);
   return data;
 }
 
