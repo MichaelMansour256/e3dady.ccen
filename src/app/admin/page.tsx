@@ -57,6 +57,36 @@ export default function AdminPage() {
   const [notifImgUploading, setNotifImgUploading] = useState(false);
   const [notifSending, setNotifSending] = useState(false);
   const [notifResult, setNotifResult] = useState<string>("");
+  const [notifStatus, setNotifStatus] = useState<string>("");
+
+  async function checkNotifStatus() {
+    setNotifStatus("Checking…");
+    try {
+      const res = await fetch("/api/admin/notify-status", { headers });
+      const data = await res.json();
+      if (!res.ok) {
+        setNotifStatus(`❌ ${data.error ?? "Status check failed"}`);
+        return;
+      }
+      if (!data.appIdsMatch) {
+        setNotifStatus(
+          `❌ App ID mismatch! Server [${data.serverAppIdPrefix}…] ≠ Browser [${data.clientAppIdPrefix}…] — fix Vercel env so ONESIGNAL_APP_ID == NEXT_PUBLIC_ONESIGNAL_APP_ID, then resubscribe.`
+        );
+        return;
+      }
+      if ((data.totalCount ?? 0) === 0) {
+        setNotifStatus(
+          "❌ 0 devices in this OneSignal app. Open the site on your phone, accept اشترك, then retry."
+        );
+        return;
+      }
+      setNotifStatus(
+        `✅ App IDs match [${data.serverAppIdPrefix}…] · devices: ${data.totalCount} · sample subscribed: ${data.sampledSubscribed}. If send still fails, your devices are Unsubscribed — resubscribe on the site.`
+      );
+    } catch (err) {
+      setNotifStatus(`❌ ${String(err)}`);
+    }
+  }
 
   function notifLaunchUrl(): string {
     if (notifForm.urlMode === "custom") {
@@ -513,6 +543,13 @@ export default function AdminPage() {
             <p className="mb-3 text-xs text-blue-light/50">
               Sends instantly to all subscribed devices via OneSignal — no need to open the OneSignal dashboard.
             </p>
+            <button type="button" onClick={checkNotifStatus}
+              className="mb-2 rounded-xl bg-blue-dark/60 py-2 text-xs font-semibold text-blue-light/80 hover:text-white">
+              🔍 Check subscription status
+            </button>
+            {notifStatus && (
+              <p className="mb-2 text-xs leading-relaxed text-blue-light/80">{notifStatus}</p>
+            )}
             <form onSubmit={sendImmediateNotification} className="flex flex-col gap-2">
               <div className="flex gap-2">
                 <input placeholder="Title (English)" value={notifForm.headingEn}
