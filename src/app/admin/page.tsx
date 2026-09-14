@@ -43,6 +43,8 @@ export default function AdminPage() {
   const [verseForm, setVerseForm] = useState({ book: "19", chapter: "23", verse: "1", note: "" });
   const [verseSaved, setVerseSaved] = useState(false);
 
+              
+  
   // Immediate-notification state (🔔 Notify tab)
   // `urlMode`: quick-pick a destination, or type a custom launch URL.
   const [notifForm, setNotifForm] = useState({
@@ -54,6 +56,20 @@ export default function AdminPage() {
     customUrl: "",
     image: "",
   });
+
+  // Sync bilingual fields: when one language is filled and the other is empty,
+  // copy the value to the empty field.
+  useEffect(() => {
+    const { headingAr, headingEn, messageAr, messageEn } = notifForm;
+    let updated = false;
+    const next = { ...notifForm };
+    if (headingAr && !headingEn) { next.headingEn = headingAr; updated = true; }
+    if (headingEn && !headingAr) { next.headingAr = headingEn; updated = true; }
+    if (messageAr && !messageEn) { next.messageEn = messageAr; updated = true; }
+    if (messageEn && !messageAr) { next.messageAr = messageEn; updated = true; }
+    if (updated) { setNotifForm(next); }
+  }, [notifForm.headingAr, notifForm.headingEn, notifForm.messageAr, notifForm.messageEn]);
+
   const [notifImgUploading, setNotifImgUploading] = useState(false);
   const [notifSending, setNotifSending] = useState(false);
   const [notifResult, setNotifResult] = useState<string>("");
