@@ -80,8 +80,14 @@ export default function AdminPage() {
         );
         return;
       }
+      if ((data.subscribed ?? 0) === 0) {
+        setNotifStatus(
+          `❌ All ${data.totalCount} devices are UNSUBSCRIBED (opted out / permission blocked / token expired). Open the site on the phone → allow notifications → accept اشترك → then Send Now.`
+        );
+        return;
+      }
       setNotifStatus(
-        `✅ App IDs match [${data.serverAppIdPrefix}…] · devices: ${data.totalCount} · sample subscribed: ${data.sampledSubscribed}. If send still fails, your devices are Unsubscribed — resubscribe on the site.`
+        `✅ App IDs match [${data.serverAppIdPrefix}…] · subscribed: ${data.subscribed}/${data.totalCount} (unsubscribed: ${data.unsubscribed}). Ready to send.`
       );
     } catch (err) {
       setNotifStatus(`❌ ${String(err)}`);

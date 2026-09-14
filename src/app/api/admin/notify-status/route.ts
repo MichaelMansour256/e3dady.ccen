@@ -29,9 +29,9 @@ export async function GET(req: Request) {
   }
 
   try {
-    // limit=1 keeps it cheap; total_count tells us the audience size.
+    // Fetch up to 300 players so the counts are real, not a 1-row sample.
     const res = await fetch(
-      `https://api.onesignal.com/players?app_id=${serverAppId}&limit=1&offset=0`,
+      `https://api.onesignal.com/players?app_id=${serverAppId}&limit=300&offset=0`,
       { headers: { Authorization: `Basic ${apiKey}` } }
     );
     const data = await res.json();
@@ -42,9 +42,13 @@ export async function GET(req: Request) {
       );
     }
 
-    const players = Array.isArray(data.players) ? data.players : [];
+    const players: Array<{
+      notification_types?: number;
+      device_type?: number;
+      last_active?: number;
+    }> = Array.isArray(data.players) ? data.players : [];
     const subscribedCount = players.filter(
-      (p: { notification_types?: number }) => p.notification_types === 1
+      (p) => p.notification_types === 1
     ).length;
 
     return NextResponse.json({
@@ -53,10 +57,9 @@ export async function GET(req: Request) {
       // Never leak the full IDs — just prefixes for visual comparison.
       serverAppIdPrefix: serverAppId.slice(0, 8),
       clientAppIdPrefix: clientAppId ? clientAppId.slice(0, 8) : "(missing)",
-      totalCount: data.total_count ?? 0,
-      // NOTE: this counts subscribed among the sampled page only; the send
-      // itself targets "Subscribed Users" segment server-side.
-      sampledSubscribed: subscribedCount,
+      totalCount: data.total_count ?? players.length,
+      subscribed: subscribedCount,
+      unsubscribed: players.length - subscribedCount,
     });
   } catch (error) {
     return NextResponse.json(
