@@ -14,7 +14,7 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
   const [authError, setAuthError] = useState(false);
-  const [tab, setTab] = useState<"gallery" | "events" | "verse" | "prayer" | "notify">("gallery");
+  const [tab, setTab] = useState<"gallery" | "events" | "verse" | "prayer" | "notify" | "history">("gallery");
 
   // Prayer state
   type PrayerRequest = { id: string; name: string; request: string; pray_count: number; status: string; created_at: string };
@@ -283,10 +283,10 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div className="grid grid-cols-2 gap-2 mb-6">
-          {(["gallery", "events", "verse", "prayer", "notify"] as const).map((t) => (
+          {(["gallery", "events", "verse", "prayer", "notify", "history"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`rounded-xl py-2 text-sm font-semibold transition ${tab === t ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}>
-              {t === "gallery" ? "🖼️ Gallery" : t === "events" ? "📅 Events" : t === "verse" ? "✨ Verse" : t === "prayer" ? "🙏 Prayer" : "🔔 Notify"}
+              {t === "gallery" ? "🖼️ Gallery" : t === "events" ? "📅 Events" : t === "verse" ? "✨ Verse" : t === "prayer" ? "🙏 Prayer" : t === "notify" ? "🔔 Notify" : "📜 Notification History"}
             </button>
           ))}
         </div>
