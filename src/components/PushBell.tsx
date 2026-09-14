@@ -19,6 +19,7 @@ export default function PushBell({ locale }: { locale: string }) {
   const isAr = locale === "ar";
   const [state, setState] = useState<BellState>("loading");
   const [busy, setBusy] = useState(false);
+  const [subId, setSubId] = useState<string | null>(null);
 
   async function refresh() {
     if (typeof Notification === "undefined") {
@@ -29,11 +30,26 @@ export default function PushBell({ locale }: { locale: string }) {
       setState("blocked");
       return;
     }
+    // NOTE: v16 page SDK exposes OneSignal ONLY inside OneSignalDeferred.push(cb).
+    // window.OneSignal is undefined — must query through the deferred queue.
     try {
-      const OneSignal = (window as any).OneSignal;
-      const id = OneSignal?.User?.PushSubscription?.id;
-      const optedIn = OneSignal?.User?.PushSubscription?.optedIn;
-      setState(id && optedIn !== false ? "on" : "off");
+      const result = await new Promise<{ id: string | null; optedIn: boolean | null }>((resolve) => {
+        const timer = setTimeout(() => resolve({ id: null, optedIn: null }), 4000);
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        window.OneSignalDeferred.push(async function (OneSignal) {
+          clearTimeout(timer);
+          try {
+            resolve({
+              id: OneSignal?.User?.PushSubscription?.id ?? null,
+              optedIn: OneSignal?.User?.PushSubscription?.optedIn ?? null,
+            });
+          } catch {
+            resolve({ id: null, optedIn: null });
+          }
+        });
+      });
+      setSubId(result.id);
+      setState(result.id && result.optedIn !== false ? "on" : "off");
     } catch {
       setState("off");
     }
@@ -129,7 +145,7 @@ export default function PushBell({ locale }: { locale: string }) {
   return (
     <button onClick={state === "on" ? refresh : enable} disabled={busy} className={`${box} w-full text-start active:scale-95 transition`}>
       <span className="text-2xl">{state === "on" ? "🔔" : "🔕"}</span>
-      <span>
+      <span className="flex-1">
         <span className="block text-base font-semibold text-white">
           {state === "on"
             ? isAr ? "الإشعارات مفعّلة ✅" : "Notifications on ✅"
@@ -140,6 +156,14 @@ export default function PushBell({ locale }: { locale: string }) {
         {state !== "on" && (
           <span className="block text-xs text-blue-light/60">
             {isAr ? "اضغط للتفعيل — ستصلك الدعوة وآية الأسبوع" : "Tap to enable — get the invite & verse of the week"}
+          </span>
+        )}
+        {state === "on" && subId && (
+          <span
+            className="mt-1 block select-all font-mono text-[10px] leading-relaxed text-blue-light/40"
+            onClick={(e) => e.stopPropagation()}
+          >
+            id: {subId}
           </span>
         )}
       </span>
