@@ -629,7 +629,7 @@ export default function AdminPage() {
               )}
             </form>
           </section>
-
+        )}
         {/* ── HISTORY TAB ── */}
         {tab === "history" && (
           <section className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
