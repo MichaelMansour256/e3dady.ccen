@@ -99,7 +99,7 @@ export async function GET(req: Request) {
       legacyOptedIn: optedIn.length,
       validTokens: validToken.length,
       subsSummary,
-      note: "If legacyOptedIn=0 but subsSummary shows subscribed WebPush rows, sending to 'Subscribed Users' should work — otherwise compare Site URL / app id.",
+      note: "Send uses `session_count exists` filter — legacy 'opted-in: 0' can be misleading for v16 web. Hit Send Now to test real targeting.",
       sample,
     });
   } catch (error) {

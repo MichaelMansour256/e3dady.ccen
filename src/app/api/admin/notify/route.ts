@@ -45,15 +45,18 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message: "Notification sent successfully",
-      recipients: result.recipients,
+      // OneSignal create-notification response: { id, external_id?, ... }.
+      // Recipient count is not included in the create response; we report
+      // the notification id so the admin can look it up if needed.
+      notificationId: result.id,
     });
   } catch (error) {
     const msg = String(error);
 
-    // Distinguish "no subscribers" (informational) from real errors.
-    if (msg.startsWith("NO_SUBSCRIBERS:")) {
-      const reason = msg.slice("NO_SUBSCRIBERS:".length);
-      console.warn("OneSignal send: no subscribers:", reason);
+    // sendNotification throws "No subscribed devices are currently
+    // available." when the filters resolve to 0 recipients.
+    if (msg.includes("No subscribed devices are currently available")) {
+      console.warn("OneSignal send: no subscribers:", msg);
       return NextResponse.json(
         {
           success: false,
