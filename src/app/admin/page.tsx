@@ -45,18 +45,6 @@ export default function AdminPage() {
     customUrl: "",
     image: "",
   });
-  // Sync bilingual fields: when one language is filled and the other is empty,
-  // copy the value to the empty field.
-  useEffect(() => {
-    const { headingAr, headingEn, messageAr, messageEn } = notifForm;
-    let updated = false;
-    const next = { ...notifForm };
-    if (headingAr && !headingEn) { next.headingEn = headingAr; updated = true; }
-    if (headingEn && !headingAr) { next.headingAr = headingEn; updated = true; }
-    if (messageAr && !messageEn) { next.messageEn = messageAr; updated = true; }
-    if (messageEn && !messageAr) { next.messageAr = messageEn; updated = true; }
-    if (updated) { setNotifForm(next); }
-  }, [notifForm.headingAr, notifForm.headingEn, notifForm.messageAr, notifForm.messageEn]);
   const [notifImgUploading, setNotifImgUploading] = useState(false);
   const [notifSending, setNotifSending] = useState(false);
   const [notifResult, setNotifResult] = useState<string>("");
@@ -549,16 +537,12 @@ export default function AdminPage() {
             )}
             <form onSubmit={sendImmediateNotification} className="flex flex-col gap-2">
               <div className="flex gap-2">
-                <input placeholder="Title (English)" value={notifForm.headingEn}
-                  onChange={(e) => setNotifForm((p) => ({ ...p, headingEn: e.target.value }))} className={`${inputCls} flex-1`} />
-                <input placeholder="العنوان (عربي)" value={notifForm.headingAr} dir="rtl"
-                  onChange={(e) => setNotifForm((p) => ({ ...p, headingAr: e.target.value }))} className={`${inputCls} flex-1`} />
+                <input placeholder="Title (same for AR & EN)" value={notifForm.headingEn}
+                  onChange={(e) => setNotifForm((p) => ({ ...p, headingEn: e.target.value, headingAr: e.target.value }))} className={`${inputCls} flex-1`} />
               </div>
               <div className="flex gap-2">
-                <input placeholder="Message (English)" value={notifForm.messageEn}
-                  onChange={(e) => setNotifForm((p) => ({ ...p, messageEn: e.target.value }))} className={`${inputCls} flex-1`} />
-                <input placeholder="الرسالة (عربي)" value={notifForm.messageAr} dir="rtl"
-                  onChange={(e) => setNotifForm((p) => ({ ...p, messageAr: e.target.value }))} className={`${inputCls} flex-1`} />
+                <input placeholder="Message (same for AR & EN)" value={notifForm.messageEn}
+                  onChange={(e) => setNotifForm((p) => ({ ...p, messageEn: e.target.value, messageAr: e.target.value }))} className={`${inputCls} flex-1`} />
               </div>
               <div className="flex gap-2">
                 {([["home", "🏠 Home"], ["events", "📅 Events"], ["verse", "✨ Verse"], ["custom", "🔗 Custom"]] as const).map(([mode, label]) => (
