@@ -71,6 +71,8 @@ Password protected via `ADMIN_PASSWORD` env variable.
 | 🖼️ Gallery | Create event folders, drag & drop upload, delete photos |
 | 📅 Events | Add/delete special events (Arabic + English, date/time) |
 | ✨ Verse | Set verse of the week (book/chapter/verse + optional note) |
+| 🔔 Notify | Send push notifications to all subscribers (title + message + URL) |
+| 📜 History | View sent notifications with status and recipient count |
 | 🙏 Prayer | Approve / Reject / Delete prayer requests with pending badge count |
 
 ---
@@ -86,6 +88,9 @@ CLOUDINARY_API_SECRET=
 
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
+
+NEXT_PUBLIC_ONESIGNAL_APP_ID=
+ONESIGNAL_API_KEY=
 
 ADMIN_PASSWORD=
 ```
@@ -117,11 +122,75 @@ create policy "Anyone can insert" on prayer_requests
 create policy "Anyone can update pray_count" on prayer_requests
   for update using (status = 'approved')
   with check (status = 'approved');
+
+-- Notifications history (for admin dashboard)
+create table if not exists notifications_history (
+  id uuid default gen_random_uuid() primary key,
+  sent_at text not null,
+  heading_ar text,
+  heading_en text,
+  message_ar text,
+  message_en text,
+  url text,
+  image text,
+  onesignal_id text,
+  status text default 'sent',
+  recipients integer,
+  error text,
+  created_at text
+);
+
+alter table notifications_history enable row level security;
+
+create policy "Authenticated users can view notifications" on notifications_history
+  for select using (auth.role() = 'authenticated');
+
+create policy "Authenticated users can insert notifications" on notifications_history
+  for insert with check (auth.role() = 'authenticated');
 ```
 
 ---
 
-## Project Structure
+## Push Notifications
+
+Notifications are powered by [OneSignal](https://onesignal.com).
+
+### OneSignal Setup
+
+1. Create an app at [onesignal.com](https://onesignal.com)
+2. Get your **App ID** and **REST API Key** from Settings → Keys & IDs
+3. Add them to environment variables:
+   - `NEXT_PUBLIC_ONESIGNAL_APP_ID` - Public app ID
+   - `ONESIGNAL_API_KEY` - REST API key (keep secret!)
+4. Add the OneSignal script to your site header (handled in `_document.tsx`)
+
+### Sending Notifications
+
+From the admin dashboard:
+1. Go to 🔔 **Notify** tab
+2. Enter **Title** (same for Arabic & English) and **Message**
+3. Select a destination URL (Home, Events, Verse, or Custom URL)
+4. Optionally upload an image
+5. Click **📤 Send Now**
+
+| Feature | Description |
+|---------|-------------|
+| Single title/message inputs | Fills both AR and EN fields automatically |
+| URL shortcuts | Quick-pick: 🏠 Home, 📅 Events, ✨ Verse, 🔗 Custom |
+| Image attachment | Optional big-picture image from Cloudinary |
+| Status feedback | Real-time send result with recipient count |
+| History tracking | All sent notifications logged to Supabase |
+
+### Notification History
+
+View all sent notifications in the 📜 **History** tab. Records include:
+- Title and message (AR/EN)
+- Send timestamp
+- Delivery status (Sent, No Subscribers, Failed)
+- Recipient count
+- OneSignal notification ID
+
+---
 
 ```
 src/
