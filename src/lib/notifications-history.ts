@@ -26,13 +26,29 @@ export interface NotificationRecord {
 export async function putNotificationRecord(
   record: Omit<NotificationRecord, "createdAt">
 ): Promise<void> {
-  const { error } = await supabase.from("notifications_history").insert({
-    ...record,
-    created_at: new Date().toISOString(),
-  });
+  const { error } = await supabase
+    .from("notifications_history")
+    .insert({
+      id: record.id,
+      sent_at: record.sentAt,
+      heading_ar: record.headingAr,
+      heading_en: record.headingEn,
+      message_ar: record.messageAr,
+      message_en: record.messageEn,
+      url: record.url,
+      image: record.image,
+      onesignal_id: record.onesignalId,
+      status: record.status,
+      recipients: record.recipients,
+      error: record.error ?? null,
+      created_at: new Date().toISOString(),
+    });
 
   if (error) {
-    console.error("Failed to save notification record to Supabase:", error);
+    console.error(
+      "Failed to save notification record to Supabase:",
+      error
+    );
     throw error;
   }
 }
