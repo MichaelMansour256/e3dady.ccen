@@ -14,7 +14,7 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
   const [authError, setAuthError] = useState(false);
-  const [tab, setTab] = useState<"gallery" | "events" | "verse" | "prayer">("gallery");
+  const [tab, setTab] = useState<"gallery" | "events" | "verse" | "prayer" | "notify">("gallery");
 
   // Prayer state
   type PrayerRequest = { id: string; name: string; request: string; pray_count: number; status: string; created_at: string };
@@ -42,6 +42,50 @@ export default function AdminPage() {
   // Verse state
   const [verseForm, setVerseForm] = useState({ book: "19", chapter: "23", verse: "1", note: "" });
   const [verseSaved, setVerseSaved] = useState(false);
+
+  // Immediate-notification state (🔔 Notify tab)
+  const [notifForm, setNotifForm] = useState({
+    headingAr: "",
+    headingEn: "",
+    messageAr: "",
+    messageEn: "",
+    url: "/ar",
+    image: "",
+  });
+  const [notifSending, setNotifSending] = useState(false);
+  const [notifResult, setNotifResult] = useState<string>("");
+
+  async function sendImmediateNotification(e: React.FormEvent) {
+    e.preventDefault();
+    setNotifSending(true);
+    setNotifResult("");
+    try {
+      const res = await fetch("/api/admin/notify", {
+        method: "POST",
+        headers: { ...headers, "content-type": "application/json" },
+        body: JSON.stringify({
+          headingAr: notifForm.headingAr,
+          headingEn: notifForm.headingEn,
+          messageAr: notifForm.messageAr,
+          messageEn: notifForm.messageEn,
+          url: notifForm.url || "/ar",
+          ...(notifForm.image ? { image: notifForm.image } : {}),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setNotifResult(`❌ ${data.error ?? "Failed"}${data.details ? ` — ${data.details}` : ""}`);
+      } else {
+        const nid = data.result?.id ? ` (id: ${data.result.id})` : "";
+        const rec = data.result?.recipients ? ` — recipients: ${data.result.recipients}` : "";
+        setNotifResult(`✅ Sent!${nid}${rec}`);
+      }
+    } catch (err) {
+      setNotifResult(`❌ ${String(err)}`);
+    } finally {
+      setNotifSending(false);
+    }
+  }
 
   const headers = { "x-admin-password": password };
 
@@ -169,10 +213,10 @@ export default function AdminPage() {
 
         {/* Tabs */}
         <div className="grid grid-cols-2 gap-2 mb-6">
-          {(["gallery", "events", "verse", "prayer"] as const).map((t) => (
+          {(["gallery", "events", "verse", "prayer", "notify"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
               className={`rounded-xl py-2 text-sm font-semibold transition ${tab === t ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}>
-              {t === "gallery" ? "🖼️ Gallery" : t === "events" ? "📅 Events" : t === "verse" ? "✨ Verse" : "🙏 Prayer"}
+              {t === "gallery" ? "🖼️ Gallery" : t === "events" ? "📅 Events" : t === "verse" ? "✨ Verse" : t === "prayer" ? "🙏 Prayer" : "🔔 Notify"}
             </button>
           ))}
         </div>
@@ -421,6 +465,52 @@ export default function AdminPage() {
               )}
             </section>
           </>
+        )}
+        {/* ── NOTIFY TAB ── */}
+        {tab === "notify" && (
+          <section className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4">
+            <h2 className="mb-1 font-semibold text-white">🔔 Send Immediate Notification</h2>
+            <p className="mb-3 text-xs text-blue-light/50">
+              Sends instantly to all subscribed devices via OneSignal — no need to open the OneSignal dashboard.
+            </p>
+            <form onSubmit={sendImmediateNotification} className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <input placeholder="Title (English)" value={notifForm.headingEn}
+                  onChange={(e) => setNotifForm((p) => ({ ...p, headingEn: e.target.value }))} className={`${inputCls} flex-1`} />
+                <input placeholder="العنوان (عربي)" value={notifForm.headingAr} dir="rtl"
+                  onChange={(e) => setNotifForm((p) => ({ ...p, headingAr: e.target.value }))} className={`${inputCls} flex-1`} />
+              </div>
+              <div className="flex gap-2">
+                <input placeholder="Message (English)" value={notifForm.messageEn}
+                  onChange={(e) => setNotifForm((p) => ({ ...p, messageEn: e.target.value }))} className={`${inputCls} flex-1`} />
+                <input placeholder="الرسالة (عربي)" value={notifForm.messageAr} dir="rtl"
+                  onChange={(e) => setNotifForm((p) => ({ ...p, messageAr: e.target.value }))} className={`${inputCls} flex-1`} />
+              </div>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setNotifForm((p) => ({ ...p, url: "/ar" }))}
+                  className={`flex-1 rounded-xl py-2 text-xs font-semibold transition ${notifForm.url === "/ar" ? "bg-blue-accent text-white" : "bg-blue-dark/40 text-blue-light/60"}`}>
+                  🏠 Home
+                </button>
+                <button type="button" onClick={() => setNotifForm((p) => ({ ...p, url: "/ar/events" }))}
+                  className={`flex-1 rounded-xl py-2 text-xs font-semibold transition ${notifForm.url === "/ar/events" ? "bg-blue-accent text-white" : "bg-blue-dark/40 text-blue-light/60"}`}>
+                  📅 Events
+                </button>
+                <button type="button" onClick={() => setNotifForm((p) => ({ ...p, url: "/ar/bible/verse" }))}
+                  className={`flex-1 rounded-xl py-2 text-xs font-semibold transition ${notifForm.url === "/ar/bible/verse" ? "bg-blue-accent text-white" : "bg-blue-dark/40 text-blue-light/60"}`}>
+                  ✨ Verse
+                </button>
+              </div>
+              <input placeholder="Image URL (optional — big picture)" value={notifForm.image}
+                onChange={(e) => setNotifForm((p) => ({ ...p, image: e.target.value }))} className={inputCls} dir="ltr" />
+              <button type="submit" disabled={notifSending}
+                className="rounded-xl bg-blue-accent py-2 text-sm font-semibold text-white hover:bg-blue-mid disabled:opacity-50">
+                {notifSending ? "Sending…" : "📤 Send Now"}
+              </button>
+              {notifResult && (
+                <p className={`text-sm ${notifResult.startsWith("✅") ? "text-green-400" : "text-red-400"}`}>{notifResult}</p>
+              )}
+            </form>
+          </section>
         )}
       </div>
     </div>
