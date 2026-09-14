@@ -4,12 +4,15 @@ export async function sendNotification({
   messageAr,
   messageEn,
   url = "/ar",
+  image,
 }: {
   headingAr: string;
   headingEn: string;
   messageAr: string;
   messageEn: string;
   url?: string;
+  /** Optional large image (invitation photo). Shown as big picture on Android/Chrome. */
+  image?: string;
 }) {
   const appId = process.env.ONESIGNAL_APP_ID;
   const apiKey = process.env.ONESIGNAL_API_KEY;
@@ -46,6 +49,15 @@ export async function sendNotification({
       chrome_web_icon: `${siteUrl}/app-icon.png`,
       chrome_icon: `${siteUrl}/app-icon.png`,
       firefox_icon: `${siteUrl}/app-icon.png`,
+      // Large invitation image (Android big picture + Chrome/Firefox large icon).
+      // Only included when the caller passes one (Thursday invitation cron).
+      ...(image
+        ? {
+            big_picture: image,
+            chrome_big_picture: image,
+            ios_attachments: { id: image },
+          }
+        : {}),
     }),
   });
 
