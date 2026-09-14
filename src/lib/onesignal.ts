@@ -16,7 +16,9 @@ export async function sendNotification({
   const appId = process.env.ONESIGNAL_APP_ID;
   const apiKey = process.env.ONESIGNAL_API_KEY;
   if (!appId || !apiKey) {
-    throw new Error("Missing ONESIGNAL_APP_ID / ONESIGNAL_API_KEY env vars");
+    throw new Error(
+      `Missing OneSignal env vars. Have: APP_ID=${!!appId}, API_KEY=${!!apiKey}`
+    );
   }
 
   const siteUrl =
@@ -53,6 +55,11 @@ export async function sendNotification({
       : {}),
   };
 
+  console.log("OneSignal request:", {
+    appId: appId.substring(0, 8) + "...",
+    url: fullUrl,
+  });
+
   const res = await fetch("https://api.onesignal.com/notifications", {
     method: "POST",
     headers: {
@@ -65,12 +72,18 @@ export async function sendNotification({
     body: JSON.stringify(body),
   });
 
-  const data = await res.json();
+  let data: any;
+  try {
+    data = await res.json();
+  } catch {
+    data = { rawResponse: await res.text() };
+  }
+
+  console.log("OneSignal response status:", res.status, "body:", JSON.stringify(data).substring(0, 500));
 
   // OneSignal returns 200 even when the target resolves to 0 recipients.
   // Surface that as a clear "no subscribers" case rather than a generic 500.
   if (!res.ok || (data as { errors?: unknown }).errors) {
-    console.error("OneSignal API error:", JSON.stringify(data));
     const errors = (data as { errors?: string[] }).errors ?? [];
     if (
       errors.some(
@@ -86,7 +99,9 @@ export async function sendNotification({
           "Have them open the site and accept the notification prompt."
       );
     }
-    throw new Error(`OneSignal API error: ${JSON.stringify(data)}`);
+    throw new Error(
+      `OneSignal API error (HTTP ${res.status}): ${JSON.stringify(data)}`
+    );
   }
 
   return data;

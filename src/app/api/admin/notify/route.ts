@@ -78,31 +78,33 @@ export async function POST(req: Request) {
       notificationId: notifyId,
     });
   } catch (error) {
-    const msg = String(error);
+    // Properly stringify the error regardless of type
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorDetail = error instanceof Error ? error.stack : undefined;
 
-    if (msg.includes("No subscribed devices are currently available")) {
+    if (errorMessage.includes("No subscribed devices are currently available")) {
       // Still save a record of the failed attempt
       const sentAt = new Date().toISOString();
       const notifyId = crypto.randomUUID();
-      const savePromise = putNotificationRecord({
-        id: notifyId,
-        sentAt,
-        headingAr: parsedBody.headingAr ?? "",
-        headingEn: parsedBody.headingEn ?? "",
-        messageAr: parsedBody.messageAr ?? "",
-        messageEn: parsedBody.messageEn ?? "",
-        url: parsedBody.url ?? "/ar",
-        image: parsedBody.image ?? null,
-        onesignalId: null,
-        status: "failed_no_subscribers",
-        recipients: null,
-      });
-      savePromise.catch(() => {
+      try {
+        await putNotificationRecord({
+          id: notifyId,
+          sentAt,
+          headingAr: parsedBody.headingAr ?? "",
+          headingEn: parsedBody.headingEn ?? "",
+          messageAr: parsedBody.messageAr ?? "",
+          messageEn: parsedBody.messageEn ?? "",
+          url: parsedBody.url ?? "/ar",
+          image: parsedBody.image ?? null,
+          onesignalId: null,
+          status: "failed_no_subscribers",
+          recipients: null,
+        });
+      } catch {
         /* Don't let history save failure mask the real error */
-      });
-      await savePromise;
+      }
 
-      console.warn("OneSignal send: no subscribers:", msg);
+      console.warn("OneSignal send: no subscribers:", errorMessage);
       return NextResponse.json(
         {
           success: false,
@@ -114,14 +116,15 @@ export async function POST(req: Request) {
       );
     }
 
-    console.error("OneSignal send failed:", msg);
+    console.error("OneSignal send failed:", errorMessage, errorDetail);
     return NextResponse.json(
       {
         success: false,
         error: "Failed to send notification",
-        details: msg,
+        details: errorMessage,
       },
       { status: 500 }
     );
   }
 }
+
