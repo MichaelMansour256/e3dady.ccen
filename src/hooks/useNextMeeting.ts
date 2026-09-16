@@ -1,16 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-
-function getNextFriday(): Date {
-  const now = new Date();
-  const next = new Date(now);
-  const day = now.getDay();
-  const daysUntilFriday = (5 - day + 7) % 7;
-  next.setDate(now.getDate() + (daysUntilFriday === 0 ? 0 : daysUntilFriday));
-  next.setHours(12, 30, 0, 0);
-  if (next <= now) next.setDate(next.getDate() + 7);
-  return next;
-}
+import { getNextMeetingDate } from "@/lib/schedule";
 
 export function useNextMeeting() {
   const [countdown, setCountdown] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0, isToday: false });
@@ -18,7 +8,7 @@ export function useNextMeeting() {
 
   useEffect(() => {
     const update = () => {
-      const next = getNextFriday();
+      const next = getNextMeetingDate();
       setNextDate(next);
       const diff = next.getTime() - Date.now();
       const days = Math.floor(diff / 86400000);

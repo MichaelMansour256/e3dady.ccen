@@ -1,18 +1,19 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { siteConfig, themeConfig } from "@/config";
 
 export const metadata: Metadata = {
-  title: "E3dady Youth Meeting",
-  description: "E3dady Youth Meeting – Christ Church Ezbet El Nakhl",
-  manifest: "/manifest.json",
+  title: siteConfig.name,
+  description: siteConfig.description.en,
+  manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/app-icon.png",
-    apple: "/app-icon.png",
+    icon: siteConfig.assets.appIcon,
+    apple: siteConfig.assets.appIcon,
   },
 };
 
-export const viewport = {
-  themeColor: "#1a3a8f",
+export const viewport: Viewport = {
+  themeColor: themeConfig.colors.primary,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

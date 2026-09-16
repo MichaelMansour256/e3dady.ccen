@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import cloudinary from "@/lib/cloudinary";
+import { siteConfig } from "@/config";
 
-const EXCLUDED_FOLDERS = ["invitations", "e3dady_events"];
+// Hide the app-data folders (invitation images + meeting JSON namespace)
+// from the public gallery.
+const EXCLUDED_FOLDERS = ["invitations", siteConfig.cloudinary.meetingFolder];
 
 export async function GET() {
   try {

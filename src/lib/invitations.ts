@@ -1,6 +1,7 @@
 // Shared helpers for weekly invitations (Cloudinary folder: `invitations`).
-// public_id format: `invitations/YYYY-MM-DD` (date = Friday of the meeting).
+// public_id format: `invitations/YYYY-MM-DD` (date = the weekly meeting day).
 import cloudinary from "./cloudinary";
+import { meetingConfig } from "@/config";
 
 export type Invitation = {
   date: string; // YYYY-MM-DD
@@ -41,11 +42,12 @@ export function todayCairoISO(now = new Date()): string {
 }
 
 /**
- * Next Friday (YYYY-MM-DD) in Cairo time.
- * If today (Cairo) is Friday, returns *next week's* Friday so the reminder
- * always points at the upcoming meeting, not today's.
+ * Next meeting day (YYYY-MM-DD) in Cairo time.
+ * If today (Cairo) is the meeting day, returns *next week's* date so the
+ * reminder always points at the upcoming meeting, not today's.
  */
 export function nextFridayCairoISO(now = new Date()): string {
+  const MEETING_WEEKDAY = meetingConfig.schedule.weekday; // 0=Sun..6=Sat
   // Cairo weekday: 0=Sun..5=Fri..6=Sat
   const short = new Intl.DateTimeFormat("en-US", {
     timeZone: "Africa/Cairo",
@@ -53,7 +55,7 @@ export function nextFridayCairoISO(now = new Date()): string {
   }).format(now); // e.g. "Fri"
   const cairoWeekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(short);
 
-  const diff = cairoWeekday === -1 ? 7 : (5 - cairoWeekday + 7) % 7 || 7;
+  const diff = cairoWeekday === -1 ? 7 : (MEETING_WEEKDAY - cairoWeekday + 7) % 7 || 7;
 
   // Add `diff` days to Cairo wall-clock date (UTC noon avoids DST edges).
   const cairoToday = todayCairoISO(now); // YYYY-MM-DD

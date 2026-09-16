@@ -27,7 +27,7 @@ export default function GamesPage() {
   }
 
   return (
-    <div className="min-h-dvh" style={{ background: "radial-gradient(ellipse at 50% 0%, #1a4db5 0%, #0f1f5c 70%)" }}>
+    <div className="min-h-dvh page-gradient">
       <PageHeader title={isAr ? "الألعاب" : "Games"} icon="🎮" />
 
       <div className="flex flex-col items-center px-6 pt-8">

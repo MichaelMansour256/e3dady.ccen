@@ -1,4 +1,5 @@
 import cloudinary from "./cloudinary";
+import { siteConfig } from "@/config";
 
 export type SpecialEvent = {
   id: string;
@@ -10,7 +11,9 @@ export type SpecialEvent = {
   descriptionAr?: string;
 };
 
-const PUBLIC_ID = "e3dady_events/events";
+// Stored as a raw JSON resource under the meeting's Cloudinary namespace
+// (`siteConfig.cloudinary.meetingFolder`, default "e3dady_events").
+const PUBLIC_ID = `${siteConfig.cloudinary.meetingFolder}/events`;
 
 export async function getEvents(): Promise<SpecialEvent[]> {
   try {

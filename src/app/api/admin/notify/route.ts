@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isAuthorized } from "@/lib/auth";
 import { sendNotification } from "@/lib/onesignal";
 import { putNotificationRecord } from "@/lib/notifications-history";
+import { routing } from "@/i18n/routing";
 
 /**
  * Immediate admin push — same sender the crons use.
@@ -45,7 +46,7 @@ export async function POST(req: Request) {
 
     const sentAt = new Date().toISOString();
     const notifyId = crypto.randomUUID();
-    const urlValue = url || "/ar";
+    const urlValue = url || `/${routing.defaultLocale}`;
     const imageValue = image || null;
 
     const result = await sendNotification({
@@ -94,7 +95,7 @@ export async function POST(req: Request) {
           headingEn: parsedBody.headingEn ?? "",
           messageAr: parsedBody.messageAr ?? "",
           messageEn: parsedBody.messageEn ?? "",
-          url: parsedBody.url ?? "/ar",
+          url: parsedBody.url ?? `/${routing.defaultLocale}`,
           image: parsedBody.image ?? null,
           onesignalId: null,
           status: "failed_no_subscribers",

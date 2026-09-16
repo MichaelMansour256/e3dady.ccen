@@ -58,7 +58,7 @@ export default function PrayerWallPage() {
   }
 
   return (
-    <div className="min-h-dvh" style={{ background: "radial-gradient(ellipse at 50% 0%, #1a4db5 0%, #0f1f5c 70%)" }}>
+    <div className="min-h-dvh page-gradient">
       <PageHeader title={isAr ? "جدار الصلاة" : "Prayer Wall"} icon="✝️" />
 
       <div className="flex flex-col gap-4 px-4 py-4 max-w-lg mx-auto">

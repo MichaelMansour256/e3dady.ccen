@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendNotification } from "@/lib/onesignal";
+import { routing } from "@/i18n/routing";
 
 export async function POST(req: Request) {
   // Authenticate the request - you can remove this for simple testing
@@ -10,7 +11,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { headingAr, headingEn, messageAr, messageEn, url = "/ar" } = body;
+    const { headingAr, headingEn, messageAr, messageEn, url = `/${routing.defaultLocale}` } = body;
 
     if (!headingAr || !headingEn || !messageAr || !messageEn) {
       return NextResponse.json(

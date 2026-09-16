@@ -1,6 +1,7 @@
 "use client";
 import { useNextMeeting } from "@/hooks/useNextMeeting";
 import { useLocale } from "next-intl";
+import { meetingConfig } from "@/config";
 
 export default function WeeklyMeetingCard() {
   const { countdown, nextDate } = useNextMeeting();
@@ -18,7 +19,9 @@ export default function WeeklyMeetingCard() {
         <span className="text-xl">⛪</span>
         <div>
           <p className="text-sm font-bold text-white">{isAr ? "الاجتماع الأسبوعي" : "Weekly Meeting"}</p>
-          <p className="text-xs text-blue-light/70">{isAr ? "كل جمعة · ١٢:٣٠ م" : "Every Friday · 12:30 PM"}</p>
+          <p className="text-xs text-blue-light/70">
+            {isAr ? meetingConfig.schedule.labelAr : meetingConfig.schedule.labelEn}
+          </p>
         </div>
         {countdown.isToday && (
           <span className="ms-auto rounded-full bg-blue-accent px-3 py-0.5 text-xs font-bold text-white animate-pulse">

@@ -2,14 +2,10 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { bottomNavTabs, isFeatureEnabled } from "@/config";
 
-const tabs = [
-  { key: "home", href: "/", icon: "🏠" },
-  { key: "events", href: "/events", icon: "📅" },
-  { key: "bible", href: "/bible", icon: "📖" },
-  { key: "games", href: "/games", icon: "🎮" },
-  { key: "more", href: "/more", icon: "☰" },
-] as const;
+/** Bottom tabs from the central navigation config (feature-gated). */
+const tabs = bottomNavTabs.filter((t) => isFeatureEnabled(t.feature));
 
 export default function BottomNav({ locale }: { locale: string }) {
   const t = useTranslations("nav");

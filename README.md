@@ -10,6 +10,37 @@ The platform brings together weekly meeting information, Bible content, games, e
 
 ---
 
+## 🧩 Reusable Template for Church Meeting Websites
+
+This repository doubles as a **template**: the code defines how the website
+works, while the configuration under **`src/config/`** defines which meeting
+it represents. A second meeting website can be created by editing
+configuration and replacing assets — no component rewrites required.
+
+```text
+src/config/
+  site.ts        → name, church, description, social links, contact, assets, Cloudinary folder
+  theme.ts       → brand colors + background gradients (drives every color on the site)
+  meeting.ts     → meeting name, age group, weekly schedule, hero text, About content
+  servants.ts    → servants directory
+  navigation.ts  → bottom nav, home quick links, More/Bible page items
+  features.ts    → feature flags for major optional sections
+```
+
+Quick orientation:
+
+- **Core/shared** — pages, components, admin dashboard, integrations
+  (Supabase, Cloudinary, OneSignal), schedule logic, theming mechanism.
+- **Meeting-specific** — `src/config/*`, `messages/{ar,en}.json` (UI labels),
+  `public/` branding assets (logo, app icon, PWA splash screens, servants
+  photos), and `.env` credentials.
+- **Environment-specific** — `.env.local` (see `.env.example`): Supabase,
+  Cloudinary, OneSignal, admin password, cron secret, site URL.
+
+➡️ Full setup guide for creating a new meeting website: **[TEMPLATE.md](./TEMPLATE.md)**.
+
+---
+
 ## ✨ Overview
 
 **E3dady Youth Meeting** is designed as a digital hub for the youth meeting, providing members with an engaging and accessible way to stay connected with the meeting throughout the week.

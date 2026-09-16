@@ -23,7 +23,7 @@ export default function VerseOfWeekPage() {
   }, []);
 
   return (
-    <div className="min-h-dvh" style={{ background: "radial-gradient(ellipse at 50% 0%, #1a4db5 0%, #0f1f5c 70%)" }}>
+    <div className="min-h-dvh page-gradient">
       <PageHeader title="آية الأسبوع" icon="✨" />
 
       <div className="flex flex-col items-center px-5 pt-8 pb-6 max-w-lg mx-auto">

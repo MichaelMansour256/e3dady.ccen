@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import BottomNav from "@/components/BottomNav";
 import OneSignalInit from "@/components/OneSignalInit";
+import { siteConfig, themeConfig, themeCssVars } from "@/config";
 import { Cairo, Inter } from "next/font/google";
 
 const cairo = Cairo({ subsets: ["arabic"], weight: ["400", "600", "700"], variable: "--font-cairo", display: "swap" });
@@ -26,16 +27,16 @@ export default async function LocaleLayout({
       className={locale === "ar" ? cairo.variable : inter.variable}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#0f1f5c" />
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <meta name="theme-color" content={themeConfig.colors.dark} />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-title" content="E3dady" />
+        <meta name="apple-mobile-web-app-title" content={siteConfig.shortName} />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         {/* Apple touch icons */}
-        <link rel="apple-touch-icon" sizes="180x180" href="/app-icon.png" />
-        <link rel="apple-touch-icon" sizes="167x167" href="/app-icon.png" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/app-icon.png" />
-        <link rel="apple-touch-icon" sizes="120x120" href="/app-icon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href={siteConfig.assets.appIcon} />
+        <link rel="apple-touch-icon" sizes="167x167" href={siteConfig.assets.appIcon} />
+        <link rel="apple-touch-icon" sizes="152x152" href={siteConfig.assets.appIcon} />
+        <link rel="apple-touch-icon" sizes="120x120" href={siteConfig.assets.appIcon} />
         {/* Apple splash screens */}
         <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" href="/appstore-images/windows/SplashScreen.scale-400.png" />
         <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" href="/appstore-images/windows/SplashScreen.scale-400.png" />
@@ -45,6 +46,10 @@ export default async function LocaleLayout({
         <link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" href="/appstore-images/windows/SplashScreen.scale-200.png" />
       </head>
       <body>
+        {/* Live theme values from src/config/theme.ts (overrides the
+            globals.css fallbacks — placed first in <body> so it wins the
+            cascade against the stylesheet in <head>). */}
+        <style dangerouslySetInnerHTML={{ __html: themeCssVars() }} />
         {/* OneSignal Web SDK v16 - next/script in component, init only after SDK loads */}
         <OneSignalInit />
         <NextIntlClientProvider messages={messages}>

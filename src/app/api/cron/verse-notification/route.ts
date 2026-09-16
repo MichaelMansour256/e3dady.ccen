@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { sendNotification } from "@/lib/onesignal";
 import { getVerseRef } from "@/lib/verse";
+import { routing } from "@/i18n/routing";
 
 export async function GET(req: Request) {
   const authHeader = req.headers.get("authorization");
@@ -17,7 +18,7 @@ export async function GET(req: Request) {
       headingEn: "✨ Verse of the Week",
       messageAr: `${ref.bookName} ${ref.chapter}:${ref.verse}`,
       messageEn: `${ref.bookName} ${ref.chapter}:${ref.verse}`,
-      url: "/ar/bible/verse",
+      url: `/${routing.defaultLocale}/bible/verse`,
     });
     return NextResponse.json({ success: true, result });
   } catch (e) {

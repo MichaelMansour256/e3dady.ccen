@@ -4,6 +4,8 @@ import {
   getInvitations,
   nextFridayCairoISO,
 } from "@/lib/invitations";
+import { meetingConfig, siteConfig } from "@/config";
+import { routing } from "@/i18n/routing";
 
 export async function GET(req: Request) {
   // Verify this is called by Vercel Cron
@@ -13,23 +15,24 @@ export async function GET(req: Request) {
   }
 
   try {
-    // (2) Smart Thursday reminder: look up the actual invitation image
-    // uploaded for next Friday (Cairo). Falls back to generic text when
-    // nothing was uploaded that week — never skips silently.
+    // Smart meeting-eve reminder: look up the actual invitation image
+    // uploaded for the next meeting day (Cairo). Falls back to generic text
+    // when nothing was uploaded that week — never skips silently.
     const nextFriday = nextFridayCairoISO();
     const invitations = await getInvitations();
     const match = invitations.find((i) => i.date === nextFriday);
 
+    const { schedule } = meetingConfig;
     const result = await sendNotification({
-      headingAr: "دعوة اجتماع الجمعة ✝️",
-      headingEn: "Friday Meeting Invitation ✝️",
+      headingAr: `دعوة اجتماع ${schedule.dayNameAr} ✝️`,
+      headingEn: `${schedule.dayNameEn} Meeting Invitation ✝️`,
       messageAr: match
-        ? `دعوة اجتماع الجمعة ${match.date} — الساعة ١٢:٣٠ — كنيسة المسيح عزبة النخل 🙏`
-        : "اجتماع الجمعة غداً — الساعة ١٢:٣٠ — كنيسة المسيح عزبة النخل 🙏",
+        ? `دعوة اجتماع ${schedule.dayNameAr} ${match.date} — الساعة ${schedule.timeLabelAr} — ${siteConfig.church.nameAr} 🙏`
+        : `اجتماع ${schedule.dayNameAr} غداً — الساعة ${schedule.timeLabelAr} — ${siteConfig.church.nameAr} 🙏`,
       messageEn: match
-        ? `Friday meeting invitation ${match.date} — 12:30 PM — Christ Church Ezbet El Nakhl 🙏`
-        : "Friday meeting is tomorrow at 12:30 PM — Christ Church Ezbet El Nakhl 🙏",
-      url: "/ar/events",
+        ? `${schedule.dayNameEn} meeting invitation ${match.date} — ${schedule.timeLabelEn} — ${siteConfig.church.name} 🙏`
+        : `${schedule.dayNameEn} meeting is tomorrow at ${schedule.timeLabelEn} — ${siteConfig.church.name} 🙏`,
+      url: `/${routing.defaultLocale}/events`,
       image: match?.url,
     });
     return NextResponse.json({

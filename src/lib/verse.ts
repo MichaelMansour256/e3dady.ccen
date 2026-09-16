@@ -1,4 +1,5 @@
 import cloudinary from "./cloudinary";
+import { siteConfig } from "@/config";
 
 export type VerseRef = {
   book: number;
@@ -8,7 +9,9 @@ export type VerseRef = {
   note?: string; // optional servant note
 };
 
-const PUBLIC_ID = "e3dady_events/verse_of_week";
+// Stored as a raw JSON resource under the meeting's Cloudinary namespace
+// (`siteConfig.cloudinary.meetingFolder`, default "e3dady_events").
+const PUBLIC_ID = `${siteConfig.cloudinary.meetingFolder}/verse_of_week`;
 
 export async function getVerseRef(): Promise<VerseRef | null> {
   try {

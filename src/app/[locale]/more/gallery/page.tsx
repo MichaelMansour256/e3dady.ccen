@@ -26,7 +26,7 @@ export default function GalleryPage() {
       : events.find((e) => e.path === activeEvent)?.photos ?? [];
 
   return (
-    <div className="min-h-dvh" style={{ background: "radial-gradient(ellipse at 50% 0%, #1a4db5 0%, #0f1f5c 70%)" }}>
+    <div className="min-h-dvh page-gradient">
       <PageHeader title="Gallery" icon="🖼️" />
 
       {/* Event filter tabs */}

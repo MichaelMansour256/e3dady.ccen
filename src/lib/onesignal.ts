@@ -1,9 +1,12 @@
+import { siteConfig } from "@/config";
+import { routing } from "@/i18n/routing";
+
 export async function sendNotification({
   headingAr,
   headingEn,
   messageAr,
   messageEn,
-  url = "/ar",
+  url = `/${routing.defaultLocale}`,
   image,
 }: {
   headingAr: string;
@@ -21,8 +24,7 @@ export async function sendNotification({
     );
   }
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://e3dady-ccen.vercel.app";
+  const siteUrl = siteConfig.url;
   const fullUrl = /^https?:\/\//i.test(url) ? url : `${siteUrl}${url}`;
 
   const body = {

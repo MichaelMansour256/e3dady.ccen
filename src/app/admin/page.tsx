@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
 import { BIBLE_BOOKS } from "@/lib/bibleBooks";
+import { meetingConfig } from "@/config";
+import { routing } from "@/i18n/routing";
 type Photo = { id: string; url: string; width: number; height: number };
 type GalleryEvent = { name: string; path: string; photos: Photo[] };
 type SpecialEvent = { id: string; title: string; titleAr: string; date: string; time: string; description?: string; descriptionAr?: string };
@@ -24,7 +26,7 @@ export default function AdminPage() {
   const [uploadProgress, setUploadProgress] = useState("");
   // Events state
   const [specialEvents, setSpecialEvents] = useState<SpecialEvent[]>([]);
-  const [newEvent, setNewEvent] = useState({ title: "", titleAr: "", date: "", time: "12:30", description: "", descriptionAr: "" });
+  const [newEvent, setNewEvent] = useState({ title: "", titleAr: "", date: "", time: meetingConfig.schedule.time, description: "", descriptionAr: "" });
   // Invitations state
   type Invitation = { date: string; url: string; publicId: string };
   const [invitations, setInvitations] = useState<Invitation[]>([]);
@@ -101,17 +103,17 @@ export default function AdminPage() {
   function notifLaunchUrl(): string {
     if (notifForm.urlMode === "custom") {
       const raw = notifForm.customUrl.trim();
-      if (!raw) return "/ar";
+      if (!raw) return `/${routing.defaultLocale}`;
       // Absolute URL (https://…) or site-relative path (/ar/…) both accepted.
       // Site-relative is normalized to start with "/".
       if (/^https?:\/\//i.test(raw)) return raw;
       return raw.startsWith("/") ? raw : `/${raw}`;
     }
     return notifForm.urlMode === "events"
-      ? "/ar/events"
+      ? `/${routing.defaultLocale}/events`
       : notifForm.urlMode === "verse"
-        ? "/ar/bible/verse"
-        : "/ar";
+        ? `/${routing.defaultLocale}/bible/verse`
+        : `/${routing.defaultLocale}`;
   }
   async function uploadNotifImage(file: File) {
     setNotifImgUploading(true);
@@ -239,7 +241,7 @@ export default function AdminPage() {
       headers: { ...headers, "content-type": "application/json" },
       body: JSON.stringify(newEvent),
     });
-    setNewEvent({ title: "", titleAr: "", date: "", time: "12:30", description: "", descriptionAr: "" });
+    setNewEvent({ title: "", titleAr: "", date: "", time: meetingConfig.schedule.time, description: "", descriptionAr: "" });
     fetchSpecialEvents();
   }
   async function deleteSpecialEvent(id: string) {
@@ -254,8 +256,7 @@ export default function AdminPage() {
   const currentPhotos = folders.find((e) => e.path === selectedFolder)?.photos ?? [];
   if (!authed) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center px-6"
-        style={{ background: "radial-gradient(ellipse at 50% 30%, #1a4db5 0%, #0f1f5c 70%)" }}>
+      <div className="flex min-h-dvh flex-col items-center justify-center px-6 page-gradient-high">
         <div className="w-full max-w-sm rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-8 backdrop-blur-sm">
           <h1 className="mb-6 text-center text-2xl font-bold text-white">Admin Login</h1>
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
@@ -272,8 +273,7 @@ export default function AdminPage() {
     );
   }
   return (
-    <div className="min-h-dvh px-4 py-6"
-      style={{ background: "radial-gradient(ellipse at 50% 0%, #1a4db5 0%, #0f1f5c 70%)" }}>
+    <div className="min-h-dvh px-4 py-6 page-gradient">
       <div className="mx-auto max-w-2xl">
         <h1 className="mb-4 text-2xl font-bold text-white">🛠 Admin Dashboard</h1>
         {/* Tabs */}

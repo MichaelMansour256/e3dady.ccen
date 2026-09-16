@@ -4,6 +4,8 @@ import { useLocale } from "next-intl";
 import Image from "next/image";
 import PageHeader from "@/components/PageHeader";
 import WeeklyMeetingCard from "@/components/WeeklyMeetingCard";
+import { meetingConfig } from "@/config";
+import { getNextMeetingISO } from "@/lib/schedule";
 
 type SpecialEvent = { id: string; title: string; titleAr: string; date: string; time: string; description?: string; descriptionAr?: string };
 type Invitation = { date: string; url: string; publicId: string };
@@ -29,7 +31,7 @@ function DateStrip({ events, invitations, onInvitationTap }: {
         const iso = d.toISOString().split("T")[0];
         const isToday = iso === today.toISOString().split("T")[0];
         const hasEvent = eventDates.has(iso);
-        const friday = d.getDay() === 5;
+        const meetingDay = d.getDay() === meetingConfig.schedule.weekday;
         const invUrl = invitationMap.get(iso);
 
         return (
@@ -38,7 +40,7 @@ function DateStrip({ events, invitations, onInvitationTap }: {
               invUrl ? "ring-2 ring-yellow-400/60" : ""
             } ${
               isToday ? "bg-blue-accent text-white" :
-              friday ? "bg-blue-primary/60 text-white border border-blue-accent/40" :
+              meetingDay ? "bg-blue-primary/60 text-white border border-blue-accent/40" :
               "bg-blue-primary/20 text-blue-light/60"
             }`}>
             <span className="text-xs">{d.toLocaleDateString("en", { weekday: "short" })}</span>
@@ -46,7 +48,7 @@ function DateStrip({ events, invitations, onInvitationTap }: {
             <span className={`mt-0.5 h-1.5 w-1.5 rounded-full ${
               invUrl ? "bg-yellow-400" :
               hasEvent ? "bg-yellow-400/60" :
-              friday ? "bg-blue-accent/60" :
+              meetingDay ? "bg-blue-accent/60" :
               "opacity-0"
             }`} />
           </button>
@@ -80,17 +82,12 @@ export default function EventsPage() {
   const upcoming = events.filter((e) => e.date >= today);
   const past = events.filter((e) => e.date < today);
 
-  // Next Friday invitation
-  const nextFriday = (() => {
-    const d = new Date();
-    const diff = (5 - d.getDay() + 7) % 7 || 7;
-    d.setDate(d.getDate() + diff);
-    return d.toISOString().split("T")[0];
-  })();
+  // Next meeting-day invitation
+  const nextFriday = getNextMeetingISO();
   const nextInvitation = invitations.find((i) => i.date === nextFriday);
 
   return (
-    <div className="min-h-dvh" style={{ background: "radial-gradient(ellipse at 50% 0%, #1a4db5 0%, #0f1f5c 70%)" }}>
+    <div className="min-h-dvh page-gradient">
       <PageHeader title={isAr ? "الفعاليات" : "Events"} icon="📅" />
 
       <div className="pt-4 pb-2">

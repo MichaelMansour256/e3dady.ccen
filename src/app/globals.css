@@ -1,12 +1,18 @@
 @import "tailwindcss";
 
 :root {
+  /* Fallback copies of src/config/theme.ts — the live values are injected
+     from the theme config as an inline <style> tag by the root layouts.
+     Keep these in sync to avoid a first-paint flash of outdated colors. */
   --blue-dark: #0f1f5c;
   --blue-primary: #1a3a8f;
   --blue-mid: #1e40af;
   --blue-accent: #3b82f6;
   --blue-light: #93c5fd;
   --white: #ffffff;
+  --gradient-mid: #1a4db5;
+  --gradient-dark: #0f1f5c;
+  --gradient-deeper: #060d2e;
 }
 
 @theme inline {
@@ -37,6 +43,17 @@ body {
 
 .pb-safe {
   padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+}
+
+/* Page background gradients — colors come from src/config/theme.ts. */
+.hero-gradient {
+  background: radial-gradient(ellipse at 50% 20%, var(--gradient-mid) 0%, var(--gradient-dark) 55%, var(--gradient-deeper) 100%);
+}
+.page-gradient {
+  background: radial-gradient(ellipse at 50% 0%, var(--gradient-mid) 0%, var(--gradient-dark) 70%);
+}
+.page-gradient-high {
+  background: radial-gradient(ellipse at 50% 30%, var(--gradient-mid) 0%, var(--gradient-dark) 70%);
 }
 
 @keyframes fadeUp {
