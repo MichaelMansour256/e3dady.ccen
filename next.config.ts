@@ -12,7 +12,7 @@ const withPWA = require("next-pwa")({
   // "Delivered" but nothing is ever displayed.
   // sw.js is still generated but left unregistered (inert) until we move to a
   // combined worker (InjectManifest + importScripts OneSignal SDK).
-  register: false,
+  register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === "development",
   exclude: [/OneSignalSDKWorker/, /OneSignalSDKUpdaterWorker/],
