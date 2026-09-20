@@ -56,6 +56,25 @@ export const siteConfig = {
     logo: "/logo.png",
     /** App/PWA icon (also used as notification icon). */
     appIcon: "/app-icon.png",
+    /**
+     * Exact-size PWA icons generated from `appIcon` by `npm run generate-icons`
+     * — every file has exactly the size its manifest entry declares, because
+     * browsers validate the declaration against the downloaded bitmap (a
+     * mismatch leaves the installed app without the icon it asked for).
+     * Regenerate them after replacing `app-icon.png`.
+     */
+    pwaIcons: {
+      /** Browser tab icon (transparent corners). */
+      icon48: "/icons/icon-48x48.png",
+      /** Manifest icons with `purpose: "any"`. */
+      icon192: "/icons/icon-192x192.png",
+      icon512: "/icons/icon-512x512.png",
+      /** Manifest icons with `purpose: "maskable"` (Android adaptive icon). */
+      maskable192: "/icons/maskable-192x192.png",
+      maskable512: "/icons/maskable-512x512.png",
+      /** iOS home-screen icon (opaque — iOS paints transparency black). */
+      appleTouch180: "/icons/apple-touch-icon-180x180.png",
+    },
   },
 
   /**

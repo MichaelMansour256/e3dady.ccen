@@ -455,6 +455,14 @@ npm run lint
 
 Runs ESLint.
 
+```bash
+npm run generate-icons
+```
+
+Regenerates the exact-size PWA icons in `public/icons/` from
+`public/app-icon.png` (run it after replacing the app icon). Uses `sharp`,
+which is a dev dependency.
+
 These scripts are defined in the project's `package.json`.
 
 ---

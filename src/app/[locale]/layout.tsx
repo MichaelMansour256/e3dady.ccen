@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import BottomNav from "@/components/BottomNav";
 import OneSignalInit from "@/components/OneSignalInit";
-import { siteConfig, themeConfig, themeCssVars } from "@/config";
+import { siteConfig, themeCssVars } from "@/config";
 import { Cairo, Inter } from "next/font/google";
 
 const cairo = Cairo({ subsets: ["arabic"], weight: ["400", "600", "700"], variable: "--font-cairo", display: "swap" });
@@ -26,17 +26,18 @@ export default async function LocaleLayout({
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}
       className={locale === "ar" ? cairo.variable : inter.variable}>
       <head>
+        {/*
+          The manifest link, theme color and apple-touch-icon live in
+          `src/app/layout.tsx` metadata only — they used to be duplicated here
+          with a second, conflicting theme color and with apple-touch-icon
+          entries declaring sizes the referenced file never had (see
+          `scripts/generate-pwa-icons.js`). Only iOS-specific meta the metadata
+          API does not cover is kept below.
+        */}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <link rel="manifest" href="/manifest.webmanifest" />
-        <meta name="theme-color" content={themeConfig.colors.dark} />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content={siteConfig.shortName} />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        {/* Apple touch icons */}
-        <link rel="apple-touch-icon" sizes="180x180" href={siteConfig.assets.appIcon} />
-        <link rel="apple-touch-icon" sizes="167x167" href={siteConfig.assets.appIcon} />
-        <link rel="apple-touch-icon" sizes="152x152" href={siteConfig.assets.appIcon} />
-        <link rel="apple-touch-icon" sizes="120x120" href={siteConfig.assets.appIcon} />
         {/* Apple splash screens */}
         <link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" href="/appstore-images/windows/SplashScreen.scale-400.png" />
         <link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" href="/appstore-images/windows/SplashScreen.scale-400.png" />

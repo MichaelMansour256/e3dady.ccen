@@ -44,7 +44,7 @@ changing configuration + assets, not rewriting components.
 | `src/config/features.ts` | Feature flags for major optional sections (events, bible, games, gallery, prayer wall, servants, about, contact, notifications) |
 | `src/config/index.ts` | Barrel — everything is imported from `@/config` |
 | `messages/ar.json`, `messages/en.json` | Generic UI labels (nav items, section titles) in both languages |
-| `public/` | Meeting-specific assets: `logo.png`, `app-icon.png`, `appstore-images/` (PWA icons + splash), `servants images/` |
+| `public/` | Meeting-specific assets: `logo.png`, `app-icon.png`, `icons/` (generated PWA icons), `appstore-images/` (splash screens), `servants images/` |
 | `.env.local` | Environment-specific: Supabase, Cloudinary, OneSignal, admin password, cron secret (see `.env.example`) |
 
 ---
@@ -118,10 +118,20 @@ Replace the servants array (name + Arabic name) and drop the photos into
 | Asset | Used for |
 |---|---|
 | `public/logo.png` | Home hero + About page logo |
-| `public/app-icon.png` | PWA icon, favicon, notification icon |
+| `public/icons/**` | Generated exact-size PWA/manifest icons (do not hand-edit) |
+| `public/app-icon.png` | Source artwork for the generated icons above; after replacing it run `npm run generate-icons` |
 | `public/appstore-images/**` | PWA splash screens / platform icons (regenerate with a PWA asset tool) |
 | `public/servants images/` | Servants photos |
 | `public/OneSignalSDKWorker.js`, `OneSignalSDKUpdaterWorker.js` | OneSignal service workers — keep as-is |
+
+After replacing `public/app-icon.png`, regenerate the exact-size icon set that
+`src/app/manifest.ts` and the `<head>` metadata declare. Browsers verify each
+declared `sizes` against the *downloaded* image, so stale icons make an
+installed app fall back to the browser's default icon:
+
+```bash
+npm run generate-icons   # writes public/icons/*.png from app-icon.png
+```
 
 Update `messages/ar.json` / `messages/en.json` for generic UI labels
 (`nav`, `events`, `bible`, `games`, `more` namespaces). Meeting identity text
