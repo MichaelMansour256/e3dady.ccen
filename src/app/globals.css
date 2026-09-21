@@ -76,3 +76,29 @@ body {
 .animate-pulse-glow {
   animation: pulse-glow 3s ease-in-out infinite;
 }
+
+/* PWA install banner (src/components/InstallBanner.tsx) — slides up from the
+   bottom edge; the component only mounts when it should be visible, so the
+   keyframes' `both` fill-mode starts it at opacity 0 (no flash). */
+@keyframes install-banner-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes install-banner-out {
+  from { opacity: 1; transform: translateY(0)    scale(1); }
+  to   { opacity: 0; transform: translateY(16px) scale(0.98); }
+}
+.install-banner-enter {
+  animation: install-banner-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.install-banner-exit {
+  animation: install-banner-out 0.25s ease-in both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .install-banner-enter,
+  .install-banner-exit {
+    animation-duration: 1ms;
+    animation-timing-function: linear;
+  }
+}

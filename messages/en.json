@@ -31,5 +31,14 @@
     "servants": "Servants",
     "prayerWall": "Prayer Wall",
     "contact": "Contact"
+  },
+  "install": {
+    "dialogLabel": "Install the E3dady app",
+    "title": "Install the E3dady app",
+    "description": "Enjoy E3dady as a standalone app from your home screen.",
+    "install": "Install",
+    "installAria": "Install the E3dady app on this device",
+    "later": "Later",
+    "laterAria": "Hide the install banner and remind me later"
   }
 }

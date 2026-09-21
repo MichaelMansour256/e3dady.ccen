@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import BottomNav from "@/components/BottomNav";
 import OneSignalInit from "@/components/OneSignalInit";
+import InstallBanner from "@/components/InstallBanner";
 import { siteConfig, themeCssVars } from "@/config";
 import { Cairo, Inter } from "next/font/google";
 
@@ -56,6 +57,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <main className="pb-safe min-h-dvh">{children}</main>
           <BottomNav locale={locale} />
+          <InstallBanner />
         </NextIntlClientProvider>
       </body>
     </html>
