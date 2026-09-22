@@ -33,11 +33,48 @@ type JsQrFn = (
 
 /** jsQR is ~250KB: load it only when the camera is actually used. */
 let jsQrPromise: Promise<JsQrFn | null> | null = null;
+
+/**
+ * Resolve the jsQR function across every interop shape a bundler might hand
+ * back. jsqr@1.4.0 is CommonJS ("exports.default = jsQR" with __esModule), so
+ * depending on the bundler ANY of these can be the callable decoder:
+ *   mod (function) • mod.default (function) • mod.default.default (function)
+ * The old code only handled the first two — if the browser bundle handed back
+ * the exports object, it called a non-callable object, the frame threw, and
+ * the silent catch looked exactly like "camera opens, nothing is detected".
+ */
+function resolveJsQr(mod: unknown): JsQrFn | null {
+  const m = mod as JsQrFn | { default?: JsQrFn | { default?: JsQrFn } } | null | undefined;
+  if (typeof m === "function") return m;
+  const d = m?.default;
+  if (typeof d === "function") return d;
+  const dd = (d as { default?: JsQrFn } | undefined)?.default;
+  if (typeof dd === "function") return dd;
+  return null;
+}
+
 function loadJsQr(): Promise<JsQrFn | null> {
   if (!jsQrPromise) {
+    console.log("[QR] Loading jsQR...");
     jsQrPromise = import("jsqr")
-      .then((mod) => (mod as { default?: JsQrFn }).default ?? (mod as unknown as JsQrFn))
-      .catch(() => null);
+      .then((mod) => {
+        const fn = resolveJsQr(mod);
+        if (!fn) {
+          // Unrecognised interop shape — surface it, never swallow it.
+          console.error(
+            "[QR] ERROR: jsQR loaded but no callable decoder was found",
+            typeof mod,
+            typeof (mod as { default?: unknown })?.default
+          );
+          return null;
+        }
+        console.log("[QR] jsQR loaded successfully");
+        return fn;
+      })
+      .catch((err) => {
+        console.error("[QR] ERROR: jsQR failed to load", err);
+        return null;
+      });
   }
   return jsQrPromise;
 }
@@ -65,6 +102,10 @@ export default function QrScanner({
   const [state, setState] = useState<CameraState>("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [facing, setFacing] = useState<"environment" | "user">("environment");
+  /** Which decoder is active — surfaced in the UI while debugging. */
+  const [decoder, setDecoder] = useState<"detecting" | "native" | "jsqr" | "failed">("detecting");
+  const loggedDimsRef = useRef(false);
+  const lastFrameLogRef = useRef(0);
 
   useEffect(() => {
     pausedRef.current = paused;
@@ -86,9 +127,11 @@ export default function QrScanner({
     (raw: string) => {
       const token = extractCheckinToken(raw);
       if (!token) {
-        // A QR was decoded but it is not a member code — never stay silent,
-        // the servant needs to know the camera IS reading something.
-        setMessage("تم قراءة رمز، لكنه لا يبدو رمز عضو صالح.");
+        // Decode SUCCESS but not a member code (e.g. a "TEST-QR-123" or any
+        // other QR). Prove the decoder works and separate that from token
+        // validation — never stay silent here.
+        const preview = raw.length > 40 ? `${raw.slice(0, 40)}…` : raw;
+        setMessage(`✅ تم قراءة رمز QR بنجاح — لكنه ليس رمز عضو: ${preview}`);
         return;
       }
       const now = Date.now();
@@ -109,6 +152,7 @@ export default function QrScanner({
     if (runningRef.current) return;
     setMessage(null);
     setState("starting");
+    console.log("[QR] Camera started");
 
     if (!navigator.mediaDevices?.getUserMedia) {
       setState("unavailable");
@@ -119,7 +163,12 @@ export default function QrScanner({
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: facing } },
+        video: {
+          facingMode: { ideal: facing },
+          // "ideal" (not required) so unsupported values never break mobile.
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
         audio: false,
       });
     } catch (err) {
@@ -158,15 +207,27 @@ export default function QrScanner({
 
     runningRef.current = true;
     setState("running");
+    loggedDimsRef.current = false;
 
     const detectorCtor = (window as unknown as { BarcodeDetector?: BarcodeDetectorCtor })
       .BarcodeDetector;
-    const detector = detectorCtor ? new detectorCtor({ formats: ["qr_code"] }) : null;
+    console.log(`[QR] BarcodeDetector supported: ${Boolean(detectorCtor)}`);
+
+    if (detectorCtor) {
+      console.log("[QR] Using native BarcodeDetector");
+      setDecoder("native");
+    } else {
+      console.log("[QR] Using jsQR fallback");
+      setDecoder("jsqr");
+    }
+    let detector = detectorCtor ? new detectorCtor({ formats: ["qr_code"] }) : null;
 
     const schedule = (delay: number) => {
       if (!runningRef.current) return;
       timerRef.current = window.setTimeout(tick, delay);
     };
+
+    let nativeFails = 0;
 
     const tick = async () => {
       const v = videoRef.current;
@@ -177,13 +238,40 @@ export default function QrScanner({
         return;
       }
 
+      if (!loggedDimsRef.current && v.videoWidth > 0) {
+        loggedDimsRef.current = true;
+        console.log(`[QR] video dimensions: ${v.videoWidth}x${v.videoHeight}`);
+      }
+
       try {
         if (detector) {
-          const codes = await detector.detect(v);
-          const value = codes[0]?.rawValue;
-          if (value) handleValue(value);
-          schedule(250);
-          return;
+          try {
+            const codes = await detector.detect(v);
+            nativeFails = 0;
+            const value = codes?.[0]?.rawValue;
+            if (value) {
+              console.log("[QR] QR DETECTED (native BarcodeDetector)");
+              if (process.env.NODE_ENV !== "production") {
+                console.log("[QR] raw payload:", value);
+              }
+              handleValue(value);
+            }
+            schedule(250);
+            return;
+          } catch (err) {
+            // A repeatedly-throwing detect() used to be swallowed forever —
+            // after 5 failures switch to the jsQR fallback instead.
+            nativeFails += 1;
+            console.warn(`[QR] BarcodeDetector.detect failed (x${nativeFails})`, err);
+            if (nativeFails < 5) {
+              schedule(250);
+              return;
+            }
+            console.log("[QR] Switching to the jsQR fallback after repeated failures");
+            setDecoder("jsqr");
+            detector = null;
+            // fall through to the jsQR path below
+          }
         }
 
         const canvas = canvasRef.current;
@@ -202,13 +290,35 @@ export default function QrScanner({
         ctx.drawImage(v, 0, 0, width, height);
 
         const jsQR = await loadJsQr();
-        if (jsQR) {
-          const image = ctx.getImageData(0, 0, width, height);
-          const result = jsQR(image.data, width, height, { inversionAttempts: "dontInvert" });
-          if (result?.data) handleValue(result.data);
+        if (!jsQR) {
+          // Never keep looping silently with no decoder at all.
+          console.error("[QR] ERROR: no QR decoder available — stopping the scan loop");
+          setDecoder("failed");
+          setMessage("❌ تعذّر تشغيل قارئ QR — استخدم الإدخال اليدوي بالأسفل أو أعد تحميل الصفحة.");
+          return;
         }
-      } catch {
-        /* a frame failed to decode — keep scanning */
+
+        const now = Date.now();
+        const shouldFrameLog =
+          process.env.NODE_ENV !== "production" && now - lastFrameLogRef.current > 2000;
+        if (shouldFrameLog) lastFrameLogRef.current = now;
+
+        if (shouldFrameLog) console.log("[QR] decoding frame...");
+
+        const image = ctx.getImageData(0, 0, width, height);
+        const result = jsQR(image.data, width, height, { inversionAttempts: "dontInvert" });
+        if (result?.data) {
+          console.log("[QR] QR DETECTED (jsQR)");
+          if (process.env.NODE_ENV !== "production") {
+            console.log("[QR] raw payload:", result.data);
+          }
+          handleValue(result.data);
+        } else if (shouldFrameLog) {
+          console.log("[QR] jsQR result: none");
+        }
+      } catch (err) {
+        // A frame failed to decode — keep scanning, but never fully silently.
+        console.warn("[QR] frame decode error", err);
       }
 
       schedule(detector ? 250 : 150);
@@ -270,7 +380,15 @@ export default function QrScanner({
 
       {state === "running" && (
         <p className="text-center text-xs text-blue-light/50" aria-live="polite">
-          {paused ? "⏸ متوقف مؤقتًا — أكّد التسجيل أو اضغط إلغاء" : "📡 جارٍ البحث عن رمز QR…"}
+          📷 الكاميرا تعمل ·{" "}
+          {decoder === "failed" ? (
+            <>❌ القارئ: تعذّر تشغيله — استخدم الإدخال اليدوي أو أعد تحميل الصفحة</>
+          ) : (
+            <>
+              🔍 القارئ: {decoder === "native" ? "BarcodeDetector" : "jsQR"} ·{" "}
+              {paused ? "⏸ متوقف مؤقتًا — أكّد التسجيل أو اضغط إلغاء" : "📡 جارٍ البحث عن رمز…"}
+            </>
+          )}
         </p>
       )}
 
