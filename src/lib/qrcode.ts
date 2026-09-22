@@ -38,7 +38,7 @@ export async function generateQrSvg(token: string): Promise<string> {
  */
 export async function generateQrPngDataUrl(token: string): Promise<string> {
   return QRCode.toDataURL(getCheckInUrl(token), {
-    type: "png",
+    type: "image/png",
     errorCorrectionLevel: "M",
     margin: 1,
     width: 640,

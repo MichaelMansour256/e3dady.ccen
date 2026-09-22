@@ -105,14 +105,24 @@ export function useAdminAuth(): AdminAuth {
   // Memoised so `request()` keeps a stable identity between renders and fetch
   // effects never loop.
   const headers = useMemo(
-    () => (authed ? { "x-admin-password": password } : {}),
+    () => {
+      const headers: Record<string, string> = {};
+      if (authed) {
+        headers["x-admin-password"] = password;
+      }
+      return headers;
+    },
     [authed, password]
   );
   const jsonHeaders = useMemo(
-    () =>
-      authed
-        ? { "x-admin-password": password, "content-type": "application/json" }
-        : {},
+    () => {
+      const headers: Record<string, string> = {};
+      if (authed) {
+        headers["x-admin-password"] = password;
+        headers["content-type"] = "application/json";
+      }
+      return headers;
+    },
     [authed, password]
   );
 

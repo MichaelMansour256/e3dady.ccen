@@ -90,11 +90,11 @@ export async function generateAttendanceWorkbook(
     { header: "Status", key: "status", width: 12 },
   ];
 
+  ws.getRow(1).height = 20;
   ws.getRow(1).eachCell((cell) => {
     cell.fill = HEADER_FILL;
     cell.font = HEADER_FONT;
     cell.alignment = { vertical: "middle", horizontal: "center" };
-    cell.height = 20;
   });
 
   report.forEach((row, index) => {
