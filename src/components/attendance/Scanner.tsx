@@ -85,7 +85,12 @@ export default function QrScanner({
   const handleValue = useCallback(
     (raw: string) => {
       const token = extractCheckinToken(raw);
-      if (!token) return;
+      if (!token) {
+        // A QR was decoded but it is not a member code — never stay silent,
+        // the servant needs to know the camera IS reading something.
+        setMessage("تم قراءة رمز، لكنه لا يبدو رمز عضو صالح.");
+        return;
+      }
       const now = Date.now();
       if (token === lastTokenRef.current && now - lastTokenAtRef.current < cooldownMs) return;
       lastTokenRef.current = token;
@@ -188,9 +193,10 @@ export default function QrScanner({
           return;
         }
 
-        // Downscale before decoding: faster, and plenty for a printed QR code.
-        const width = 480;
-        const height = Math.round((v.videoHeight / v.videoWidth) * width) || 480;
+        // Decode at 640px: enough detail for small codes at arm's length while
+        // staying fast on old phones.
+        const width = 640;
+        const height = Math.round((v.videoHeight / v.videoWidth) * width) || 640;
         canvas.width = width;
         canvas.height = height;
         ctx.drawImage(v, 0, 0, width, height);
@@ -261,6 +267,12 @@ export default function QrScanner({
         {/* Off-screen canvas used by the jsQR fallback */}
         <canvas ref={canvasRef} className="hidden" />
       </div>
+
+      {state === "running" && (
+        <p className="text-center text-xs text-blue-light/50" aria-live="polite">
+          {paused ? "⏸ متوقف مؤقتًا — أكّد التسجيل أو اضغط إلغاء" : "📡 جارٍ البحث عن رمز QR…"}
+        </p>
+      )}
 
       {message && <Banner tone="warning">{message}</Banner>}
 

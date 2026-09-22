@@ -111,60 +111,77 @@ export default function AttendanceScanPage() {
     void refreshMeeting();
   }, [refreshMeeting]);
 
+  /** Abort the request if Supabase hangs — a stuck "busy" would silently
+   *  swallow every later scan, looking exactly like "nothing happened". */
+  const requestSignal = useCallback(
+    () => AbortSignal.timeout(10_000),
+    []
+  );
+
   /** Step 1 — IDENTIFY only (read-only): show the member, record nothing. */
   const identify = useCallback(
     async (token: string) => {
       if (!token || busy) return;
       setBusy(true);
-      const res = await request<IdentifyResponse>("/api/checkin", { json: { token } });
-      const payload: IdentifyResponse = res.data ?? {
-        ok: false,
-        status: "error",
-        message: res.error ?? "تعذّر التعرف على الرمز",
-      };
-      setBusy(false);
-      if (!payload.ok || payload.status === "invalid_token" || !payload.member) {
-        setResult({
-          ok: false,
-          status: payload.status === "invalid_token" ? "invalid_token" : "error",
-          message: payload.message ?? res.error ?? "تعذّر التعرف على الرمز",
+      try {
+        const res = await request<IdentifyResponse>("/api/checkin", {
+          json: { token },
+          signal: requestSignal(),
         });
-        return;
+        const payload: IdentifyResponse = res.data ?? {
+          ok: false,
+          status: "error",
+          message: res.error ?? "تعذّر التعرف على الرمز",
+        };
+        if (!payload.ok || payload.status === "invalid_token" || !payload.member) {
+          setResult({
+            ok: false,
+            status: payload.status === "invalid_token" ? "invalid_token" : "error",
+            message: payload.message ?? res.error ?? "تعذّر التعرف على الرمز",
+          });
+          return;
+        }
+        setPreview({ token, data: payload });
+      } finally {
+        setBusy(false);
       }
-      setPreview({ token, data: payload });
     },
-    [busy, request]
+    [busy, request, requestSignal]
   );
 
   /** Step 2 — staff CONFIRMS; the protected endpoint re-verifies server-side. */
   const confirm = useCallback(async () => {
     if (!preview || busy) return;
     setBusy(true);
-    const res = await request<CheckInResponse>("/api/attendance/checkin", {
-      json: { token: preview.token },
-    });
-    const payload: CheckInResponse =
-      res.data ??
-      ({ ok: false, status: "error", message: res.error ?? "تعذّر تسجيل الحضور" } as CheckInResponse);
+    try {
+      const res = await request<CheckInResponse>("/api/attendance/checkin", {
+        json: { token: preview.token },
+        signal: requestSignal(),
+      });
+      const payload: CheckInResponse =
+        res.data ??
+        ({ ok: false, status: "error", message: res.error ?? "تعذّر تسجيل الحضور" } as CheckInResponse);
 
-    setResult(payload);
-    logId.current += 1;
-    setLog((prev) =>
-      [
-        {
-          id: logId.current,
-          at: new Date().toISOString(),
-          status: payload.status,
-          name: payload.member?.name,
-          member_code: payload.member?.member_code,
-        },
-        ...prev,
-      ].slice(0, 12)
-    );
-    setPreview(null);
-    setBusy(false);
-    if (payload.status === "success") void refreshMeeting();
-  }, [busy, preview, request, refreshMeeting]);
+      setResult(payload);
+      logId.current += 1;
+      setLog((prev) =>
+        [
+          {
+            id: logId.current,
+            at: new Date().toISOString(),
+            status: payload.status,
+            name: payload.member?.name,
+            member_code: payload.member?.member_code,
+          },
+          ...prev,
+        ].slice(0, 12)
+      );
+      setPreview(null);
+      if (payload.status === "success") void refreshMeeting();
+    } finally {
+      setBusy(false);
+    }
+  }, [busy, preview, request, refreshMeeting, requestSignal]);
 
   // Clear the result card after a few seconds so it never blocks the camera view.
   useEffect(() => {
@@ -185,6 +202,7 @@ export default function AttendanceScanPage() {
 
   return (
     <>
+      {busy && <Banner tone="info">⏳ جارٍ التعرف على الرمز…</Banner>}
       {loaded && (
         <Card className="mb-4">
           {meeting ? (
