@@ -78,12 +78,36 @@ export function databaseError(scope: string, error: unknown): NextResponse {
   if (err?.code === "23503") {
     console.error(`[attendance:${scope}] foreign key violation:`, err.message);
     return NextResponse.json(
+      { error: "Cannot delete: attendance history references this record. Deactivate it instead." },
+      { status: 409 }
+    );
+  }
+
+  // Supabase rejected the API key itself (e.g. SUPABASE_SERVICE_ROLE_KEY holds
+  // a wrong value) — every query would fail, so say exactly that.
+  if (/invalid api key/i.test(err?.message ?? "")) {
+    console.error(`[attendance:${scope}] invalid Supabase API key`);
+    return NextResponse.json(
       {
         error:
-          "Cannot delete: attendance history references this record. Deactivate it instead.",
-        code: "in_use",
+          "مفتاح Supabase غير صالح — تحقّق من قيمة SUPABASE_SERVICE_ROLE_KEY و NEXT_PUBLIC_SUPABASE_ANON_KEY في إعدادات البيئة.",
+        code: "misconfigured_key",
       },
-      { status: 409 }
+      { status: 503 }
+    );
+  }
+
+  // Row Level Security refused the write/read (the lockdown SQL was applied
+  // but the server is not running with the service_role/secret key).
+  if (err?.code === "42501" || /row-level security/i.test(err?.message ?? "")) {
+    console.error(`[attendance:${scope}] RLS violation:`, err?.message);
+    return NextResponse.json(
+      {
+        error:
+          "رفضت قاعدة البيانات هذه العملية (RLS) — شغّل التطبيق بمفتاح الخادم الصحيح (SUPABASE_SERVICE_ROLE_KEY) أو راجع supabase-attendance-lockdown.sql.",
+        code: "write_blocked",
+      },
+      { status: 503 }
     );
   }
 
