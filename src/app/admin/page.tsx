@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState, useEffect, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
@@ -13,7 +14,7 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
   const [authError, setAuthError] = useState(false);
-  const [tab, setTab] = useState<"gallery" | "events" | "verse" | "prayer" | "notify" | "history">("gallery");
+  const [tab, setTab] = useState<"gallery" | "events" | "verse" | "prayer" | "notify" | "history" | "attendance">("gallery");
   // Prayer state
   type PrayerRequest = { id: string; name: string; request: string; pray_count: number; status: string; created_at: string };
   const [prayers, setPrayers] = useState<PrayerRequest[]>([]);
@@ -284,6 +285,15 @@ export default function AdminPage() {
               {t === "gallery" ? "🖼️ Gallery" : t === "events" ? "📅 Events" : t === "verse" ? "✨ Verse" : t === "prayer" ? "🙏 Prayer" : t === "notify" ? "🔔 Notify" : "📜 Notification History"}
             </button>
           ))}
+        </div>
+        {/* Attendance System Link */}
+        <div className="mb-4 text-center">
+          <Link
+            href="/admin/attendance/dashboard"
+            className="inline-block rounded-xl bg-blue-accent px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-blue-mid shadow-lg"
+          >
+            📋 نظام الحضور (Attendance System)
+          </Link>
         </div>
         {/* ── GALLERY TAB ── */}
         {tab === "gallery" && (
