@@ -212,6 +212,9 @@ export default function AttendanceMeetingsPage() {
           <Link href="/admin/attendance/scan" className={successBtn}>
             📷 شاشة المسح
           </Link>
+          <Link href="/admin/attendance/dashboard" className={subtleBtn}>
+            📊 لوحة الحضور
+          </Link>
           <Link href="/admin/attendance/reports" className={subtleBtn}>
             📊 التقارير
           </Link>

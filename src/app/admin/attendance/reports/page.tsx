@@ -4,13 +4,14 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Meeting, MeetingStats } from "@/lib/attendance";
+import type { Meeting, MeetingMemberRow, MeetingStats } from "@/lib/attendance";
 import { useAttendanceApi } from "@/components/attendance/AdminAuthProvider";
 import {
   Banner,
   Card,
   EmptyState,
   PresentPill,
+  Spinner,
   StatCard,
   formatDateAr,
   formatTimeAr,
@@ -20,6 +21,20 @@ import {
   successBtn,
 } from "@/components/attendance/ui";
 
+/** Local (not UTC) YYYY-MM-DD helpers so the range never shifts a day. */
+function pad2(n: number): string {
+  return `${n}`.padStart(2, "0");
+}
+/** First day of the current month — the useful default "from" for the range report. */
+function monthStartIso(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-01`;
+}
+function todayIso(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+}
+
 function RangeView({ from, to, onChangeFrom, onChangeTo, data, loading, onRefresh, meetings, exporting, onExport }: {
   from: string; to: string;
   onChangeFrom: (v: string) => void; onChangeTo: (v: string) => void;
@@ -27,7 +42,6 @@ function RangeView({ from, to, onChangeFrom, onChangeTo, data, loading, onRefres
   meetings: MeetingWithStats[]; exporting: boolean;
   onExport: (meetingId: string, meetingDate: string) => void;
 }) {
-  if (!from || !to || !data) return null;
   return (
     <Card title="📅 تقرير مجىء الحضور" actions={<button type="button" onClick={onRefresh} disabled={loading} className={primaryBtn}>{loading ? "جارٍ التحميل…" : "تحديث"}</button>}>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -40,6 +54,16 @@ function RangeView({ from, to, onChangeFrom, onChangeTo, data, loading, onRefres
           <input type="date" value={to} onChange={(e) => onChangeTo(e.target.value)} className={inputClass} min="2020-01-01" max="2030-12-31" />
         </div>
       </div>
+      {loading && data && <p className="mt-4 text-xs text-blue-light/50">جارٍ تحديث التقرير…</p>}
+      {!from || !to || !data ? (
+        !from || !to ? (
+          <EmptyState icon="🗓️" title="اختر مجىء التاريخ" hint="حدّد تاريخي البداية والنهاية ثم اضغط تحديث." />
+        ) : loading ? (
+          <Spinner label="جارٍ تحميل التقرير…" />
+        ) : (
+          <EmptyState icon="📭" title="لا توجد بيانات بعد" hint="اضغط تحديث لجلب تقرير هذه الفترة." />
+        )
+      ) : (
       <div className="mt-4">
         <div className="mb-4 flex flex-wrap gap-3">
           <StatCard label="إجمالي الأعضاء" value={data.totals.totalMembers} icon="👥" className="bg-blue-dark/60" />
@@ -80,9 +104,10 @@ function RangeView({ from, to, onChangeFrom, onChangeTo, data, loading, onRefres
             </div>
           </div>
         ) : (
-          <EmptyState icon="📭" title="لا توجد اجتماعات في هذا المجىء" hint="جارٍ التحميل…" />
+          <EmptyState icon="📭" title="لا توجد اجتماعات في هذا المجىء" hint="جرّب توسيع الفترة الزمنية." />
         )}
       </div>
+      )}
     </Card>
   );
 }
@@ -100,26 +125,29 @@ type View = "range" | "meeting";
 function MeetingView({ meetings, selectedId, onChangeId, data, loading, onRefresh, exporting, onExport }: {
   meetings: MeetingWithStats[]; selectedId: string;
   onChangeId: (v: string) => void;
-  data: { meeting: Meeting; report: any[]; stats: MeetingStats } | null; loading: boolean;
+  data: { meeting: Meeting; report: MeetingMemberRow[]; stats: MeetingStats } | null; loading: boolean;
   onRefresh: () => void; exporting: boolean;
   onExport: (meetingId: string, meetingDate: string) => void;
 }) {
   const selectedMeeting = useMemo(() => meetings.find((m) => m.id === selectedId) ?? null, [meetings, selectedId]);
-  if (!selectedMeeting) return null;
   return (
     <Card title="📋 تقرير اجتماع محدد" actions={<button type="button" onClick={onRefresh} disabled={loading} className={primaryBtn}>{loading ? "جارٍ التحميل…" : "تحديث"}</button>}>
       <div className="mb-4">
         <label className="block text-sm text-blue-light/60 mb-2">اختر الاجتماع</label>
         <select value={selectedId} onChange={(e) => onChangeId(e.target.value)} className={`${inputClass} rounded-xl`}>
+          <option value="">— اختر اجتماعًا —</option>
           {meetings.map((m) => (<option key={m.id} value={m.id}>{formatDateAr(m.meeting_date)} — {m.title}</option>))}
         </select>
       </div>
+      {loading && !data && <Spinner label="جارٍ تحميل تقرير الاجتماع…" />}
+      {selectedMeeting && (
       <div className="mb-4 flex flex-wrap gap-3">
         <StatCard label="إجمالي الأعضاء" value={data?.stats.totalMembers ?? selectedMeeting.stats.totalMembers} icon="👥" className="bg-blue-dark/60" />
         <StatCard label="الحاضرون" value={data?.stats.present ?? selectedMeeting.stats.present} icon="✅" valueClassName="text-green-300" className="bg-green-500/15" />
         <StatCard label="الغائبون" value={data?.stats.absent ?? selectedMeeting.stats.absent} icon="❌" valueClassName="text-red-300" className="bg-red-500/15" />
         <StatCard label="نسبة الحضور" value={data ? `${data.stats.attendanceRate}%` : `${selectedMeeting.stats.attendanceRate}%`} icon="📊" />
       </div>
+      )}
       {data && (
         <div className="mt-4">
           <div className="mb-3 flex items-center justify-between">
@@ -137,8 +165,8 @@ function MeetingView({ meetings, selectedId, onChangeId, data, loading, onRefres
                 </tr>
               </thead>
               <tbody>
-                {data.report.map((row, index) => (
-                  <tr key={index} className="border-t border-blue-mid/10">
+                {data.report.map((row) => (
+                  <tr key={row.member_id} className="border-t border-blue-mid/10">
                     <td className="px-3 py-2 text-sm text-white">{row.name}</td>
                     <td className="px-3 py-2 text-sm text-blue-light/70">{row.member_code}</td>
                     <td className="px-3 py-2 text-center text-sm text-white">{formatTimeAr(row.check_in_time)}</td>
@@ -160,14 +188,15 @@ function MeetingView({ meetings, selectedId, onChangeId, data, loading, onRefres
 export default function AttendanceReportsPage() {
   const { request, headers } = useAttendanceApi();
   const [view, setView] = useState<View>("range");
-  const [rangeFrom, setRangeFrom] = useState("");
-  const [rangeTo, setRangeTo] = useState("");
+  // Default to the current month so the range report loads useful data immediately.
+  const [rangeFrom, setRangeFrom] = useState(monthStartIso);
+  const [rangeTo, setRangeTo] = useState(todayIso);
   const [selectedMeetingId, setSelectedMeetingId] = useState("");
   const [meetings, setMeetings] = useState<MeetingWithStats[]>([]);
   const [rangeData, setRangeData] = useState<RangeReport | null>(null);
   const [meetingData, setMeetingData] = useState<{
     meeting: Meeting;
-    report: Array<{ name: string; member_code: string; check_in_time: string | null; present: boolean; }>;
+    report: MeetingMemberRow[];
     stats: MeetingStats;
   } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -195,7 +224,7 @@ export default function AttendanceReportsPage() {
   const loadMeeting = useCallback(async () => {
     if (!selectedMeetingId) return;
     setLoading(true);
-    const res = await request<{ meeting: Meeting; report: any[]; stats: MeetingStats }>(`/api/attendance/reports?meetingId=${selectedMeetingId}`);
+    const res = await request<{ meeting: Meeting; report: MeetingMemberRow[]; stats: MeetingStats }>(`/api/attendance/reports?meetingId=${selectedMeetingId}`);
     setLoading(false);
     if (res.ok && res.data) { setMeetingData(res.data); setError(null); }
     else setError(res.error ?? "تعذّر تحميل تقرير الاجتماع");
@@ -232,6 +261,7 @@ export default function AttendanceReportsPage() {
         <div className="flex gap-2">
           <button type="button" onClick={() => setView("range")} className={`${subtleBtn} ${view === "range" ? "bg-blue-accent text-white" : ""}`}>📅 تقرير مجىء</button>
           <button type="button" onClick={() => setView("meeting")} className={`${subtleBtn} ${view === "meeting" ? "bg-blue-accent text-white" : ""}`}>📋 تقرير اجتماع</button>
+          <Link href="/admin/attendance/dashboard" className={subtleBtn}>📊 لوحة الحضور</Link>
           <Link href="/admin/attendance/meetings" className={subtleBtn}>← الاجتماعات</Link>
         </div>
       </div>
