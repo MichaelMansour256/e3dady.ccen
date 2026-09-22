@@ -228,7 +228,7 @@ export default function QrScanner({
     const timer = window.setTimeout(() => void start(), 80);
     return () => window.clearTimeout(timer);
   }, [facing, start]);
-}
+
 
   return (
     <div className="space-y-3">

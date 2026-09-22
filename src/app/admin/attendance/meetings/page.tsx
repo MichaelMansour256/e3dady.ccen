@@ -176,3 +176,4 @@ export default function AttendanceMeetingsPage() {
     () => meetings.filter((m) => m.status === "scheduled").length,
     [meetings]
   );
+}
