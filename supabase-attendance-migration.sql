@@ -218,7 +218,12 @@ end;
 $$;
 
 revoke all on function public.check_in_with_token(text) from public;
-grant execute on function public.check_in_with_token(text) to anon, authenticated, service_role;
+-- STAFF-ONLY: the RPC is reachable only through the server (service_role).
+-- The Next.js layer enforces the admin/servant password (POST
+-- /api/attendance/checkin) — the public /api/checkin is identify-only. For
+-- existing deployments apply supabase-attendance-lockdown.sql to revoke the
+-- anon/authenticated grants made by older versions of this file.
+grant execute on function public.check_in_with_token(text) to service_role;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Row Level Security + grants

@@ -556,6 +556,84 @@ export async function checkIn(rawToken: string): Promise<CheckInResult> {
   return { status: "invalid_token", infrastructureError: true };
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+ * IDENTIFICATION (read-only)
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+export interface MemberIdentification {
+  status: "found" | "invalid_token" | "inactive_member";
+  member?: { name: string; member_code: string };
+  /** The currently open meeting, or null when none is open. */
+  meeting: { id: string; title: string; meeting_date: string } | null;
+  /** Whether the member is already checked in to the open meeting. */
+  checked_in: boolean;
+  check_in_time: string | null;
+  infrastructureError?: boolean;
+}
+
+/**
+ * Resolve a QR token to a member WITHOUT recording anything.
+ *
+ * This is the only operation an unauthenticated scan may perform: identify.
+ * The QR is identity, never permission — recording attendance lives
+ * exclusively in the staff-only route (POST /api/attendance/checkin →
+ * requireStaff → checkIn()).
+ */
+export async function identifyByQrToken(rawToken: string): Promise<MemberIdentification> {
+  const token = typeof rawToken === "string" ? rawToken.trim() : "";
+  if (!isPlausibleQrToken(token)) {
+    return { status: "invalid_token", meeting: null, checked_in: false, check_in_time: null };
+  }
+
+  const member = await getMemberByQrToken(token);
+  if (!member) {
+    return { status: "invalid_token", meeting: null, checked_in: false, check_in_time: null };
+  }
+
+  const who = { name: member.name, member_code: member.member_code };
+  if (!member.active) {
+    return {
+      status: "inactive_member",
+      member: who,
+      meeting: null,
+      checked_in: false,
+      check_in_time: null,
+    };
+  }
+
+  const meeting = await getActiveMeeting();
+  if (!meeting) {
+    return { status: "found", member: who, meeting: null, checked_in: false, check_in_time: null };
+  }
+
+  const { data, error } = await supabase
+    .from("attendance")
+    .select("check_in_time")
+    .eq("meeting_id", meeting.id)
+    .eq("member_id", member.id)
+    .maybeSingle();
+
+  if (error) {
+    logError("identifyByQrToken", error);
+    return {
+      status: "found",
+      member: who,
+      meeting: { id: meeting.id, title: meeting.title, meeting_date: meeting.meeting_date },
+      checked_in: false,
+      check_in_time: null,
+      infrastructureError: true,
+    };
+  }
+
+  return {
+    status: "found",
+    member: who,
+    meeting: { id: meeting.id, title: meeting.title, meeting_date: meeting.meeting_date },
+    checked_in: Boolean(data?.check_in_time),
+    check_in_time: data?.check_in_time ?? null,
+  };
+}
+
 /** Raw attendance rows for a meeting (who checked in, newest first). */
 export async function attendanceForMeeting(
   meetingId: string

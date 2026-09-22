@@ -16,6 +16,29 @@ export function requireAdmin(req: Request): NextResponse | null {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
+/**
+ * Staff check for operations that MODIFY data (attendance recording).
+ *
+ * Distinguishes the two failure modes required by the security model:
+ *   • no `x-admin-password` header at all → 401 (unauthenticated visitor)
+ *   • a header that does not match ADMIN_PASSWORD → 403 (not staff)
+ *
+ * The check runs on the server before any Supabase write; frontend state,
+ * query parameters and QR contents are never trusted.
+ */
+export function requireStaff(req: Request): NextResponse | null {
+  if (!req.headers.get("x-admin-password")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (!isAuthorized(req)) {
+    return NextResponse.json(
+      { error: "Forbidden — attendance can only be recorded by authorized staff" },
+      { status: 403 }
+    );
+  }
+  return null;
+}
+
 export const MISSING_SCHEMA_CODE = "missing_schema";
 export const MISSING_SCHEMA_MESSAGE =
   "Attendance tables are missing. Run supabase-attendance-migration.sql in the Supabase SQL editor, then retry.";

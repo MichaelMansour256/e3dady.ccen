@@ -1,10 +1,13 @@
 /**
- * /admin/attendance/scan — scan QR codes straight from a phone camera.
+ * /admin/attendance/scan — STAFF-ONLY scanner (the page sits behind
+ * AdminAuthProvider, and the recording endpoint re-checks the admin/servant
+ * password server-side on every request).
  *
- * The scan is automatic: as soon as a code is decoded the token goes to
- * /api/checkin and the result is shown (no second tap). The camera keeps running
- * for the next person in the queue; the same code is ignored for two seconds and
- * the database refuses duplicates anyway.
+ * Flow: scan → IDENTIFY (POST /api/checkin, read-only) → the servant sees the
+ * member's name/ID and current status → a tap on "✓ تسجيل الحضور" records it
+ * through POST /api/attendance/checkin (protected). The QR itself can never
+ * record anything — a student scanning their own code lands on
+ * /checkin/[token] and only gets an identity card.
  *
  * If the camera is unavailable or denied, the manual field accepts the token or
  * the full check-in URL, so the servant is never stuck.
@@ -39,6 +42,17 @@ interface CheckInResponse {
   status: ScanStatus;
   message?: string;
   member?: { name: string; member_code: string };
+  check_in_time?: string | null;
+}
+
+/** Read-only identification result (POST /api/checkin). */
+interface IdentifyResponse {
+  ok: boolean;
+  status: "found" | "inactive_member" | "invalid_token" | "error";
+  message?: string;
+  member?: { name: string; member_code: string } | null;
+  meeting?: { id?: string; title: string; meeting_date: string } | null;
+  checked_in?: boolean;
   check_in_time?: string | null;
 }
 
@@ -78,6 +92,7 @@ export default function AttendanceScanPage() {
   const [log, setLog] = useState<LogEntry[]>([]);
   const [manual, setManual] = useState("");
   const [busy, setBusy] = useState(false);
+  const [preview, setPreview] = useState<{ token: string; data: IdentifyResponse } | null>(null);
   const logId = useRef(0);
 
   const refreshMeeting = useCallback(async () => {
@@ -96,35 +111,60 @@ export default function AttendanceScanPage() {
     void refreshMeeting();
   }, [refreshMeeting]);
 
-  const submit = useCallback(
+  /** Step 1 — IDENTIFY only (read-only): show the member, record nothing. */
+  const identify = useCallback(
     async (token: string) => {
       if (!token || busy) return;
       setBusy(true);
-      const res = await request<CheckInResponse>("/api/checkin", { json: { token } });
-      const payload: CheckInResponse =
-        res.data ??
-        ({ ok: false, status: "error", message: res.error ?? "تعذّر تسجيل الحضور" } as CheckInResponse);
-
-      setResult(payload);
-      logId.current += 1;
-      setLog((prev) =>
-        [
-          {
-            id: logId.current,
-            at: new Date().toISOString(),
-            status: payload.status,
-            name: payload.member?.name,
-            member_code: payload.member?.member_code,
-          },
-          ...prev,
-        ].slice(0, 12)
-      );
-
+      const res = await request<IdentifyResponse>("/api/checkin", { json: { token } });
+      const payload: IdentifyResponse = res.data ?? {
+        ok: false,
+        status: "error",
+        message: res.error ?? "تعذّر التعرف على الرمز",
+      };
       setBusy(false);
-      if (payload.status === "success") void refreshMeeting();
+      if (!payload.ok || payload.status === "invalid_token" || !payload.member) {
+        setResult({
+          ok: false,
+          status: payload.status === "invalid_token" ? "invalid_token" : "error",
+          message: payload.message ?? res.error ?? "تعذّر التعرف على الرمز",
+        });
+        return;
+      }
+      setPreview({ token, data: payload });
     },
-    [busy, request, refreshMeeting]
+    [busy, request]
   );
+
+  /** Step 2 — staff CONFIRMS; the protected endpoint re-verifies server-side. */
+  const confirm = useCallback(async () => {
+    if (!preview || busy) return;
+    setBusy(true);
+    const res = await request<CheckInResponse>("/api/attendance/checkin", {
+      json: { token: preview.token },
+    });
+    const payload: CheckInResponse =
+      res.data ??
+      ({ ok: false, status: "error", message: res.error ?? "تعذّر تسجيل الحضور" } as CheckInResponse);
+
+    setResult(payload);
+    logId.current += 1;
+    setLog((prev) =>
+      [
+        {
+          id: logId.current,
+          at: new Date().toISOString(),
+          status: payload.status,
+          name: payload.member?.name,
+          member_code: payload.member?.member_code,
+        },
+        ...prev,
+      ].slice(0, 12)
+    );
+    setPreview(null);
+    setBusy(false);
+    if (payload.status === "success") void refreshMeeting();
+  }, [busy, preview, request, refreshMeeting]);
 
   // Clear the result card after a few seconds so it never blocks the camera view.
   useEffect(() => {
@@ -140,8 +180,8 @@ export default function AttendanceScanPage() {
       return;
     }
     setManual("");
-    void submit(token);
-  }, [manual, submit]);
+    void identify(token);
+  }, [manual, identify]);
 
   return (
     <>
@@ -174,7 +214,7 @@ export default function AttendanceScanPage() {
       )}
 
       <Card title="📷 مسح رمز QR" className="mb-4">
-        <QrScanner onToken={(token) => void submit(token)} paused={busy || Boolean(result)} />
+        <QrScanner onToken={(token) => void identify(token)} paused={busy || Boolean(result) || Boolean(preview)} />
 
         <div className="mt-4 border-t border-blue-mid/25 pt-4">
           <p className="mb-2 text-xs text-blue-light/60">
@@ -192,11 +232,55 @@ export default function AttendanceScanPage() {
               }}
             />
             <button type="button" onClick={submitManual} className={primaryBtn}>
-              تسجيل
+              تحقّق
             </button>
           </div>
         </div>
       </Card>
+
+      {preview && (
+        <Card title="🪪 تم التعرف على العضو" className="mb-4">
+          <p className="text-2xl font-bold text-white">{preview.data.member?.name}</p>
+          <p className="mt-1 text-xs tracking-widest text-blue-light/50">
+            {preview.data.member?.member_code}
+          </p>
+          <div className="mt-3">
+            {preview.data.checked_in ? (
+              <Banner tone="info">
+                ✓ الحضور مسجل بالفعل
+                {preview.data.check_in_time
+                  ? ` · ${formatClockAr(preview.data.check_in_time)}`
+                  : ""}
+              </Banner>
+            ) : (
+              <Banner tone="warning">❌ لم يتم تسجيل الحضور بعد</Banner>
+            )}
+          </div>
+          {preview.data.meeting && (
+            <p className="mt-2 text-xs text-blue-light/60">
+              الاجتماع: {preview.data.meeting.title} · {preview.data.meeting.meeting_date}
+            </p>
+          )}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={primaryBtn}
+              disabled={busy || preview.data.checked_in}
+              onClick={() => void confirm()}
+            >
+              ✓ تسجيل الحضور
+            </button>
+            <button
+              type="button"
+              className={subtleBtn}
+              disabled={busy}
+              onClick={() => setPreview(null)}
+            >
+              إلغاء
+            </button>
+          </div>
+        </Card>
+      )}
 
       {result && (
         <div className="mb-4">
