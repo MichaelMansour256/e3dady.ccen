@@ -1,0 +1,328 @@
+/**
+ * /admin/attendance/reports — attendance reports
+ */
+"use client";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { Meeting, MeetingStats } from "@/lib/attendance";
+import { useAttendanceApi } from "@/components/attendance/AdminAuthProvider";
+import {
+  Banner,
+  Card,
+  EmptyState,
+  PresentPill,
+  StatCard,
+  formatDateAr,
+  formatTimeAr,
+  inputClass,
+  primaryBtn,
+  subtleBtn,
+  successBtn,
+} from "@/components/attendance/ui";
+
+interface MeetingWithStats extends Meeting {
+  stats: MeetingStats;
+}
+
+interface RangeReport {
+  meetings: MeetingWithStats[];
+  totals: MeetingStats;
+}
+
+type View = "range" | "meeting";
+
+export default function AttendanceReportsPage() {
+  const { request, headers } = useAttendanceApi();
+
+  const [view, setView] = useState<View>("range");
+  const [rangeFrom, setRangeFrom] = useState("");
+  const [rangeTo, setRangeTo] = useState("");
+  const [selectedMeetingId, setSelectedMeetingId] = useState("");
+  const [meetings, setMeetings] = useState<MeetingWithStats[]>([]);
+  const [rangeData, setRangeData] = useState<RangeReport | null>(null);
+  const [meetingData, setMeetingData] = useState<{
+    meeting: Meeting;
+    report: Array<{
+      name: string;
+      member_code: string;
+      check_in_time: string | null;
+      present: boolean;
+    }>;
+    stats: MeetingStats;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const loadMeetings = useCallback(async () => {
+    const res = await request<{ meetings: MeetingWithStats[]; activeMeeting: Meeting | null }>("/api/attendance/reports");
+    if (res.ok && res.data) {
+      setMeetings(res.data.meetings);
+      if (res.data.activeMeeting && !selectedMeetingId) {
+        setSelectedMeetingId(res.data.activeMeeting.id);
+      }
+    } else {
+      setError(res.error ?? "تعذّر تحميل البيانات");
+    }
+  }, [request]);
+
+  const loadRange = useCallback(async () => {
+    if (!rangeFrom || !rangeTo) return;
+    setLoading(true);
+    const res = await request<RangeReport>(`/api/attendance/reports?from=${encodeURIComponent(rangeFrom)}&to=${encodeURIComponent(rangeTo)}`);
+    setLoading(false);
+    if (res.ok && res.data) {
+      setRangeData(res.data);
+      setError(null);
+    } else {
+      setError(res.error ?? "تعذّر تحميل التقرير");
+    }
+  }, [request, rangeFrom, rangeTo]);
+
+  const loadMeeting = useCallback(async () => {
+    if (!selectedMeetingId) return;
+    setLoading(true);
+    const res = await request<{ meeting: Meeting; report: any[]; stats: MeetingStats }>(`/api/attendance/reports?meetingId=${encodeURIComponent(selectedMeetingId)}`);
+    setLoading(false);
+    if (res.ok && res.data) {
+      setMeetingData(res.data);
+      setError(null);
+    } else {
+      setError(res.error ?? "تعذّر تحميل تقرير الاجتماع");
+    }
+  }, [request, selectedMeetingId]);
+
+  useEffect(() => { void loadMeetings(); }, [loadMeetings]);
+  useEffect(() => { if (view === "range") void loadRange(); }, [view, loadRange]);
+  useEffect(() => { if (view === "meeting") void loadMeeting(); }, [view, loadMeeting]);
+
+  const exportExcel = useCallback(async (meetingId: string, meetingDate: string) => {
+    setExporting(true);
+    const res = await fetch(`/api/attendance/export?meetingId=${encodeURIComponent(meetingId)}`, { headers });
+    setExporting(false);
+    if (!res.ok) { setNotice("⚠️ تعذّر تصدير الملف"); return; }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `attendance-${meetingDate}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setNotice("✅ تم تصدير الملف بنجاح");
+  }, [headers]);
+
+  return (
+    <>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="text-lg font-bold text-white">📈 التقارير</h2>
+          <p className="text-xs text-blue-light/50">تقرير حضور الأعضاء وتصدير البيانات</p>
+        </div>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setView("range")} className={`${subtleBtn} ${view === "range" ? "bg-blue-accent text-white" : ""}`}>📅 تقرير مجىء</button>
+          <button type="button" onClick={() => setView("meeting")} className={`${subtleBtn} ${view === "meeting" ? "bg-blue-accent text-white" : ""}`}>📋 تقرير اجتماع</button>
+          <Link href="/admin/attendance/meetings" className={subtleBtn}>← الاجتماعات</Link>
+        </div>
+      </div>
+      {error && <Banner tone="error">{error}</Banner>}
+      {notice && <Banner tone="success">{notice}</Banner>}
+      {view === "range" ? (
+        <RangeView from={rangeFrom} to={rangeTo} onChangeFrom={setRangeFrom} onChangeTo={setRangeTo} data={rangeData} loading={loading} onRefresh={loadRange} meetings={meetings} exporting={exporting} onExport={(meetingId, meetingDate) => void exportExcel(meetingId, meetingDate)} />
+      ) : (
+        <MeetingView meetings={meetings} selectedId={selectedMeetingId} onChangeId={setSelectedMeetingId} data={meetingData} loading={loading} onRefresh={loadMeeting} exporting={exporting} onExport={(meetingId, meetingDate) => void exportExcel(meetingId, meetingDate)} />
+      )}
+    </>
+  );
+}
+
+
+
+
+function RangeView({
+  from,
+  to,
+  onChangeFrom,
+  onChangeTo,
+  data,
+  loading,
+  onRefresh,
+  meetings,
+  exporting,
+  onExport,
+}: {
+  from: string;
+  to: string;
+  onChangeFrom: (v: string) => void;
+  onChangeTo: (v: string) => void;
+  data: RangeReport | null;
+  loading: boolean;
+  onRefresh: () => void;
+  meetings: MeetingWithStats[];
+  exporting: boolean;
+  onExport: (meetingId: string, meetingDate: string) => void;
+}) {
+  return (
+    <>
+      <Card title="📅 تقرير مجىء الحضور" actions={
+        <button type="button" onClick={onRefresh} disabled={loading} className={primaryBtn}>
+          {loading ? "جارٍ التحميل…" : "تحديث"}
+        </button>
+      }>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="flex flex-col gap-2 sm:col-span-2">
+            <label className="text-sm text-blue-light/60">من تاريخ</label>
+            <input type="date" value={from} onChange={(e) => onChangeFrom(e.target.value)} className={inputClass} min="2020-01-01" max="2030-12-31" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-sm text-blue-light/60">إلى تاريخ</label>
+            <input type="date" value={to} onChange={(e) => onChangeTo(e.target.value)} className={inputClass} min="2020-01-01" max="2030-12-31" />
+          </div>
+        </div>
+
+        {from && to && (
+          <div className="mt-4">
+            <div className="mb-4 flex flex-wrap gap-3">
+              <StatCard label="إجمالي الأعضاء" value={data?.totals.totalMembers ?? 0} icon="👥" className="bg-blue-dark/60" />
+              <StatCard label="الحاضرون" value={data?.totals.present ?? 0} icon="✅" valueClassName="text-green-300" className="bg-green-500/15" />
+              <StatCard label="الغائبون" value={data?.totals.absent ?? 0} icon="❌" valueClassName="text-red-300" className="bg-red-500/15" />
+              <StatCard label="نسبة الحضور" value={data ? `${data.totals.attendanceRate}%` : "—"} icon="📊" />
+            </div>
+
+            {data && data.meetings.length > 0 ? (
+              <div className="mt-4">
+                <h3 className="mb-2 text-sm font-semibold text-white">الاجتماعات في هذا المجىء</h3>
+                <div className="overflow-auto rounded-xl border border-blue-mid/20">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-blue-dark/40">
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-blue-light/70">التاريخ</th>
+                        <th className="px-3 py-2 text-left text-xs font-semibold text-blue-light/70">الاجتماع</th>
+                        <th className="px-3 py-2 text-center text-xs font-semibold text-blue-light/70">الحاضرون</th>
+                        <th className="px-3 py-2 text-center text-xs font-semibold text-blue-light/70">الغائبون</th>
+                        <th className="px-3 py-2 text-center text-xs font-semibold text-blue-light/70">النسبة</th>
+                        <th className="px-3 py-2 text-center text-xs font-semibold text-blue-light/70">تصدير</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.meetings.map((m) => (
+                        <tr key={m.id} className="border-t border-blue-mid/10">
+                          <td className="px-3 py-2 text-sm text-white">{formatDateAr(m.meeting_date)}</td>
+                          <td className="px-3 py-2 text-sm text-white">{m.title}</td>
+                          <td className="px-3 py-2 text-center text-sm text-green-300">{m.stats.present}</td>
+                          <td className="px-3 py-2 text-center text-sm text-red-300">{m.stats.absent}</td>
+                          <td className="px-3 py-2 text-center text-sm text-white">{m.stats.attendanceRate}%</td>
+                          <td className="px-3 py-2 text-center">
+                            <button type="button" disabled={exporting} onClick={() => onExport(m.id, m.meeting_date)} className={successBtn}>
+                              {exporting ? "جارٍ…" : "📥"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <EmptyState icon="📭" title="لا توجد اجتماعات في هذا المجىء" hint="جارٍ التحميل…" />
+            )}
+          </div>
+        )}
+      </Card>
+    </>
+  );
+
+
+function MeetingView({
+  meetings,
+  selectedId,
+  onChangeId,
+  data,
+  loading,
+  onRefresh,
+  exporting,
+  onExport,
+}: {
+  meetings: MeetingWithStats[];
+  selectedId: string;
+  onChangeId: (v: string) => void;
+  data: { meeting: Meeting; report: any[]; stats: MeetingStats } | null;
+  loading: boolean;
+  onRefresh: () => void;
+  exporting: boolean;
+  onExport: (meetingId: string, meetingDate: string) => void;
+}) {
+  const selectedMeeting = useMemo(() => meetings.find((m) => m.id === selectedId) ?? null, [meetings, selectedId]);
+
+  return (
+    <>
+      <Card title="📋 تقرير اجتماع محدد" actions={
+        <button type="button" onClick={onRefresh} disabled={loading} className={primaryBtn}>
+          {loading ? "جارٍ التحميل…" : "تحديث"}
+        </button>
+      }>
+        <div className="mb-4">
+          <label className="block text-sm text-blue-light/60 mb-2">اختر الاجتماع</label>
+          <select value={selectedId} onChange={(e) => onChangeId(e.target.value)} className={`${inputClass} rounded-xl`}>
+            {meetings.map((m) => (
+              <option key={m.id} value={m.id}>{formatDateAr(m.meeting_date)} — {m.title}</option>
+            ))}
+          </select>
+        </div>
+
+        {selectedMeeting && (
+          <div className="mb-4 flex flex-wrap gap-3">
+            <StatCard label="إجمالي الأعضاء" value={data?.stats.totalMembers ?? selectedMeeting.stats.totalMembers} icon="👥" className="bg-blue-dark/60" />
+            <StatCard label="الحاضرون" value={data?.stats.present ?? selectedMeeting.stats.present} icon="✅" valueClassName="text-green-300" className="bg-green-500/15" />
+            <StatCard label="الغائبون" value={data?.stats.absent ?? selectedMeeting.stats.absent} icon="❌" valueClassName="text-red-300" className="bg-red-500/15" />
+            <StatCard label="نسبة الحضور" value={data ? `${data.stats.attendanceRate}%` : `${selectedMeeting.stats.attendanceRate}%`} icon="📊" />
+          </div>
+        )}
+
+        {data && (
+          <div className="mt-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">{data.meeting.title} — {formatDateAr(data.meeting.meeting_date)}</h3>
+              <button type="button" disabled={exporting} onClick={() => onExport(data.meeting.id, data.meeting.meeting_date)} className={successBtn}>
+                {exporting ? "جارٍ التصدير…" : "📥 تصدير Excel"}
+              </button>
+            </div>
+
+            <div className="overflow-auto rounded-xl border border-blue-mid/20">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-blue-dark/40">
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-blue-light/70">الاسم</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-blue-light/70">الكود</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-blue-light/70">وقت الحضور</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-blue-light/70">الحالة</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.report.map((row, index) => (
+                    <tr key={index} className="border-t border-blue-mid/10">
+                      <td className="px-3 py-2 text-sm text-white">{row.name}</td>
+                      <td className="px-3 py-2 text-sm text-blue-light/70">{row.member_code}</td>
+                      <td className="px-3 py-2 text-center text-sm text-white">{formatTimeAr(row.check_in_time)}</td>
+                      <td className="px-3 py-2 text-center"><PresentPill present={row.present} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {!data && !loading && (
+          <EmptyState icon="📋" title="اختر اجتماعًا لعرض التقرير" hint="ستظهر قائمة بالحضور بعد الاختيار" />
+        )}
+      </Card>
+    </>
+  );
+}
+
+export {};
+
+}

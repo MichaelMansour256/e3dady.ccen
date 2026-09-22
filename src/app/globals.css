@@ -102,3 +102,36 @@ body {
     animation-timing-function: linear;
   }
 }
+
+/* ── Printable QR sheet (src/app/admin/attendance/members/qr-sheet) ─────────
+   Screen colours are dark; paper is white. These rules make the sheet printable
+   without the servant having to enable "print backgrounds" in the browser. */
+@media print {
+  body {
+    background: #fff !important;
+  }
+  .page-gradient,
+  .page-gradient-high,
+  .hero-gradient {
+    background: #fff !important;
+  }
+  .print-sheet {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8mm;
+  }
+  .print-sheet,
+  .print-sheet * {
+    color: #111 !important;
+  }
+  .qr-card {
+    background: #fff !important;
+    border: 1px solid #666 !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .print-sheet img {
+    width: 42mm;
+    height: 42mm;
+  }
+}
