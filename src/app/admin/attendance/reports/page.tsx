@@ -4,7 +4,7 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Meeting, MeetingMemberRow, MeetingStats } from "@/lib/attendance";
+import type { Meeting, MeetingMemberRow, MeetingStats, RangeReport } from "@/lib/attendance";
 import { useAttendanceApi } from "@/components/attendance/AdminAuthProvider";
 import {
   Banner,
@@ -112,13 +112,22 @@ function RangeView({ from, to, onChangeFrom, onChangeTo, data, loading, onRefres
   );
 }
 
+/** Row shape of GET /api/attendance/reports (no params) — meetingSummaries()
+ *  returns flat present/absent/rate counts (NO nested stats object). */
 interface MeetingWithStats extends Meeting {
-  stats: MeetingStats;
+  present: number;
+  absent: number;
+  rate: number;
 }
 
-interface RangeReport {
-  meetings: MeetingWithStats[];
-  totals: MeetingStats;
+/** MeetingStats derived from a summary row (shown until the detail loads). */
+function summaryStats(m: MeetingWithStats): MeetingStats {
+  return {
+    totalMembers: m.present + m.absent,
+    present: m.present,
+    absent: m.absent,
+    attendanceRate: m.rate,
+  };
 }
 
 type View = "range" | "meeting";
@@ -130,6 +139,8 @@ function MeetingView({ meetings, selectedId, onChangeId, data, loading, onRefres
   onExport: (meetingId: string, meetingDate: string) => void;
 }) {
   const selectedMeeting = useMemo(() => meetings.find((m) => m.id === selectedId) ?? null, [meetings, selectedId]);
+  // Detail stats once loaded; until then derive them from the summary row.
+  const stats = data?.stats ?? (selectedMeeting ? summaryStats(selectedMeeting) : null);
   return (
     <Card title="📋 تقرير اجتماع محدد" actions={<button type="button" onClick={onRefresh} disabled={loading} className={primaryBtn}>{loading ? "جارٍ التحميل…" : "تحديث"}</button>}>
       <div className="mb-4">
@@ -140,12 +151,12 @@ function MeetingView({ meetings, selectedId, onChangeId, data, loading, onRefres
         </select>
       </div>
       {loading && !data && <Spinner label="جارٍ تحميل تقرير الاجتماع…" />}
-      {selectedMeeting && (
+      {stats && (
       <div className="mb-4 flex flex-wrap gap-3">
-        <StatCard label="إجمالي الأعضاء" value={data?.stats.totalMembers ?? selectedMeeting.stats.totalMembers} icon="👥" className="bg-blue-dark/60" />
-        <StatCard label="الحاضرون" value={data?.stats.present ?? selectedMeeting.stats.present} icon="✅" valueClassName="text-green-300" className="bg-green-500/15" />
-        <StatCard label="الغائبون" value={data?.stats.absent ?? selectedMeeting.stats.absent} icon="❌" valueClassName="text-red-300" className="bg-red-500/15" />
-        <StatCard label="نسبة الحضور" value={data ? `${data.stats.attendanceRate}%` : `${selectedMeeting.stats.attendanceRate}%`} icon="📊" />
+        <StatCard label="إجمالي الأعضاء" value={stats.totalMembers} icon="👥" className="bg-blue-dark/60" />
+        <StatCard label="الحاضرون" value={stats.present} icon="✅" valueClassName="text-green-300" className="bg-green-500/15" />
+        <StatCard label="الغائبون" value={stats.absent} icon="❌" valueClassName="text-red-300" className="bg-red-500/15" />
+        <StatCard label="نسبة الحضور" value={`${stats.attendanceRate}%`} icon="📊" />
       </div>
       )}
       {data && (
@@ -178,7 +189,7 @@ function MeetingView({ meetings, selectedId, onChangeId, data, loading, onRefres
           </div>
         </div>
       )}
-      {!data && !loading && (
+      {!data && !loading && !selectedMeeting && (
         <EmptyState icon="📋" title="اختر اجتماعًا لعرض التقرير" hint="ستظهر قائمة بالحضور بعد الاختيار" />
       )}
     </Card>
@@ -215,9 +226,10 @@ export default function AttendanceReportsPage() {
   const loadRange = useCallback(async () => {
     if (!rangeFrom || !rangeTo) return;
     setLoading(true);
-    const res = await request<RangeReport>(`/api/attendance/reports?from=${rangeFrom}&to=${rangeTo}`);
+    // The API wraps the payload: { range: { meetings, totals } }
+    const res = await request<{ range: RangeReport }>(`/api/attendance/reports?from=${rangeFrom}&to=${rangeTo}`);
     setLoading(false);
-    if (res.ok && res.data) { setRangeData(res.data); setError(null); }
+    if (res.ok && res.data?.range) { setRangeData(res.data.range); setError(null); }
     else setError(res.error ?? "تعذّر تحميل التقرير");
   }, [request, rangeFrom, rangeTo]);
 
