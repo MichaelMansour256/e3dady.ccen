@@ -2,6 +2,7 @@ import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import PushBell from "@/components/PushBell";
+import NotificationInboxLink from "@/components/NotificationInboxLink";
 import { moreMenuItems, isFeatureEnabled, features } from "@/config";
 
 export default function MorePage() {
@@ -14,6 +15,7 @@ export default function MorePage() {
     <div className="min-h-dvh page-gradient">
       <PageHeader title={t("title")} icon="☰" />
       <div className="flex flex-col gap-2 p-4">
+        {features.notifications && <NotificationInboxLink />}
         {features.notifications && <PushBell locale={locale} />}
         {items.map(({ key, href, icon }) => (
           <Link key={key} href={`/${locale}${href}`}

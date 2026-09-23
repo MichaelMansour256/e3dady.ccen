@@ -32,6 +32,18 @@
     "prayerWall": "Prayer Wall",
     "contact": "Contact"
   },
+  "notifications": {
+    "title": "Notifications",
+    "all": "All",
+    "unread": "Unread",
+    "read": "Read",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications yet",
+    "emptyFiltered": "No notifications in this filter",
+    "error": "Couldn't load notifications. Check your connection and try again.",
+    "retry": "Retry",
+    "loadMore": "Load more"
+  },
   "install": {
     "dialogLabel": "Install the E3dady app",
     "title": "Install the E3dady app",

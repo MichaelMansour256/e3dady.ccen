@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendNotification } from "@/lib/onesignal";
+import { putNotificationRecord } from "@/lib/notifications-history";
 import {
   getInvitations,
   nextFridayCairoISO,
@@ -23,18 +24,48 @@ export async function GET(req: Request) {
     const match = invitations.find((i) => i.date === nextFriday);
 
     const { schedule } = meetingConfig;
+    const headingAr = `دعوة اجتماع ${schedule.dayNameAr} ✝️`;
+    const headingEn = `${schedule.dayNameEn} Meeting Invitation ✝️`;
+    const messageAr = match
+      ? `دعوة اجتماع ${schedule.dayNameAr} ${match.date} — الساعة ${schedule.timeLabelAr} — ${siteConfig.church.nameAr} 🙏`
+      : `اجتماع ${schedule.dayNameAr} غداً — الساعة ${schedule.timeLabelAr} — ${siteConfig.church.nameAr} 🙏`;
+    const messageEn = match
+      ? `${schedule.dayNameEn} meeting invitation ${match.date} — ${schedule.timeLabelEn} — ${siteConfig.church.name} 🙏`
+      : `${schedule.dayNameEn} meeting is tomorrow at ${schedule.timeLabelEn} — ${siteConfig.church.name} 🙏`;
+    const url = `/${routing.defaultLocale}/events`;
+
     const result = await sendNotification({
-      headingAr: `دعوة اجتماع ${schedule.dayNameAr} ✝️`,
-      headingEn: `${schedule.dayNameEn} Meeting Invitation ✝️`,
-      messageAr: match
-        ? `دعوة اجتماع ${schedule.dayNameAr} ${match.date} — الساعة ${schedule.timeLabelAr} — ${siteConfig.church.nameAr} 🙏`
-        : `اجتماع ${schedule.dayNameAr} غداً — الساعة ${schedule.timeLabelAr} — ${siteConfig.church.nameAr} 🙏`,
-      messageEn: match
-        ? `${schedule.dayNameEn} meeting invitation ${match.date} — ${schedule.timeLabelEn} — ${siteConfig.church.name} 🙏`
-        : `${schedule.dayNameEn} meeting is tomorrow at ${schedule.timeLabelEn} — ${siteConfig.church.name} 🙏`,
-      url: `/${routing.defaultLocale}/events`,
+      headingAr,
+      headingEn,
+      messageAr,
+      messageEn,
+      url,
       image: match?.url,
     });
+
+    // Record the send in notifications_history — the same single table the
+    // Admin History tab and the user notification inbox read (the admin
+    // /api/admin/notify route already writes here; cron sends previously did
+    // not, which left the History tab and Inbox without the recurring pushes).
+    // A history failure must never mask a successful push — log and continue.
+    try {
+      await putNotificationRecord({
+        id: crypto.randomUUID(),
+        sentAt: new Date().toISOString(),
+        headingAr,
+        headingEn,
+        messageAr,
+        messageEn,
+        url,
+        image: match?.url ?? null,
+        onesignalId: result.id || null,
+        status: "sent",
+        recipients: null,
+      });
+    } catch (historyErr) {
+      console.warn("[cron:meeting-reminder] history save failed:", historyErr);
+    }
+
     return NextResponse.json({
       success: true,
       nextFriday,

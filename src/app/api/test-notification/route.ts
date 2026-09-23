@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendNotification } from "@/lib/onesignal";
+import { putNotificationRecord } from "@/lib/notifications-history";
 import { routing } from "@/i18n/routing";
 
 export async function POST(req: Request) {
@@ -36,6 +37,28 @@ export async function POST(req: Request) {
       messageEn,
       url,
     });
+
+    // Record the send in notifications_history — invariant: every send writes
+    // exactly one history row (Admin History tab + user inbox read the same
+    // table; the /api/admin/notify route and both crons already do this).
+    // A history failure must never mask a successful push — log and go.
+    try {
+      await putNotificationRecord({
+        id: crypto.randomUUID(),
+        sentAt: new Date().toISOString(),
+        headingAr,
+        headingEn,
+        messageAr,
+        messageEn,
+        url,
+        image: null,
+        onesignalId: result.id || null,
+        status: "sent",
+        recipients: null,
+      });
+    } catch (historyErr) {
+      console.warn("[test-notification] history save failed:", historyErr);
+    }
 
     return NextResponse.json({ success: true, result });
   } catch (error) {
