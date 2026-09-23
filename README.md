@@ -1,579 +1,343 @@
+<div align="center">
+
 # E3dady Youth Meeting
 
 ### Faith • Friendship • Growth
+**إيمان • أصحاب • نمو**
 
-A modern, mobile-first Progressive Web App for the **E3dady Youth Meeting** at **Christ Church – Ezbet El Nakhl (كنيسة المسيح – عزبة النخل)**.
+A mobile-first, bilingual Progressive Web App for the **E3dady Youth Meeting**
+at **Christ Church – Ezbet El Nakhl** (كنيسة المسيح – عزبة النخل).
 
-The platform brings together weekly meeting information, Bible content, games, event photos, prayer requests, push notifications, and administrative tools in one centralized experience.
+[**Live Website**](https://e3dady-ccen.vercel.app/) · [Template Guide](./TEMPLATE.md) · [Report an Issue](https://github.com/MichaelMansour256/e3dady.ccen/issues)
 
-**Live Website:** https://e3dady-ccen.vercel.app/
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase&logoColor=white)
+![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?logo=vercel&logoColor=white)
 
----
-
-## 🧩 Reusable Template for Church Meeting Websites
-
-This repository doubles as a **template**: the code defines how the website
-works, while the configuration under **`src/config/`** defines which meeting
-it represents. A second meeting website can be created by editing
-configuration and replacing assets — no component rewrites required.
-
-```text
-src/config/
-  site.ts        → name, church, description, social links, contact, assets, Cloudinary folder
-  theme.ts       → brand colors + background gradients (drives every color on the site)
-  meeting.ts     → meeting name, age group, weekly schedule, hero text, About content
-  servants.ts    → servants directory
-  navigation.ts  → bottom nav, home quick links, More/Bible page items
-  features.ts    → feature flags for major optional sections
-```
-
-Quick orientation:
-
-- **Core/shared** — pages, components, admin dashboard, integrations
-  (Supabase, Cloudinary, OneSignal), schedule logic, theming mechanism.
-- **Meeting-specific** — `src/config/*`, `messages/{ar,en}.json` (UI labels),
-  `public/` branding assets (logo, app icon, PWA splash screens, servants
-  photos), and `.env` credentials.
-- **Environment-specific** — `.env.local` (see `.env.example`): Supabase,
-  Cloudinary, OneSignal, admin password, cron secret, site URL.
-
-➡️ Full setup guide for creating a new meeting website: **[TEMPLATE.md](./TEMPLATE.md)**.
+</div>
 
 ---
 
-## ✨ Overview
+## Table of Contents
 
-**E3dady Youth Meeting** is designed as a digital hub for the youth meeting, providing members with an engaging and accessible way to stay connected with the meeting throughout the week.
-
-The application supports both **Arabic and English**, with a fully responsive **RTL/LTR interface** and a mobile-first design optimized for use as a Progressive Web App.
-
-The platform includes:
-
-- 📅 Weekly and special events
-- 📖 Bible verses and resources
-- 🎮 Bible-based games
-- 🖼️ Event photo galleries
-- 🙏 Community prayer wall
-- 🔔 Push notifications
-- 👥 Servants directory
-- ℹ️ Meeting information and contact details
-- 🔐 Administrative dashboard
-
----
-
-## 🚀 Features
-
-### 🏠 Home
-
-The home page provides a central entry point to the meeting platform.
-
-- Animated hero section
-- Meeting branding and logo
-- Quick-access navigation
-- Social media links
-- Mobile-first navigation
-- Arabic and English support
+- [About](#about)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Database Setup](#database-setup)
+- [Scheduled Jobs](#scheduled-jobs)
+- [Scripts](#scripts)
+- [Deployment](#deployment)
+- [Use as a Template](#use-as-a-template)
+- [Security](#security)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
 
 ---
 
-### 📅 Events
+## About
 
-Keep track of upcoming meetings and special activities.
+E3dady is the digital hub of the youth meeting. It keeps members connected
+through the week with meeting information, Scripture content, Bible games,
+photo galleries, a moderated prayer wall, and push notifications, while giving
+servants a single admin dashboard to run everything, including QR-based
+attendance tracking.
 
-#### Weekly Meeting
-
-The application provides a live countdown to the next regular meeting.
-
-#### Event Calendar
-
-A horizontally scrollable date strip highlights:
-
-- Fridays
-- Upcoming meeting dates
-- Special events
-- Past events
-
-Administrators can create and manage special events with Arabic and English titles, dates, and times.
+- **Bilingual:** Arabic and English with full RTL/LTR support.
+- **Installable:** works like a native app on phones via PWA.
+- **Reusable:** the meeting's identity lives in configuration, so another church
+  meeting can launch its own site without rewriting components.
 
 ---
 
-### 📖 Bible
+## Features
 
-The Bible section provides weekly spiritual content and resources.
+### For Members
 
-#### Verse of the Week
+| Area | What it offers |
+| ---- | -------------- |
+| **Home** | Animated hero, meeting branding, quick-access links, social links |
+| **Events** | Live countdown to the next weekly meeting; scrollable date strip highlighting Fridays, upcoming, special and past events |
+| **Bible** | Verse of the Week (Arabic text via GetBible, Smith & Van Dyke translation) with an optional servant note |
+| **Studies & Resources** | Curated library of Bible studies and resources (PDFs, videos, audio, presentations, books, links), optionally tied to a book, chapter or verse |
+| **Games** | Embedded [Verse Up Arena](https://verse-up-arena.vercel.app/) for Bible-themed games in a full-screen view |
+| **Gallery** | Event-based photo albums with filtering, responsive grid, and a full-screen slideshow (swipe, keyboard, auto-play, thumbnails) |
+| **Prayer Wall** | Submit requests anonymously or by name; approved requests appear publicly with a "pray" counter |
+| **Servants & About** | Servants directory, meeting information, contact details |
+| **Check-in** | Personal QR code scanned at the door to record attendance |
+| **Push Notifications** | Web push reminders and announcements through OneSignal |
 
-Administrators can select a weekly Bible verse by:
-
-- Book
-- Chapter
-- Verse
-
-An optional servant note can also be added.
-
-The application retrieves the Arabic verse text dynamically using the **Smith & Van Dyke** translation through the GetBible API.
-
-#### Studies & Resources
-
-The application architecture also provides dedicated sections for Bible studies and additional resources.
-
----
-
-### 🎮 Games
-
-The platform integrates **Verse Up Arena**, a collection of Bible-themed games designed to make Scripture learning more interactive and engaging.
-
-The game platform is embedded directly into the website and provides a dedicated full-screen experience.
-
-**Verse Up Arena:** https://verse-up-arena.vercel.app/
-
----
-
-### 🖼️ Gallery
-
-The gallery organizes meeting photography by event.
-
-Features include:
-
-- Event-based photo organization
-- Cloudinary-powered image storage
-- Drag-and-drop administration uploads
-- Event filtering
-- Responsive photo grid
-- Full-screen slideshow
-- Swipe gestures
-- Keyboard navigation
-- Auto-play
-- Thumbnail navigation
-
----
-
-### 🙏 Prayer Wall
-
-The Prayer Wall allows members to share prayer requests with the community.
-
-Users can submit requests:
-
-- Anonymously
-- With their name
-
-Prayer requests are placed into a moderation queue before appearing publicly.
-
-Community members can also use the **pray counter** to indicate that they are praying for a request.
-
-The Prayer Wall uses Supabase for data storage and real-time functionality.
-
----
-
-### 🔔 Push Notifications
-
-The platform uses **OneSignal** to deliver web push notifications.
-
-Administrators can send notifications directly from the admin dashboard.
-
-Each notification can include:
-
-- Title
-- Message
-- Destination URL
-- Optional image
-
-Supported destination shortcuts include:
-
-- 🏠 Home
-- 📅 Events
-- ✨ Verse
-- 🔗 Custom URL
-
-The system also records notification metadata and delivery information in Supabase for administrative history and auditing.
-
----
-
-### 🔐 Admin Dashboard
-
-The `/admin` dashboard provides centralized management for the platform.
-
-Access is protected using an environment-configured administrator password.
+### For Servants (Admin Dashboard at `/admin`)
 
 | Section | Capabilities |
-|---|---|
-| 🖼️ Gallery | Create event folders, upload photos, delete photos |
-| 📅 Events | Create and delete special events |
-| ✨ Verse | Manage the Verse of the Week |
-| 🔔 Notify | Send push notifications |
-| 📜 History | View notification history and recipient counts |
-| 🙏 Prayer | Approve, reject, and delete prayer requests |
+| ------- | ------------ |
+| **Gallery** | Create event folders, drag-and-drop photo uploads, delete photos |
+| **Events** | Create and delete special events with Arabic and English titles, dates and times |
+| **Verse** | Set the Verse of the Week by book, chapter and verse, with an optional note |
+| **Content** | Manage studies and resources: draft, publish, archive, categorize |
+| **Notify** | Send push notifications with title, message, destination and optional image |
+| **History** | Review sent notifications and recipient counts |
+| **Prayer** | Approve, reject or delete prayer requests |
+| **Attendance** | Full attendance system (see below) |
+
+### QR Attendance System
+
+Located at `/admin/attendance`.
+
+- **Members:** create, edit, activate or deactivate members; regenerate QR codes
+- **Printable QR sheet:** bulk QR codes for all members
+- **Meetings:** create, open and close meeting sessions
+- **Scanner:** in-browser camera scanning with a manual fallback
+- **Live dashboard:** real-time present/absent view for the open meeting
+- **Reports:** date-range and per-meeting reports with attendance rate
+- **Excel export:** present and absent lists via ExcelJS
+- **Member history:** attendance record per member
+- **Safeguards:** duplicate-scan handling, invalid or inactive QR handling, and a unique `(meeting, member)` constraint against race conditions
 
 ---
 
-## 🌍 Internationalization
+## Tech Stack
 
-The application supports both:
-
-- 🇪🇬 Arabic
-- 🇬🇧 English
-
-The interface automatically supports the appropriate text direction:
-
-- **RTL** for Arabic
-- **LTR** for English
-
-Internationalization is implemented using [`next-intl`](https://next-intl-docs.vercel.app/).
-
-Translation resources are maintained in:
-
-```text
-messages/
-├── ar.json
-└── en.json
-```
-
----
-
-## 📱 Progressive Web App
-
-E3dady is built as a **Progressive Web App (PWA)**, allowing users to access the meeting platform like a native application.
-
-The project includes:
-
-- Web App Manifest
-- PWA icons
-- Mobile-optimized layouts
-- Installable experience
-- Push notification support
-- Responsive navigation
-
----
-
-## 🛠️ Technology Stack
-
-| Category | Technology |
-|---|---|
-| Framework | Next.js 16 |
-| Architecture | App Router |
+| Layer | Technology |
+| ----- | ---------- |
+| Framework | Next.js 16 (App Router) |
 | Language | TypeScript |
-| UI | React 19 |
-| Styling | Tailwind CSS 4 |
-| Internationalization | next-intl |
+| UI | React 19, Tailwind CSS 4 |
+| i18n | next-intl |
 | PWA | next-pwa |
-| Database | Supabase / PostgreSQL |
-| Image Storage | Cloudinary |
-| Push Notifications | OneSignal |
-| Deployment | Vercel |
-
-The project dependencies include Next.js, React, TypeScript, Tailwind CSS, Supabase, Cloudinary, `next-intl`, `next-pwa`, and `react-dropzone`.
+| Database | Supabase (PostgreSQL + Row Level Security) |
+| Media and JSON data | Cloudinary |
+| Push notifications | OneSignal |
+| Attendance | `qrcode`, `jsqr`, `exceljs` |
+| Uploads | react-dropzone |
+| Icons tooling | sharp |
+| Hosting and cron | Vercel |
 
 ---
 
-## 🏗️ Project Structure
+## Architecture
 
-```text
+```
 e3dady.ccen/
-│
 ├── src/
 │   ├── app/
-│   │   ├── [locale]/
-│   │   │   ├── page.tsx
+│   │   ├── [locale]/            # Localized member-facing pages
 │   │   │   ├── events/
-│   │   │   ├── bible/
+│   │   │   ├── bible/           # verse, studies, resources
 │   │   │   ├── games/
-│   │   │   └── more/
-│   │   │       ├── about/
-│   │   │       ├── gallery/
-│   │   │       ├── servants/
-│   │   │       ├── prayer-wall/
-│   │   │       └── contact/
-│   │   │
-│   │   ├── admin/
-│   │   │
-│   │   ├── api/
-│   │   │   ├── gallery/
-│   │   │   ├── events/
-│   │   │   ├── verse/
-│   │   │   ├── prayer/
-│   │   │   └── admin/
-│   │   │
-│   │   └── globals.css
-│   │
+│   │   │   ├── checkin/[token]/ # QR check-in landing page
+│   │   │   └── more/            # about, gallery, servants, prayer-wall, contact
+│   │   ├── admin/               # Admin dashboard (incl. attendance/)
+│   │   └── api/                 # Route handlers (gallery, events, verse, prayer,
+│   │                            #   content, attendance, checkin, cron, admin)
 │   ├── components/
+│   ├── config/                  # Meeting identity, theme, navigation, feature flags
 │   ├── hooks/
 │   ├── i18n/
-│   ├── lib/
-│   └── proxy.ts
-│
-├── messages/
-│   ├── ar.json
-│   └── en.json
-│
-├── public/
-│   ├── logo.png
-│   ├── verse-up-logo.png
-│   ├── manifest.json
-│   ├── appstore-images/
-│   └── servants images/
-│
-├── scripts/
-├── supabase-notifications-history.sql
-├── next.config.ts
-├── tailwind.config.*
-├── tsconfig.json
-├── vercel.json
-└── package.json
+│   └── lib/
+├── messages/                    # ar.json, en.json
+├── public/                      # Logo, PWA icons, splash screens, servants photos
+├── scripts/                     # Tooling (e.g. PWA icon generation)
+├── supabase-*.sql               # Database migrations
+├── vercel.json                  # Cron schedule
+└── .env.example
 ```
 
-The repository currently separates localized user-facing pages from the administrative interface and API routes, with shared components and service utilities under `src`.
+**Data split:** relational and sensitive data (prayer requests, notification
+history, attendance, content library) live in **Supabase**. Images and small
+JSON documents (special events, Verse of the Week) live in **Cloudinary**.
 
 ---
 
-## ⚙️ Getting Started
+## Getting Started
 
 ### Prerequisites
 
-Make sure you have:
+- Node.js (a current LTS release) and npm
+- A [Supabase](https://supabase.com/) project
+- A [Cloudinary](https://cloudinary.com/) account
+- A [OneSignal](https://onesignal.com/) web push app
 
-- Node.js
-- npm
-- A Supabase project
-- A Cloudinary account
-- A OneSignal application
-
----
-
-### 1. Clone the Repository
+### Installation
 
 ```bash
 git clone https://github.com/MichaelMansour256/e3dady.ccen.git
 cd e3dady.ccen
-```
-
----
-
-### 2. Install Dependencies
-
-```bash
 npm install
+cp .env.example .env.local
 ```
 
----
-
-### 3. Configure Environment Variables
-
-Create a `.env.local` file:
-
-```env
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_API_SECRET=
-
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-
-NEXT_PUBLIC_ONESIGNAL_APP_ID=
-ONESIGNAL_API_KEY=
-
-ADMIN_PASSWORD=
-```
-
-### Environment Variables
-
-| Variable | Purpose |
-|---|---|
-| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
-| `CLOUDINARY_API_KEY` | Cloudinary API access |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase public API key |
-| `NEXT_PUBLIC_ONESIGNAL_APP_ID` | OneSignal application ID |
-| `ONESIGNAL_API_KEY` | OneSignal REST API key |
-| `ADMIN_PASSWORD` | Admin dashboard password |
-
-> **Security:** Never commit `.env.local` or expose private API keys such as `CLOUDINARY_API_SECRET` or `ONESIGNAL_API_KEY`.
-
----
-
-### 4. Configure Supabase
-
-The project uses Supabase for persistent application data.
-
-The main database features include:
-
-- Prayer requests
-- Notification history
-- Moderation status
-- Prayer counters
-- Notification metadata
-
-The repository includes:
-
-```text
-supabase-notifications-history.sql
-```
-
-for configuring the notification history table.
-
-Make sure Row Level Security policies are configured appropriately for your deployment.
-
----
-
-### 5. Run the Development Server
+Fill in `.env.local` (see [Environment Variables](#environment-variables)),
+apply the [database migrations](#database-setup), then start the dev server:
 
 ```bash
 npm run dev
 ```
 
-Then open:
-
-```text
-http://localhost:3000
-```
+Open <http://localhost:3000>. The admin dashboard is at `/admin`.
 
 ---
 
-## 🧪 Available Scripts
+## Environment Variables
 
-```bash
-npm run dev
-```
+Copy `.env.example` to `.env.local`. Never commit real values.
 
-Starts the Next.js development server.
-
-```bash
-npm run build
-```
-
-Creates a production build.
-
-```bash
-npm run start
-```
-
-Starts the production server.
-
-```bash
-npm run lint
-```
-
-Runs ESLint.
-
-```bash
-npm run generate-icons
-```
-
-Regenerates the exact-size PWA icons in `public/icons/` from
-`public/app-icon.png` (run it after replacing the app icon). Uses `sharp`,
-which is a dev dependency.
-
-These scripts are defined in the project's `package.json`.
+| Variable | Scope | Purpose |
+| -------- | ----- | ------- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Public | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public | Supabase publishable key |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Secret** | Server-only key; required for staff-only attendance and content writes |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Public | Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | **Secret** | Cloudinary uploads and folder management |
+| `CLOUDINARY_API_SECRET` | **Secret** | Cloudinary uploads and folder management |
+| `CLOUDINARY_MEETING_FOLDER` | Optional | Folder for events/verse JSON (default `e3dady_events`) |
+| `NEXT_PUBLIC_ONESIGNAL_APP_ID` | Public | OneSignal app ID (client) |
+| `ONESIGNAL_APP_ID` | **Secret** | OneSignal app ID (server; same value as above) |
+| `ONESIGNAL_API_KEY` | **Secret** | OneSignal REST API key for server-side sends |
+| `NEXT_PUBLIC_SITE_URL` | Public | Base URL for notification click-through links |
+| `ADMIN_PASSWORD` | **Secret** | Admin dashboard password (sent as `x-admin-password`) |
+| `CRON_SECRET` | **Secret** | Bearer token protecting `/api/cron/*` and `/api/test-notification` |
 
 ---
 
-## ☁️ Deployment
+## Database Setup
 
-The application is deployed using **Vercel**.
+Run the SQL files in the Supabase **SQL Editor**. They are written to be safe to
+re-run.
 
-Production deployments are connected to the repository's `main` branch.
+| File | Purpose |
+| ---- | ------- |
+| `supabase-attendance-migration.sql` | Members, meetings and attendance tables, plus shared helpers |
+| `supabase-attendance-lockdown.sql` | Locks attendance so it can only be written through server routes with the service role key |
+| `supabase-content-library.sql` | `content_library` table for studies and resources (public read of published, non-archived rows only) |
+| `supabase-notifications-history.sql` | Notification history and audit log |
+| `supabase-notification-reads.sql` | Notification read tracking |
 
-To deploy successfully, make sure all required environment variables are configured in:
-
-**Vercel → Project Settings → Environment Variables**
-
-The application is currently available at:
-
-https://e3dady-ccen.vercel.app/
+Suggested order: attendance migration, then attendance lockdown, then the rest.
+Keep Row Level Security enabled on every table.
 
 ---
 
-## 🔒 Security
+## Scheduled Jobs
 
-The application contains several server-side integrations and therefore requires careful handling of secrets.
+Defined in [`vercel.json`](./vercel.json) and secured with `CRON_SECRET`.
+Vercel cron schedules run in UTC.
 
-### Never expose:
+| Endpoint | Schedule | Action |
+| -------- | -------- | ------ |
+| `/api/cron/meeting-reminder` | Thursdays, 17:00 UTC | Push reminder ahead of the weekly meeting |
+| `/api/cron/verse-notification` | Sundays, 07:00 UTC | Push notification with the Verse of the Week |
 
-```text
-CLOUDINARY_API_SECRET
-ONESIGNAL_API_KEY
-ADMIN_PASSWORD
+---
+
+## Scripts
+
+| Command | Description |
+| ------- | ----------- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Create a production build |
+| `npm run start` | Run the production server |
+| `npm run lint` | Run ESLint |
+| `npm run generate-icons` | Regenerate PWA icons in `public/icons/` from `public/app-icon.png` |
+
+---
+
+## Deployment
+
+The project is deployed on **Vercel**, and pushes to `main` trigger production
+deployments.
+
+1. Import the repository into Vercel.
+2. Add every variable from [Environment Variables](#environment-variables) under
+   **Project Settings → Environment Variables**.
+3. Deploy. Cron jobs from `vercel.json` are registered automatically.
+
+---
+
+## Use as a Template
+
+This repository is a **GitHub template**. Code defines *how* the site works;
+configuration defines *which meeting* it represents. A new meeting site needs
+configuration and asset changes, not component rewrites.
+
+```
+src/config/
+├── site.ts        # Name, church, description, social links, contact, assets
+├── theme.ts       # Brand colors and background gradients
+├── meeting.ts     # Meeting name, age group, schedule, hero and About content
+├── servants.ts    # Servants directory
+├── navigation.ts  # Bottom nav, home quick links, More/Bible items
+└── features.ts    # Feature flags for optional sections
 ```
 
-Public client-side configuration may include:
+| Layer | Where it lives |
+| ----- | -------------- |
+| Shared core | Pages, components, admin dashboard, integrations, schedule logic |
+| Meeting-specific | `src/config/*`, `messages/{ar,en}.json`, `public/` branding assets |
+| Environment-specific | `.env.local` (Supabase, Cloudinary, OneSignal, secrets, site URL) |
 
-```text
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-NEXT_PUBLIC_ONESIGNAL_APP_ID
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-```
-
-Supabase Row Level Security should remain enabled for tables containing user-generated content or administrative data.
+Step-by-step instructions: **[TEMPLATE.md](./TEMPLATE.md)**.
 
 ---
 
-## 🎨 Design Philosophy
+## Security
 
-The platform is built around three central values:
+- **Secrets stay server-side.** Never expose `SUPABASE_SERVICE_ROLE_KEY`,
+  `CLOUDINARY_API_SECRET`, `ONESIGNAL_API_KEY`, `ADMIN_PASSWORD` or `CRON_SECRET`.
+- **Row Level Security** is enabled on all Supabase tables. Public keys can only
+  read published content; writes go through authenticated server routes.
+- **Attendance is staff-only.** Writes use the service role key on the server
+  and are locked down with `supabase-attendance-lockdown.sql`.
+- **Admin routes** require the admin password; **cron routes** require a bearer
+  token.
+- **Prayer requests** are moderated before they become public.
+- Never commit `.env.local`, generated build output or production credentials.
 
-### Faith
-
-Encouraging young people to grow in their relationship with God and engage with Scripture.
-
-### Friendship
-
-Creating a digital space that strengthens community and connection within the meeting.
-
-### Growth
-
-Providing resources, activities, games, and opportunities that encourage spiritual and personal growth.
-
-> **إيمان • أصحاب • نمو**
+Found a vulnerability? Please report it privately to the maintainers rather than
+opening a public issue.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-This project is primarily developed for the E3dady Youth Meeting.
+This project primarily serves the E3dady Youth Meeting, but improvements are
+welcome.
 
-For significant changes:
-
-1. Create a feature branch.
-2. Make your changes.
-3. Run linting and build checks.
-4. Test the application locally.
-5. Open a pull request for review.
-
-Please avoid committing secrets, generated files, or production credentials.
+1. Create a feature branch from `main`.
+2. Make your changes, keeping Arabic and English strings in sync under `messages/`.
+3. Run `npm run lint` and `npm run build`.
+4. Test locally in both RTL and LTR.
+5. Open a pull request with a clear description.
 
 ---
 
-## 📄 License
+## License
 
-This project is maintained for the E3dady Youth Meeting at Christ Church – Ezbet El Nakhl.
-
-Unless otherwise specified, the source code and original assets are not intended for redistribution or commercial use without permission from the project maintainers.
-
----
-
-## 🙏 Acknowledgements
-
-This project makes use of several open-source and third-party services:
-
-- [Next.js](https://nextjs.org/)
-- [React](https://react.dev/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [next-intl](https://next-intl-docs.vercel.app/)
-- [Supabase](https://supabase.com/)
-- [Cloudinary](https://cloudinary.com/)
-- [OneSignal](https://onesignal.com/)
-- [Vercel](https://vercel.com/)
-- [GetBible API](https://api.getbible.net/)
+Maintained for the E3dady Youth Meeting at Christ Church – Ezbet El Nakhl.
+Unless otherwise specified, source code and original assets may not be
+redistributed or used commercially without permission from the maintainers.
 
 ---
 
-## 📬 Contact
+## Acknowledgements
 
-For questions, suggestions, or information about the E3dady Youth Meeting, use the contact and social links available on the website.
+[Next.js](https://nextjs.org/) · [React](https://react.dev/) ·
+[TypeScript](https://www.typescriptlang.org/) · [Tailwind CSS](https://tailwindcss.com/) ·
+[next-intl](https://next-intl-docs.vercel.app/) · [Supabase](https://supabase.com/) ·
+[Cloudinary](https://cloudinary.com/) · [OneSignal](https://onesignal.com/) ·
+[Vercel](https://vercel.com/) · [GetBible API](https://api.getbible.net/)
 
-**E3dady Youth Meeting**  
-Christ Church – Ezbet El Nakhl
+---
 
+<div align="center">
+
+**E3dady Youth Meeting** · Christ Church – Ezbet El Nakhl
 **Faith • Friendship • Growth**
+
+</div>
