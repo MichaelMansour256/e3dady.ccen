@@ -32,6 +32,26 @@
     "prayerWall": "Prayer Wall",
     "contact": "Contact"
   },
+  "content": {
+    "searchPlaceholder": "Search by title…",
+    "allCategories": "All categories",
+    "allTypes": "All types",
+    "reference": "Bible reference",
+    "anyBook": "All books",
+    "chapter": "Chapter",
+    "clearReference": "Clear reference",
+    "relatedStudies": "Related Studies",
+    "relatedResources": "Related Resources",
+    "relatedStudy": "Related study",
+    "openInNewTab": "Opens in a new tab",
+    "emptyStudies": "No studies published yet",
+    "emptyResources": "No resources published yet",
+    "noResults": "No matching results",
+    "clearFilters": "Clear all filters",
+    "loading": "Loading…",
+    "error": "Couldn't load the content",
+    "retry": "Retry"
+  },
   "notifications": {
     "title": "Notifications",
     "all": "All",

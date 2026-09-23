@@ -32,6 +32,26 @@
     "prayerWall": "جدار الصلاة",
     "contact": "هتلاقينا هنا"
   },
+  "content": {
+    "searchPlaceholder": "ابحث بالعنوان…",
+    "allCategories": "كل التصنيفات",
+    "allTypes": "كل الأنواع",
+    "reference": "مرجع كتابي",
+    "anyBook": "كل الأسفار",
+    "chapter": "الإصحاح",
+    "clearReference": "إزالة المرجع",
+    "relatedStudies": "دراسات متعلقة",
+    "relatedResources": "موارد متعلقة",
+    "relatedStudy": "مرتبط بدراسة",
+    "openInNewTab": "يفتح في نافذة جديدة",
+    "emptyStudies": "لا توجد دراسات منشورة بعد",
+    "emptyResources": "لا توجد موارد منشورة بعد",
+    "noResults": "لا توجد نتائج مطابقة",
+    "clearFilters": "مسح كل الفلاتر",
+    "loading": "جاري التحميل…",
+    "error": "تعذّر تحميل المحتوى",
+    "retry": "إعادة المحاولة"
+  },
   "notifications": {
     "title": "الإشعارات",
     "all": "الكل",
