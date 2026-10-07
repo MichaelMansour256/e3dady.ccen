@@ -51,6 +51,7 @@ export async function GET(req: Request) {
           id: member.id,
           name: member.name,
           member_code: member.member_code,
+          grade: member.grade,
           active: member.active,
         },
       },

@@ -50,6 +50,7 @@ create table if not exists public.members (
   name        text        not null,
   phone       text,
   date_of_birth date,
+  grade       text,
   -- Cryptographically random token that goes inside the QR code. Never the
   -- name, never the member_code — the token is the only thing the QR carries.
   qr_token    text        not null unique,
@@ -64,6 +65,10 @@ create table if not exists public.members (
 
 alter table public.members add column if not exists phone text;
 alter table public.members add column if not exists date_of_birth date;
+alter table public.members add column if not exists grade text;
+alter table public.members drop constraint if exists members_grade_valid;
+alter table public.members add constraint members_grade_valid
+  check (grade is null or grade in ('prep_1', 'prep_2', 'prep_3'));
 
 create index if not exists idx_members_qr_token    on public.members (qr_token);
 create index if not exists idx_members_active_code on public.members (active, member_code);
@@ -164,7 +169,7 @@ begin
   if not v_member.active then
     return jsonb_build_object(
       'status', 'inactive_member',
-      'member', jsonb_build_object('name', v_member.name, 'member_code', v_member.member_code)
+      'member', jsonb_build_object('name', v_member.name, 'member_code', v_member.member_code, 'grade', v_member.grade)
     );
   end if;
 
@@ -179,7 +184,7 @@ begin
   if not found then
     return jsonb_build_object(
       'status', 'no_active_meeting',
-      'member', jsonb_build_object('name', v_member.name, 'member_code', v_member.member_code)
+      'member', jsonb_build_object('name', v_member.name, 'member_code', v_member.member_code, 'grade', v_member.grade)
     );
   end if;
 
@@ -198,7 +203,7 @@ begin
 
     return jsonb_build_object(
       'status', 'already_recorded',
-      'member',  jsonb_build_object('name', v_member.name, 'member_code', v_member.member_code),
+      'member',  jsonb_build_object('name', v_member.name, 'member_code', v_member.member_code, 'grade', v_member.grade),
       'meeting', jsonb_build_object(
         'id', v_meeting.id,
         'title', v_meeting.title,
@@ -210,7 +215,7 @@ begin
 
   return jsonb_build_object(
     'status', 'success',
-    'member',  jsonb_build_object('name', v_member.name, 'member_code', v_member.member_code),
+    'member',  jsonb_build_object('name', v_member.name, 'member_code', v_member.member_code, 'grade', v_member.grade),
     'meeting', jsonb_build_object(
       'id', v_meeting.id,
       'title', v_meeting.title,

@@ -15,6 +15,7 @@
  */
 import { randomBytes } from "crypto";
 import { supabase } from "./supabase";
+import type { MemberGrade } from "./member-fields";
 
 /* ══════════════════════════════════════════════════════════════════════════
  * TYPES
@@ -28,6 +29,7 @@ export interface Member {
   name: string;
   phone: string | null;
   date_of_birth: string | null;
+  grade: MemberGrade | null;
   /** Random secret inside the QR code — stripped before any API response. */
   qr_token: string;
   active: boolean;
@@ -76,7 +78,7 @@ export type CheckInStatus =
 
 export interface CheckInOutcome {
   status: CheckInStatus;
-  member?: { name: string; member_code: string };
+  member?: { name: string; member_code: string; grade?: MemberGrade | null };
   meeting?: { id?: string; title: string; meeting_date: string };
   check_in_time?: string | null;
 }
@@ -86,6 +88,7 @@ export interface MeetingMemberRow {
   member_id: string;
   name: string;
   member_code: string;
+  grade: MemberGrade | null;
   active: boolean;
   check_in_time: string | null;
   present: boolean;
@@ -238,6 +241,7 @@ export interface MemberInput {
   name: string;
   phone?: string | null;
   date_of_birth?: string | null;
+  grade?: MemberGrade | null;
 }
 
 /**
@@ -252,6 +256,7 @@ export async function createMember(input: MemberInput): Promise<Member> {
       name: input.name.trim(),
       phone: input.phone?.trim() || null,
       date_of_birth: input.date_of_birth || null,
+      grade: input.grade || null,
       qr_token: generateQrToken(),
       active: true,
     })
@@ -267,6 +272,7 @@ export interface MemberPatch {
   member_code?: string;
   phone?: string | null;
   date_of_birth?: string | null;
+  grade?: MemberGrade | null;
   active?: boolean;
 }
 
@@ -276,6 +282,7 @@ export async function updateMember(id: string, patch: MemberPatch): Promise<Memb
   if (patch.member_code !== undefined) clean.member_code = patch.member_code.trim();
   if (patch.phone !== undefined) clean.phone = patch.phone?.trim() || null;
   if (patch.date_of_birth !== undefined) clean.date_of_birth = patch.date_of_birth || null;
+  if (patch.grade !== undefined) clean.grade = patch.grade || null;
   if (patch.active !== undefined) clean.active = patch.active;
 
   const { data, error } = await supabase
@@ -300,6 +307,7 @@ export async function createMembersBulk(inputs: MemberInput[]): Promise<Member[]
         name: input.name.trim(),
         phone: input.phone?.trim() || null,
         date_of_birth: input.date_of_birth || null,
+        grade: input.grade || null,
         qr_token: generateQrToken(),
         active: true,
       }))
@@ -502,7 +510,7 @@ async function checkInViaTables(token: string): Promise<CheckInResult> {
   const member = await getMemberByQrToken(token);
   if (!member) return { status: "invalid_token" };
 
-  const who = { name: member.name, member_code: member.member_code };
+  const who = { name: member.name, member_code: member.member_code, grade: member.grade };
   if (!member.active) return { status: "inactive_member", member: who };
 
   const meeting = await getActiveMeeting();
@@ -620,7 +628,7 @@ export async function identifyByQrToken(rawToken: string): Promise<MemberIdentif
     return { status: "invalid_token", meeting: null, checked_in: false, check_in_time: null };
   }
 
-  const who = { name: member.name, member_code: member.member_code };
+  const who = { name: member.name, member_code: member.member_code, grade: member.grade };
   if (!member.active) {
     return {
       status: "inactive_member",
@@ -710,6 +718,7 @@ export async function meetingReport(meetingId: string): Promise<MeetingMemberRow
         member_id: m.id,
         name: m.name,
         member_code: m.member_code,
+        grade: m.grade,
         active: m.active,
         check_in_time: time,
         present: time !== null,

@@ -16,6 +16,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Meeting } from "@/lib/attendance";
+import { gradeLabel, type MemberGrade } from "@/lib/member-fields";
 import { extractCheckinToken } from "@/lib/checkin-token";
 import { useAttendanceApi } from "@/components/attendance/AdminAuthProvider";
 import QrScanner from "@/components/attendance/Scanner";
@@ -41,7 +42,7 @@ interface CheckInResponse {
   ok: boolean;
   status: ScanStatus;
   message?: string;
-  member?: { name: string; member_code: string };
+  member?: { name: string; member_code: string; grade?: MemberGrade | null };
   check_in_time?: string | null;
 }
 
@@ -50,7 +51,7 @@ interface IdentifyResponse {
   ok: boolean;
   status: "found" | "inactive_member" | "invalid_token" | "error";
   message?: string;
-  member?: { name: string; member_code: string } | null;
+  member?: { name: string; member_code: string; grade?: MemberGrade | null } | null;
   meeting?: { id?: string; title: string; meeting_date: string } | null;
   checked_in?: boolean;
   check_in_time?: string | null;
@@ -309,7 +310,7 @@ export default function AttendanceScanPage() {
                 <p className="font-semibold">{result.message}</p>
                 {result.member && (
                   <p className="mt-1 text-xs">
-                    {result.member.name} · {result.member.member_code}
+                    {result.member.name} · {result.member.member_code} · {gradeLabel(result.member.grade)}
                     {result.check_in_time ? ` · ${formatClockAr(result.check_in_time)}` : ""}
                   </p>
                 )}
@@ -351,4 +352,3 @@ export default function AttendanceScanPage() {
     </>
   );
 }
-

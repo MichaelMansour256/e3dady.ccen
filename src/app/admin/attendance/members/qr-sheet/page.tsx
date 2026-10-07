@@ -9,6 +9,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useAttendanceApi } from "@/components/attendance/AdminAuthProvider";
+import { gradeLabel, type MemberGrade } from "@/lib/member-fields";
 import {
   Banner,
   EmptyState,
@@ -22,6 +23,7 @@ interface SheetCard {
   name: string;
   member_code: string;
   active: boolean;
+  grade: MemberGrade | null;
   checkInUrl: string;
   dataUrl: string;
 }
@@ -117,6 +119,7 @@ export default function QrSheetPage() {
             />
             <p className="mt-2 text-sm font-bold">{card.name}</p>
             <p className="text-xs tracking-widest text-gray-500">{card.member_code}</p>
+            <p className="text-xs text-gray-500">{gradeLabel(card.grade)}</p>
           </div>
         ))}
       </div>

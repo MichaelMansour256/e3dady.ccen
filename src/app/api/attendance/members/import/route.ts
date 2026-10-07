@@ -120,6 +120,7 @@ export async function POST(req: Request) {
       name: item.row.name,
       phone: item.row.phone,
       date_of_birth: item.row.date_of_birth,
+      grade: item.row.grade,
     }));
     const created = await createMembersBulk(toCreate);
     const skippedRows = classified

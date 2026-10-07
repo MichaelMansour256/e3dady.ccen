@@ -14,6 +14,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { PublicMember } from "@/lib/attendance";
+import { MEMBER_GRADES, gradeLabel, type MemberGrade } from "@/lib/member-fields";
 import { useAttendanceApi } from "@/components/attendance/AdminAuthProvider";
 import QrDialog from "@/components/attendance/QrDialog";
 import {
@@ -38,21 +39,23 @@ export default function AttendanceMembersPage() {
   const [missingSchema, setMissingSchema] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
+  const [gradeFilter, setGradeFilter] = useState<MemberGrade | "all">("all");
 
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
   const [newCode, setNewCode] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newDateOfBirth, setNewDateOfBirth] = useState("");
+  const [newGrade, setNewGrade] = useState<MemberGrade | "">("");
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [qrMember, setQrMember] = useState<PublicMember | null>(null);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importPreview, setImportPreview] = useState<{
     fileName: string; totalRows: number; validRows: number; invalidRows: number;
-    columns: { name: string | null; phone: string | null; date_of_birth: string | null; member_code: string | null };
+    columns: { name: string | null; phone: string | null; date_of_birth: string | null; member_code: string | null; grade: string | null };
     counts: { new: number; existing: number; possible_duplicate: number; duplicate_in_file: number; invalid: number };
-    preview: Array<{ row: number; name: string; phone: string | null; date_of_birth: string | null; member_code: string | null; status: string; reason: string | null }>;
+    preview: Array<{ row: number; name: string; phone: string | null; date_of_birth: string | null; member_code: string | null; grade: MemberGrade | null; status: string; reason: string | null }>;
     invalid: Array<{ row: number; name: string | null; reason: string }>;
     warnings: string[];
   } | null>(null);
@@ -91,7 +94,7 @@ export default function AttendanceMembersPage() {
     }
     setSaving(true);
     const res = await request<PublicMember>("/api/attendance/members", {
-      json: { name: newName, member_code: newCode, phone: newPhone, date_of_birth: newDateOfBirth || null },
+      json: { name: newName, member_code: newCode, phone: newPhone, date_of_birth: newDateOfBirth || null, grade: newGrade || null },
     });
     setSaving(false);
     if (!res.ok) {
@@ -101,10 +104,11 @@ export default function AttendanceMembersPage() {
     setNewName("");
     setNewPhone("");
     setNewDateOfBirth("");
+    setNewGrade("");
     setShowCreate(false);
     setNotice("✅ تم إنشاء العضو ورمز QR الخاص به");
     void load();
-  }, [request, newName, newCode, newPhone, newDateOfBirth, load]);
+  }, [request, newName, newCode, newPhone, newDateOfBirth, newGrade, load]);
 
   const previewImport = useCallback(async () => {
     if (!importFile) return;
@@ -227,10 +231,10 @@ export default function AttendanceMembersPage() {
   );
 
   const saveEdit = useCallback(
-    async (id: string, name: string, member_code: string, phone: string, date_of_birth: string) => {
+    async (id: string, name: string, member_code: string, phone: string, date_of_birth: string, grade: MemberGrade | "") => {
       const res = await request<PublicMember>("/api/attendance/members", {
         method: "PATCH",
-        json: { id, name, member_code, phone, date_of_birth: date_of_birth || null },
+        json: { id, name, member_code, phone, date_of_birth: date_of_birth || null, grade: grade || null },
       });
       if (!res.ok) {
         setNotice(`⚠️ ${res.error ?? "فشل الحفظ"}`);
@@ -248,12 +252,13 @@ export default function AttendanceMembersPage() {
     return members.filter((m) => {
       if (filter === "active" && !m.active) return false;
       if (filter === "inactive" && m.active) return false;
+      if (gradeFilter !== "all" && m.grade !== gradeFilter) return false;
       if (!term) return true;
       return (
         m.name.toLowerCase().includes(term) || m.member_code.toLowerCase().includes(term)
       );
     });
-  }, [members, search, filter]);
+  }, [members, search, filter, gradeFilter]);
 
   const activeCount = members.filter((m) => m.active).length;
 
@@ -317,6 +322,10 @@ export default function AttendanceMembersPage() {
               />
               <input value={newPhone} onChange={(e) => setNewPhone(e.target.value)} placeholder="الهاتف (اختياري)" className={inputClass} />
               <input type="date" value={newDateOfBirth} onChange={(e) => setNewDateOfBirth(e.target.value)} className={inputClass} aria-label="تاريخ الميلاد (اختياري)" />
+              <select value={newGrade} onChange={(e) => setNewGrade(e.target.value as MemberGrade | "")} className={inputClass} aria-label="الصف الدراسي (اختياري)">
+                <option value="">اختر الصف</option>
+                {MEMBER_GRADES.map((grade) => <option key={grade.value} value={grade.value}>{grade.label}</option>)}
+              </select>
             </div>
             <div className="flex gap-2">
               <button type="button" onClick={() => void create()} disabled={saving} className={primaryBtn}>
@@ -326,8 +335,12 @@ export default function AttendanceMembersPage() {
                 إلغاء
               </button>
             </div>
+            <select value={gradeFilter} onChange={(e) => setGradeFilter(e.target.value as MemberGrade | "all")} className={inputClass} aria-label="تصفية حسب الصف">
+              <option value="all">كل الصفوف</option>
+              {MEMBER_GRADES.map((grade) => <option key={grade.value} value={grade.value}>{grade.label}</option>)}
+            </select>
             <p className="mt-2 text-xs text-blue-light/50">
-              الهاتف وتاريخ الميلاد اختياريان. يتم توليد رمز QR عشوائي آمن على الخادم عند الإنشاء.
+              الهاتف وتاريخ الميلاد والصف الدراسي اختياريون. يتم توليد رمز QR عشوائي آمن على الخادم عند الإنشاء.
             </p>
           </div>
         )}
@@ -342,10 +355,10 @@ export default function AttendanceMembersPage() {
           {importPreview && (
             <div className="mt-3 space-y-2 text-sm text-blue-light/80">
               <p>إجمالي الصفوف: {importPreview.totalRows} — صالحة: {importPreview.validRows} — بها أخطاء: {importPreview.invalidRows}</p>
-              <p>الأعمدة: {[importPreview.columns.name, importPreview.columns.phone, importPreview.columns.date_of_birth].filter(Boolean).join("، ")}</p>
+              <p>الأعمدة: {[importPreview.columns.name, importPreview.columns.phone, importPreview.columns.date_of_birth, importPreview.columns.grade].filter(Boolean).join("، ")}</p>
               {importPreview.warnings.map((warning) => <div key={warning} className="text-amber-200">{warning}</div>)}
               {importPreview.invalid.length > 0 && <div className="text-amber-200">{importPreview.invalid.map((row) => <div key={row.row}>صف {row.row}: {row.reason}</div>)}</div>}
-              <div className="overflow-x-auto"><table className="w-full text-xs"><tbody>{importPreview.preview.map((row) => <tr key={row.row}><td className="p-1">{row.row}</td><td className="p-1">{row.name}</td><td className="p-1">{row.phone ?? "—"}</td><td className="p-1">{row.date_of_birth ?? "—"}</td><td className="p-1">{row.status}</td></tr>)}</tbody></table></div>
+              <div className="overflow-x-auto"><table className="w-full text-xs"><tbody>{importPreview.preview.map((row) => <tr key={row.row}><td className="p-1">{row.row}</td><td className="p-1">{row.name}</td><td className="p-1">{row.phone ?? "—"}</td><td className="p-1">{row.date_of_birth ?? "—"}</td><td className="p-1">{gradeLabel(row.grade)}</td><td className="p-1">{row.status}</td></tr>)}</tbody></table></div>
               <button type="button" onClick={() => void confirmImport()} disabled={importBusy || importPreview.counts.new === 0} className={successBtn}>تأكيد الاستيراد ({importPreview.counts.new})</button>
             </div>
           )}
@@ -402,6 +415,7 @@ export default function AttendanceMembersPage() {
                 <tr className="border-b border-blue-mid/30 text-right text-xs text-blue-light/60">
                   <th className="px-2 py-2 font-semibold">العضو</th>
                   <th className="px-2 py-2 font-semibold">الكود</th>
+                  <th className="px-2 py-2 font-semibold">الصف</th>
                   <th className="px-2 py-2 text-center font-semibold">الحالة</th>
                   <th className="px-2 py-2 text-center font-semibold">QR</th>
                   <th className="px-2 py-2 text-center font-semibold">إجراءات</th>
@@ -421,7 +435,7 @@ export default function AttendanceMembersPage() {
                 ))}
                 {visible.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-2 py-6 text-center text-blue-light/50">
+                    <td colSpan={6} className="px-2 py-6 text-center text-blue-light/50">
                       لا نتائج مطابقة
                     </td>
                   </tr>
@@ -451,13 +465,14 @@ function MemberRow({
   onToggleActive: () => void;
   onRegenerate: () => void;
   onDelete: () => void;
-  onSave: (id: string, name: string, code: string, phone: string, dateOfBirth: string) => Promise<boolean>;
+  onSave: (id: string, name: string, code: string, phone: string, dateOfBirth: string, grade: MemberGrade | "") => Promise<boolean>;
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(member.name);
   const [code, setCode] = useState(member.member_code);
   const [phone, setPhone] = useState(member.phone ?? "");
   const [dateOfBirth, setDateOfBirth] = useState(member.date_of_birth ?? "");
+  const [grade, setGrade] = useState<MemberGrade | "">(member.grade ?? "");
   const [busy, setBusy] = useState(false);
 
   return (
@@ -468,6 +483,10 @@ function MemberRow({
             <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
             <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="الهاتف (اختياري)" className={inputClass} />
             <input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className={inputClass} aria-label="تاريخ الميلاد (اختياري)" />
+            <select value={grade} onChange={(e) => setGrade(e.target.value as MemberGrade | "")} className={inputClass} aria-label="الصف الدراسي (اختياري)">
+              <option value="">اختر الصف</option>
+              {MEMBER_GRADES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+            </select>
           </div>
         ) : (
           <Link
@@ -490,6 +509,7 @@ function MemberRow({
           member.member_code
         )}
       </td>
+      <td className="px-2 py-2 text-blue-light/70">{gradeLabel(member.grade)}</td>
       <td className="px-2 py-2 text-center">
         {member.active ? (
           <span className="text-green-400">✅ نشط</span>
@@ -511,7 +531,7 @@ function MemberRow({
                 disabled={busy}
                 onClick={async () => {
                   setBusy(true);
-                  const ok = await onSave(member.id, name, code, phone, dateOfBirth);
+                  const ok = await onSave(member.id, name, code, phone, dateOfBirth, grade);
                   setBusy(false);
                   if (ok) setEditing(false);
                 }}
@@ -526,6 +546,7 @@ function MemberRow({
                   setCode(member.member_code);
                   setPhone(member.phone ?? "");
                   setDateOfBirth(member.date_of_birth ?? "");
+                  setGrade(member.grade ?? "");
                   setEditing(false);
                 }}
                 className={subtleBtn}

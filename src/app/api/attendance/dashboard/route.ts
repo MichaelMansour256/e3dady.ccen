@@ -22,6 +22,7 @@ import {
   type MeetingMemberRow,
 } from "@/lib/attendance";
 import { badRequest, databaseError, requireAdmin } from "@/lib/attendance-api";
+import { sanitizeGrade, type MemberGrade } from "@/lib/member-fields";
 
 type SortKey = "check_in_time" | "name" | "member_code";
 
@@ -55,6 +56,13 @@ export async function GET(req: Request) {
   const meetingId = searchParams.get("meetingId");
   const search = (searchParams.get("search") ?? "").toLowerCase().trim();
   const filter = searchParams.get("filter");
+  const rawGrade = searchParams.get("grade");
+  let grade: MemberGrade | null = null;
+  if (rawGrade) {
+    const gradeResult = sanitizeGrade(rawGrade);
+    if (!gradeResult.ok || !gradeResult.value) return badRequest("invalid grade");
+    grade = gradeResult.value as MemberGrade;
+  }
   const sort = (searchParams.get("sort") ?? "check_in_time") as SortKey;
   const dir = searchParams.get("dir") === "asc" ? "asc" : "desc";
 
@@ -74,9 +82,10 @@ export async function GET(req: Request) {
     }
 
     const report = await meetingReport(meeting.id);
-    const stats = statsFromReport(report);
+    const gradeFiltered = grade ? report.filter((row) => row.grade === grade) : report;
+    const stats = statsFromReport(gradeFiltered);
 
-    let rows = report;
+    let rows = gradeFiltered;
     if (search) {
       rows = rows.filter(
         (r) =>

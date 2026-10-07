@@ -20,7 +20,7 @@ import {
   updateMember,
 } from "@/lib/attendance";
 import { badRequest, databaseError, readJson, requireAdmin } from "@/lib/attendance-api";
-import { sanitizeDateOfBirth, sanitizePhone } from "@/lib/member-fields";
+import { sanitizeDateOfBirth, sanitizeGrade, sanitizePhone } from "@/lib/member-fields";
 
 export async function GET(req: Request) {
   const denied = requireAdmin(req);
@@ -61,6 +61,7 @@ export async function POST(req: Request) {
     member_code?: unknown;
     phone?: unknown;
     date_of_birth?: unknown;
+    grade?: unknown;
   }>(req);
   const name = typeof body.name === "string" ? body.name.trim() : "";
   let code = typeof body.member_code === "string" ? body.member_code.trim() : "";
@@ -73,9 +74,11 @@ export async function POST(req: Request) {
   if (!phone.ok) return badRequest(phone.error);
   const dateOfBirth = sanitizeDateOfBirth(body.date_of_birth);
   if (!dateOfBirth.ok) return badRequest(dateOfBirth.error);
+  const grade = sanitizeGrade(body.grade);
+  if (!grade.ok) return badRequest(grade.error);
 
   try {
-    const member = await createMember({ member_code: code, name, phone: phone.value, date_of_birth: dateOfBirth.value });
+    const member = await createMember({ member_code: code, name, phone: phone.value, date_of_birth: dateOfBirth.value, grade: grade.value as "prep_1" | "prep_2" | "prep_3" | null });
     return NextResponse.json(toPublicMember(member), { status: 201 });
   } catch (err) {
     return databaseError("members.POST", err);
@@ -93,6 +96,7 @@ export async function PATCH(req: Request) {
     member_code?: unknown;
     phone?: unknown;
     date_of_birth?: unknown;
+    grade?: unknown;
     active?: unknown;
   }>(req);
 
@@ -111,7 +115,7 @@ export async function PATCH(req: Request) {
       return NextResponse.json(toPublicMember(await updateMember(id, { active: body.active })));
     }
 
-    const patch: { name?: string; member_code?: string; active?: boolean; phone?: string | null; date_of_birth?: string | null } = {};
+    const patch: { name?: string; member_code?: string; active?: boolean; phone?: string | null; date_of_birth?: string | null; grade?: "prep_1" | "prep_2" | "prep_3" | null } = {};
     if (typeof body.name === "string" && body.name.trim()) patch.name = body.name;
     if (typeof body.member_code === "string" && body.member_code.trim()) {
       patch.member_code = body.member_code;
@@ -126,6 +130,11 @@ export async function PATCH(req: Request) {
       const dateOfBirth = sanitizeDateOfBirth(body.date_of_birth);
       if (!dateOfBirth.ok) return badRequest(dateOfBirth.error);
       patch.date_of_birth = dateOfBirth.value;
+    }
+    if ("grade" in body) {
+      const grade = sanitizeGrade(body.grade);
+      if (!grade.ok) return badRequest(grade.error);
+      patch.grade = grade.value as "prep_1" | "prep_2" | "prep_3" | null;
     }
     if (Object.keys(patch).length === 0) return badRequest("nothing to update");
 

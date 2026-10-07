@@ -15,6 +15,14 @@ export type ImportRowStatus =
   | "possible_duplicate"
   | "duplicate_in_file";
 
+export type MemberGrade = "prep_1" | "prep_2" | "prep_3";
+
+export const MEMBER_GRADES: Array<{ value: MemberGrade; label: string }> = [
+  { value: "prep_1", label: "أولى إعدادي" },
+  { value: "prep_2", label: "تانية إعدادي" },
+  { value: "prep_3", label: "تالتة إعدادي" },
+];
+
 export interface MatchableMember {
   name: string;
   member_code?: string | null;
@@ -26,6 +34,7 @@ export interface MatchableRow {
   name: string;
   phone?: string | null;
   date_of_birth?: string | null;
+  grade?: MemberGrade | null;
   member_code?: string | null;
 }
 
@@ -39,6 +48,33 @@ const AR_INDIC = "٠١٢٣٤٥٦٧٨٩";
 const AR_INDIC_EXT = "۰۱۲۳۴۵۶۷۸۹";
 const PLACEHOLDERS = new Set(["-", "–", "—", "n/a", "na", "none", "null", "لا يوجد", "بدون"]);
 const PHONE_OK = /^\+?\d{7,15}$/;
+
+export function gradeLabel(grade: MemberGrade | null | undefined): string {
+  return MEMBER_GRADES.find((item) => item.value === grade)?.label ?? "غير محدد";
+}
+
+export function sanitizeGrade(raw: unknown): FieldResult {
+  if (raw === null || raw === undefined) return { ok: true, value: null };
+  const value = toAsciiDigits(asString(raw))
+    .normalize("NFKC")
+    .replace(/[أإآ]/g, "ا")
+    .replace(/[ـ]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+  if (isPlaceholder(value)) return { ok: true, value: null };
+  const compact = value.replace(/\s/g, "");
+  if (["prep_1", "prep1", "1", "1اعدادي", "اولىاعدادي", "اولياعدادي", "اولىاعدادى"].includes(compact)) {
+    return { ok: true, value: "prep_1" };
+  }
+  if (["prep_2", "prep2", "2", "2اعدادي", "ثانيةاعدادي", "تانيةاعدادي", "ثانيهاعدادي"].includes(compact)) {
+    return { ok: true, value: "prep_2" };
+  }
+  if (["prep_3", "prep3", "3", "3اعدادي", "ثالثةاعدادي", "تالتةاعدادي", "ثالثهاعدادي"].includes(compact)) {
+    return { ok: true, value: "prep_3" };
+  }
+  return { ok: false, error: "الصف الدراسي غير صالح — استخدم أولى أو تانية أو تالتة إعدادي" };
+}
 
 export function toAsciiDigits(raw: string): string {
   let result = "";

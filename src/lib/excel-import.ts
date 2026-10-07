@@ -3,19 +3,20 @@
  * .xls files; field rules are shared with manual member creation.
  */
 import * as XLSX from "xlsx";
-import { sanitizeDateOfBirth, sanitizeName, sanitizePhone } from "./member-fields";
+import { sanitizeDateOfBirth, sanitizeGrade, sanitizeName, sanitizePhone } from "./member-fields";
 import type { ImportRowStatus, MatchableRow } from "./member-fields";
 
 export const IMPORT_MAX_ROWS = 2000;
 export const IMPORT_MAX_FILE_BYTES = 2 * 1024 * 1024;
 
-export type ImportField = "name" | "phone" | "date_of_birth" | "member_code";
+export type ImportField = "name" | "phone" | "date_of_birth" | "member_code" | "grade";
 
 export interface DetectedColumns {
   name: string | null;
   phone: string | null;
   date_of_birth: string | null;
   member_code: string | null;
+  grade: string | null;
 }
 
 export interface ParsedMemberRow extends MatchableRow {
@@ -23,6 +24,7 @@ export interface ParsedMemberRow extends MatchableRow {
   phone: string | null;
   date_of_birth: string | null;
   member_code: string | null;
+  grade: "prep_1" | "prep_2" | "prep_3" | null;
 }
 
 export interface InvalidRow {
@@ -66,6 +68,7 @@ const NAME_KEYS = new Set(["name", "full_name", "fullname", "member_name", "stud
 const PHONE_KEYS = new Set(["phone", "phone_number", "phoneno", "mobile", "tel", "telephone", "contact", "رقم_التليفون", "رقم_الهاتف", "التليفون", "الهاتف", "تليفون", "هاتف", "رقم_الموبايل", "موبايل", "جوال", "الموبايل"]);
 const DOB_KEYS = new Set(["date_of_birth", "dob", "birth_date", "birthday", "birthdate", "تاريخ_الميلاد", "تاريخ_ميلاد", "الميلاد", "المواليد", "تاريخ"]);
 const CODE_KEYS = new Set(["member_code", "code", "membercode", "member_id", "id", "كود", "كود_العضو", "رقم_العضو", "رقم_العضوية"]);
+const GRADE_KEYS = new Set(["grade", "class", "year", "school_year", "الصف", "السنة_الدراسية", "الصف_الدراسي"]);
 
 function classifyHeader(raw: string): ImportField | null {
   const header = normalizeHeader(raw);
@@ -73,6 +76,7 @@ function classifyHeader(raw: string): ImportField | null {
   if (PHONE_KEYS.has(header) || ["phone", "tel", "contact", "تليفون", "هاتف", "موبايل", "جوال"].some((key) => header.includes(key))) return "phone";
   if (DOB_KEYS.has(header) || ["birth", "dob", "ميلاد", "مواليد"].some((key) => header.includes(key))) return "date_of_birth";
   if (CODE_KEYS.has(header) || ["member_code", "_code", "كود", "العضوية"].some((key) => header.includes(key))) return "member_code";
+  if (GRADE_KEYS.has(header) || ["grade", "class", "year", "صف", "دراسي", "السنة"].some((key) => header.includes(key))) return "grade";
   if (NAME_KEYS.has(header) || header.includes("اسم")) return "name";
   return null;
 }
@@ -106,9 +110,9 @@ export function parseMembersWorkbook(fileName: string, data: Uint8Array): Parsed
 
   const headers = (grid[headerIndex] ?? []).map(cellText);
   const indexes: Record<ImportField, number | null> = {
-    name: null, phone: null, date_of_birth: null, member_code: null,
+    name: null, phone: null, date_of_birth: null, member_code: null, grade: null,
   };
-  const detected: DetectedColumns = { name: null, phone: null, date_of_birth: null, member_code: null };
+  const detected: DetectedColumns = { name: null, phone: null, date_of_birth: null, member_code: null, grade: null };
   headers.forEach((header, index) => {
     const field = classifyHeader(header);
     if (field && indexes[field] === null) {
@@ -150,7 +154,12 @@ export function parseMembersWorkbook(fileName: string, data: Uint8Array): Parsed
       invalid.push({ row: excelRow, name, reason: "كود العضو طويل جدًا (الأقصى 32 حرفًا)" });
       return;
     }
-    valid.push({ row: excelRow, name, phone: phone.value, date_of_birth: dob.value, member_code: memberCode || null });
+    const grade = sanitizeGrade(valueAt(row, "grade"));
+    if (!grade.ok) {
+      invalid.push({ row: excelRow, name, reason: grade.error });
+      return;
+    }
+    valid.push({ row: excelRow, name, phone: phone.value, date_of_birth: dob.value, member_code: memberCode || null, grade: grade.value as ParsedMemberRow["grade"] });
   });
 
   if (!valid.length && !invalid.length) throw new ImportError("الملف لا يحتوي على أي صفوف بيانات", detected);

@@ -8,6 +8,8 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { useAttendanceApi } from "./AdminAuthProvider";
+import { gradeLabel } from "@/lib/member-fields";
+import type { MemberGrade } from "@/lib/member-fields";
 import { Banner, Spinner, primaryBtn, subtleBtn } from "./ui";
 
 export interface QrDialogMember {
@@ -15,6 +17,7 @@ export interface QrDialogMember {
   name: string;
   member_code: string;
   active: boolean;
+  grade: MemberGrade | null;
 }
 
 interface QrPayload {
@@ -110,6 +113,7 @@ export default function QrDialog({
       >
         <h2 className="text-lg font-bold text-white">{member.name}</h2>
         <p className="mt-1 text-xs tracking-widest text-blue-light/60">{member.member_code}</p>
+        <p className="mt-1 text-sm text-blue-light/70">الصف: {gradeLabel(member.grade)}</p>
 
         {!member.active && (
           <div className="mt-3">
