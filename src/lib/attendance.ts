@@ -26,6 +26,8 @@ export interface Member {
   id: string;
   member_code: string;
   name: string;
+  phone: string | null;
+  date_of_birth: string | null;
   /** Random secret inside the QR code — stripped before any API response. */
   qr_token: string;
   active: boolean;
@@ -234,6 +236,8 @@ export async function nextMemberCode(): Promise<string> {
 export interface MemberInput {
   member_code: string;
   name: string;
+  phone?: string | null;
+  date_of_birth?: string | null;
 }
 
 /**
@@ -246,6 +250,8 @@ export async function createMember(input: MemberInput): Promise<Member> {
     .insert({
       member_code: input.member_code.trim(),
       name: input.name.trim(),
+      phone: input.phone?.trim() || null,
+      date_of_birth: input.date_of_birth || null,
       qr_token: generateQrToken(),
       active: true,
     })
@@ -259,6 +265,8 @@ export async function createMember(input: MemberInput): Promise<Member> {
 export interface MemberPatch {
   name?: string;
   member_code?: string;
+  phone?: string | null;
+  date_of_birth?: string | null;
   active?: boolean;
 }
 
@@ -266,6 +274,8 @@ export async function updateMember(id: string, patch: MemberPatch): Promise<Memb
   const clean: Record<string, unknown> = {};
   if (patch.name !== undefined) clean.name = patch.name.trim();
   if (patch.member_code !== undefined) clean.member_code = patch.member_code.trim();
+  if (patch.phone !== undefined) clean.phone = patch.phone?.trim() || null;
+  if (patch.date_of_birth !== undefined) clean.date_of_birth = patch.date_of_birth || null;
   if (patch.active !== undefined) clean.active = patch.active;
 
   const { data, error } = await supabase
@@ -277,6 +287,26 @@ export async function updateMember(id: string, patch: MemberPatch): Promise<Memb
 
   if (error) throw error;
   return data as Member;
+}
+
+/** Insert imported members in one request after duplicate validation. */
+export async function createMembersBulk(inputs: MemberInput[]): Promise<Member[]> {
+  if (inputs.length === 0) return [];
+  const { data, error } = await supabase
+    .from("members")
+    .insert(
+      inputs.map((input) => ({
+        member_code: input.member_code.trim(),
+        name: input.name.trim(),
+        phone: input.phone?.trim() || null,
+        date_of_birth: input.date_of_birth || null,
+        qr_token: generateQrToken(),
+        active: true,
+      }))
+    )
+    .select();
+  if (error) throw error;
+  return (data ?? []) as Member[];
 }
 
 /** New random token — the previous QR stops working immediately. */
@@ -840,4 +870,3 @@ export async function rangeReport(from: string, to: string): Promise<RangeReport
     },
   };
 }
-

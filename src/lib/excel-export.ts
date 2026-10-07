@@ -8,6 +8,32 @@
 import ExcelJS from "exceljs";
 import type { Meeting, MeetingMemberRow } from "./attendance";
 
+/** Template used by the member importer (Name | Phone | Date of Birth). */
+export async function generateMembersTemplateWorkbook(): Promise<ExcelJS.Workbook> {
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "e3dady.ccen attendance";
+  const sheet = workbook.addWorksheet("Members");
+  sheet.columns = [
+    { header: "Name", key: "name", width: 34 },
+    { header: "Phone", key: "phone", width: 28 },
+    { header: "Date of Birth", key: "date_of_birth", width: 24 },
+  ];
+  sheet.addRow(["مريم حنا", "01000000000", "2010-05-20"]);
+  sheet.addRow(["يوسف سمير", "", ""]);
+  sheet.getRow(1).font = { bold: true };
+
+  const instructions = workbook.addWorksheet("Instructions");
+  instructions.addRows([
+    ["تعليمات استيراد الأعضاء"],
+    ["الاسم مطلوب. الهاتف وتاريخ الميلاد اختياريان."],
+    ["يمكن استخدام أسماء الأعمدة بالعربية أو الإنجليزية."],
+    ["الصيغ المقبولة لتاريخ الميلاد: YYYY-MM-DD أو يوم/شهر/سنة."],
+  ]);
+  instructions.getColumn(1).width = 80;
+  instructions.getRow(1).font = { bold: true };
+  return workbook;
+}
+
 const HEADER_FILL: ExcelJS.Fill = {
   type: "pattern",
   pattern: "solid",

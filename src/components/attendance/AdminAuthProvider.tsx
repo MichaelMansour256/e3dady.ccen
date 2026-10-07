@@ -25,6 +25,7 @@ export interface ApiResult<T> {
 interface RequestOptions {
   method?: "GET" | "POST" | "PATCH" | "DELETE";
   json?: unknown;
+  form?: FormData;
   signal?: AbortSignal;
 }
 
@@ -50,11 +51,12 @@ export default function AdminAuthProvider({ children }: { children: React.ReactN
   const request = useCallback(
     async <T,>(path: string, options: RequestOptions = {}): Promise<ApiResult<T>> => {
       const hasJson = options.json !== undefined;
+      const hasForm = options.form !== undefined;
       try {
         const res = await fetch(path, {
           method: options.method ?? (hasJson ? "POST" : "GET"),
           headers: hasJson ? auth.jsonHeaders : auth.headers,
-          body: hasJson ? JSON.stringify(options.json) : undefined,
+          body: hasJson ? JSON.stringify(options.json) : hasForm ? options.form : undefined,
           signal: options.signal,
           cache: "no-store",
         });

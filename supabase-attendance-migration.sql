@@ -48,6 +48,8 @@ create table if not exists public.members (
   member_code text        not null unique,
   -- Display name (Arabic or Latin).
   name        text        not null,
+  phone       text,
+  date_of_birth date,
   -- Cryptographically random token that goes inside the QR code. Never the
   -- name, never the member_code — the token is the only thing the QR carries.
   qr_token    text        not null unique,
@@ -59,6 +61,9 @@ create table if not exists public.members (
   constraint members_name_not_blank        check (length(btrim(name)) > 0),
   constraint members_qr_token_length       check (length(qr_token) >= 16)
 );
+
+alter table public.members add column if not exists phone text;
+alter table public.members add column if not exists date_of_birth date;
 
 create index if not exists idx_members_qr_token    on public.members (qr_token);
 create index if not exists idx_members_active_code on public.members (active, member_code);
@@ -256,4 +261,3 @@ grant select, insert, update, delete on public.attendance to service_role;
 -- insert into public.meetings (title, meeting_date, start_time, status)
 -- select 'اجتماع الأحد', current_date, '19:00', 'active'
 -- where not exists (select 1 from public.meetings);
-

@@ -31,7 +31,7 @@ import {
 type Filter = "all" | "active" | "inactive";
 
 export default function AttendanceMembersPage() {
-  const { request } = useAttendanceApi();
+  const { request, headers } = useAttendanceApi();
   const [members, setMembers] = useState<PublicMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,9 +42,22 @@ export default function AttendanceMembersPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
   const [newCode, setNewCode] = useState("");
+  const [newPhone, setNewPhone] = useState("");
+  const [newDateOfBirth, setNewDateOfBirth] = useState("");
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [qrMember, setQrMember] = useState<PublicMember | null>(null);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importPreview, setImportPreview] = useState<{
+    fileName: string; totalRows: number; validRows: number; invalidRows: number;
+    columns: { name: string | null; phone: string | null; date_of_birth: string | null; member_code: string | null };
+    counts: { new: number; existing: number; possible_duplicate: number; duplicate_in_file: number; invalid: number };
+    preview: Array<{ row: number; name: string; phone: string | null; date_of_birth: string | null; member_code: string | null; status: string; reason: string | null }>;
+    invalid: Array<{ row: number; name: string | null; reason: string }>;
+    warnings: string[];
+  } | null>(null);
+  const [importResult, setImportResult] = useState<{ imported: number; skipped: number; failed: number; total: number } | null>(null);
+  const [importBusy, setImportBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -78,7 +91,7 @@ export default function AttendanceMembersPage() {
     }
     setSaving(true);
     const res = await request<PublicMember>("/api/attendance/members", {
-      json: { name: newName, member_code: newCode },
+      json: { name: newName, member_code: newCode, phone: newPhone, date_of_birth: newDateOfBirth || null },
     });
     setSaving(false);
     if (!res.ok) {
@@ -86,10 +99,72 @@ export default function AttendanceMembersPage() {
       return;
     }
     setNewName("");
+    setNewPhone("");
+    setNewDateOfBirth("");
     setShowCreate(false);
     setNotice("✅ تم إنشاء العضو ورمز QR الخاص به");
     void load();
-  }, [request, newName, newCode, load]);
+  }, [request, newName, newCode, newPhone, newDateOfBirth, load]);
+
+  const previewImport = useCallback(async () => {
+    if (!importFile) return;
+    setImportBusy(true);
+    setImportResult(null);
+    const bytes = new Uint8Array(await importFile.arrayBuffer());
+    let binary = "";
+    bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+    const res = await request<typeof importPreview>("/api/attendance/members/import", {
+      json: { action: "preview", fileName: importFile.name, file: btoa(binary) },
+    });
+    setImportBusy(false);
+    if (!res.ok || !res.data) {
+      setNotice(`⚠️ ${res.error ?? "فشل قراءة الملف"}`);
+      return;
+    }
+    setImportPreview(res.data);
+  }, [importFile, request]);
+
+  const confirmImport = useCallback(async () => {
+    if (!importPreview) return;
+    setImportBusy(true);
+    if (!importFile) {
+      setImportBusy(false);
+      return;
+    }
+    const bytes = new Uint8Array(await importFile.arrayBuffer());
+    let binary = "";
+    bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+    const res = await request<typeof importResult>("/api/attendance/members/import", {
+      json: { action: "confirm", fileName: importFile.name, file: btoa(binary) },
+    });
+    setImportBusy(false);
+    if (!res.ok || !res.data) {
+      setNotice(`⚠️ ${res.error ?? "فشل الاستيراد"}`);
+      return;
+    }
+    setImportResult(res.data);
+    setImportPreview(null);
+    setImportFile(null);
+    setNotice("✅ تم استيراد الأعضاء");
+    void load();
+  }, [importFile, importPreview, request, load]);
+
+  const downloadTemplate = useCallback(async () => {
+    const response = await fetch("/api/attendance/members/import", {
+      headers,
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      setNotice("⚠️ تعذّر تنزيل نموذج Excel");
+      return;
+    }
+    const url = URL.createObjectURL(await response.blob());
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "members-import-template.xlsx";
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [headers]);
 
   const toggleActive = useCallback(
     async (member: PublicMember) => {
@@ -152,10 +227,10 @@ export default function AttendanceMembersPage() {
   );
 
   const saveEdit = useCallback(
-    async (id: string, name: string, member_code: string) => {
+    async (id: string, name: string, member_code: string, phone: string, date_of_birth: string) => {
       const res = await request<PublicMember>("/api/attendance/members", {
         method: "PATCH",
-        json: { id, name, member_code },
+        json: { id, name, member_code, phone, date_of_birth: date_of_birth || null },
       });
       if (!res.ok) {
         setNotice(`⚠️ ${res.error ?? "فشل الحفظ"}`);
@@ -209,6 +284,9 @@ export default function AttendanceMembersPage() {
             <button type="button" onClick={() => void openCreate()} className={primaryBtn}>
               ➕ إضافة عضو
             </button>
+            <button type="button" onClick={() => void downloadTemplate()} className={subtleBtn}>
+              ⬇️ نموذج Excel
+            </button>
             <Link
               href="/admin/attendance/members/qr-sheet"
               className={successBtn}
@@ -237,6 +315,8 @@ export default function AttendanceMembersPage() {
                   if (e.key === "Enter") void create();
                 }}
               />
+              <input value={newPhone} onChange={(e) => setNewPhone(e.target.value)} placeholder="الهاتف (اختياري)" className={inputClass} />
+              <input type="date" value={newDateOfBirth} onChange={(e) => setNewDateOfBirth(e.target.value)} className={inputClass} aria-label="تاريخ الميلاد (اختياري)" />
             </div>
             <div className="flex gap-2">
               <button type="button" onClick={() => void create()} disabled={saving} className={primaryBtn}>
@@ -247,10 +327,30 @@ export default function AttendanceMembersPage() {
               </button>
             </div>
             <p className="mt-2 text-xs text-blue-light/50">
-              يتم توليد رمز QR عشوائي آمن على الخادم عند الإنشاء.
+              الهاتف وتاريخ الميلاد اختياريان. يتم توليد رمز QR عشوائي آمن على الخادم عند الإنشاء.
             </p>
           </div>
         )}
+
+        <div className="mb-4 rounded-xl bg-blue-dark/40 p-3">
+          <h3 className="mb-2 font-semibold text-white">📥 استيراد أعضاء من Excel</h3>
+          <p className="mb-2 text-xs text-blue-light/60">Name مطلوب، وPhone وDate of Birth اختياريان. يدعم .xlsx و .xls.</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <input type="file" accept=".xlsx,.xls" onChange={(e) => { setImportFile(e.target.files?.[0] ?? null); setImportPreview(null); setImportResult(null); }} className="text-sm text-blue-light" />
+            <button type="button" onClick={() => void previewImport()} disabled={!importFile || importBusy} className={primaryBtn}>معاينة البيانات</button>
+          </div>
+          {importPreview && (
+            <div className="mt-3 space-y-2 text-sm text-blue-light/80">
+              <p>إجمالي الصفوف: {importPreview.totalRows} — صالحة: {importPreview.validRows} — بها أخطاء: {importPreview.invalidRows}</p>
+              <p>الأعمدة: {[importPreview.columns.name, importPreview.columns.phone, importPreview.columns.date_of_birth].filter(Boolean).join("، ")}</p>
+              {importPreview.warnings.map((warning) => <div key={warning} className="text-amber-200">{warning}</div>)}
+              {importPreview.invalid.length > 0 && <div className="text-amber-200">{importPreview.invalid.map((row) => <div key={row.row}>صف {row.row}: {row.reason}</div>)}</div>}
+              <div className="overflow-x-auto"><table className="w-full text-xs"><tbody>{importPreview.preview.map((row) => <tr key={row.row}><td className="p-1">{row.row}</td><td className="p-1">{row.name}</td><td className="p-1">{row.phone ?? "—"}</td><td className="p-1">{row.date_of_birth ?? "—"}</td><td className="p-1">{row.status}</td></tr>)}</tbody></table></div>
+              <button type="button" onClick={() => void confirmImport()} disabled={importBusy || importPreview.counts.new === 0} className={successBtn}>تأكيد الاستيراد ({importPreview.counts.new})</button>
+            </div>
+          )}
+          {importResult && <Banner tone="success">تم استيراد: {importResult.imported} — تم تخطي: {importResult.skipped} — فشل: {importResult.failed} — الإجمالي: {importResult.total}</Banner>}
+        </div>
 
         <div className="mb-3 flex flex-col gap-2 sm:flex-row">
           <input
@@ -351,18 +451,24 @@ function MemberRow({
   onToggleActive: () => void;
   onRegenerate: () => void;
   onDelete: () => void;
-  onSave: (id: string, name: string, code: string) => Promise<boolean>;
+  onSave: (id: string, name: string, code: string, phone: string, dateOfBirth: string) => Promise<boolean>;
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(member.name);
   const [code, setCode] = useState(member.member_code);
+  const [phone, setPhone] = useState(member.phone ?? "");
+  const [dateOfBirth, setDateOfBirth] = useState(member.date_of_birth ?? "");
   const [busy, setBusy] = useState(false);
 
   return (
     <tr className="border-b border-blue-mid/20 last:border-0">
       <td className="px-2 py-2">
         {editing ? (
-          <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+          <div className="space-y-1">
+            <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} />
+            <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="الهاتف (اختياري)" className={inputClass} />
+            <input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} className={inputClass} aria-label="تاريخ الميلاد (اختياري)" />
+          </div>
         ) : (
           <Link
             href={`/admin/attendance/members/${member.id}`}
@@ -405,7 +511,7 @@ function MemberRow({
                 disabled={busy}
                 onClick={async () => {
                   setBusy(true);
-                  const ok = await onSave(member.id, name, code);
+                  const ok = await onSave(member.id, name, code, phone, dateOfBirth);
                   setBusy(false);
                   if (ok) setEditing(false);
                 }}
@@ -418,6 +524,8 @@ function MemberRow({
                 onClick={() => {
                   setName(member.name);
                   setCode(member.member_code);
+                  setPhone(member.phone ?? "");
+                  setDateOfBirth(member.date_of_birth ?? "");
                   setEditing(false);
                 }}
                 className={subtleBtn}
@@ -446,4 +554,3 @@ function MemberRow({
     </tr>
   );
 }
-
