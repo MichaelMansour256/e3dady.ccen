@@ -3,13 +3,13 @@
  * .xls files; field rules are shared with manual member creation.
  */
 import * as XLSX from "xlsx";
-import { sanitizeDateOfBirth, sanitizeGrade, sanitizeName, sanitizePhone } from "./member-fields";
+import { sanitizeDateOfBirth, sanitizeGender, sanitizeGrade, sanitizeName, sanitizePhone } from "./member-fields";
 import type { ImportRowStatus, MatchableRow } from "./member-fields";
 
 export const IMPORT_MAX_ROWS = 2000;
 export const IMPORT_MAX_FILE_BYTES = 2 * 1024 * 1024;
 
-export type ImportField = "name" | "phone" | "date_of_birth" | "member_code" | "grade";
+export type ImportField = "name" | "phone" | "date_of_birth" | "member_code" | "grade" | "gender";
 
 export interface DetectedColumns {
   name: string | null;
@@ -17,6 +17,7 @@ export interface DetectedColumns {
   date_of_birth: string | null;
   member_code: string | null;
   grade: string | null;
+  gender: string | null;
 }
 
 export interface ParsedMemberRow extends MatchableRow {
@@ -25,6 +26,7 @@ export interface ParsedMemberRow extends MatchableRow {
   date_of_birth: string | null;
   member_code: string | null;
   grade: "prep_1" | "prep_2" | "prep_3" | null;
+  gender: "male" | "female" | null;
 }
 
 export interface InvalidRow {
@@ -69,6 +71,7 @@ const PHONE_KEYS = new Set(["phone", "phone_number", "phoneno", "mobile", "tel",
 const DOB_KEYS = new Set(["date_of_birth", "dob", "birth_date", "birthday", "birthdate", "تاريخ_الميلاد", "تاريخ_ميلاد", "الميلاد", "المواليد", "تاريخ"]);
 const CODE_KEYS = new Set(["member_code", "code", "membercode", "member_id", "id", "كود", "كود_العضو", "رقم_العضو", "رقم_العضوية"]);
 const GRADE_KEYS = new Set(["grade", "class", "year", "school_year", "الصف", "السنة_الدراسية", "الصف_الدراسي"]);
+const GENDER_KEYS = new Set(["gender", "sex", "النوع", "الجنس"]);
 
 function classifyHeader(raw: string): ImportField | null {
   const header = normalizeHeader(raw);
@@ -77,6 +80,7 @@ function classifyHeader(raw: string): ImportField | null {
   if (DOB_KEYS.has(header) || ["birth", "dob", "ميلاد", "مواليد"].some((key) => header.includes(key))) return "date_of_birth";
   if (CODE_KEYS.has(header) || ["member_code", "_code", "كود", "العضوية"].some((key) => header.includes(key))) return "member_code";
   if (GRADE_KEYS.has(header) || ["grade", "class", "year", "صف", "دراسي", "السنة"].some((key) => header.includes(key))) return "grade";
+  if (GENDER_KEYS.has(header) || ["gender", "sex", "نوع", "جنس"].some((key) => header.includes(key))) return "gender";
   if (NAME_KEYS.has(header) || header.includes("اسم")) return "name";
   return null;
 }
@@ -110,9 +114,9 @@ export function parseMembersWorkbook(fileName: string, data: Uint8Array): Parsed
 
   const headers = (grid[headerIndex] ?? []).map(cellText);
   const indexes: Record<ImportField, number | null> = {
-    name: null, phone: null, date_of_birth: null, member_code: null, grade: null,
+    name: null, phone: null, date_of_birth: null, member_code: null, grade: null, gender: null,
   };
-  const detected: DetectedColumns = { name: null, phone: null, date_of_birth: null, member_code: null, grade: null };
+  const detected: DetectedColumns = { name: null, phone: null, date_of_birth: null, member_code: null, grade: null, gender: null };
   headers.forEach((header, index) => {
     const field = classifyHeader(header);
     if (field && indexes[field] === null) {
@@ -159,7 +163,12 @@ export function parseMembersWorkbook(fileName: string, data: Uint8Array): Parsed
       invalid.push({ row: excelRow, name, reason: grade.error });
       return;
     }
-    valid.push({ row: excelRow, name, phone: phone.value, date_of_birth: dob.value, member_code: memberCode || null, grade: grade.value as ParsedMemberRow["grade"] });
+    const gender = sanitizeGender(valueAt(row, "gender"));
+    if (!gender.ok) {
+      invalid.push({ row: excelRow, name, reason: gender.error });
+      return;
+    }
+    valid.push({ row: excelRow, name, phone: phone.value, date_of_birth: dob.value, member_code: memberCode || null, grade: grade.value as ParsedMemberRow["grade"], gender: gender.value as ParsedMemberRow["gender"] });
   });
 
   if (!valid.length && !invalid.length) throw new ImportError("الملف لا يحتوي على أي صفوف بيانات", detected);

@@ -7,9 +7,9 @@
  */
 import ExcelJS from "exceljs";
 import type { Meeting, MeetingMemberRow } from "./attendance";
-import { gradeLabel } from "./member-fields";
+import { genderLabel, gradeLabel } from "./member-fields";
 
-/** Template used by the member importer (Name | Phone | Date of Birth | Grade). */
+/** Template used by the member importer (Name | Phone | Date of Birth | Grade | Gender). */
 export async function generateMembersTemplateWorkbook(): Promise<ExcelJS.Workbook> {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "e3dady.ccen attendance";
@@ -19,16 +19,18 @@ export async function generateMembersTemplateWorkbook(): Promise<ExcelJS.Workboo
     { header: "Phone", key: "phone", width: 28 },
     { header: "Date of Birth", key: "date_of_birth", width: 24 },
     { header: "Grade", key: "grade", width: 20 },
+    { header: "Gender", key: "gender", width: 16 },
   ];
-  sheet.addRow(["مريم حنا", "01000000000", "2010-05-20", "prep_1"]);
-  sheet.addRow(["يوسف سمير", "", "", ""]);
+  sheet.addRow(["مريم حنا", "01000000000", "2010-05-20", "prep_1", "female"]);
+  sheet.addRow(["يوسف سمير", "", "", "prep_2", "male"]);
   sheet.getRow(1).font = { bold: true };
 
   const instructions = workbook.addWorksheet("Instructions");
   instructions.addRows([
     ["تعليمات استيراد الأعضاء"],
-    ["الاسم مطلوب. الهاتف وتاريخ الميلاد والصف الدراسي اختياريون."],
+    ["الاسم مطلوب. الهاتف وتاريخ الميلاد والصف الدراسي والنوع اختياريون."],
     ["الصف: prep_1 / prep_2 / prep_3 أو أولى/تانية/تالتة إعدادي."],
+    ["النوع: male / female أو ولد / بنت أو M / F."],
     ["يمكن استخدام أسماء الأعمدة بالعربية أو الإنجليزية."],
     ["الصيغ المقبولة لتاريخ الميلاد: YYYY-MM-DD أو يوم/شهر/سنة."],
   ]);
@@ -114,6 +116,7 @@ export async function generateAttendanceWorkbook(
     { header: "Member Name", key: "name", width: 30 },
     { header: "Member Code", key: "code", width: 14 },
     { header: "Grade", key: "grade", width: 20 },
+    { header: "Gender", key: "gender", width: 16 },
     { header: "Meeting Date", key: "date", width: 16 },
     { header: "Meeting Title", key: "title", width: 25 },
     { header: "Check-in Time", key: "checkin", width: 16 },
@@ -133,6 +136,7 @@ export async function generateAttendanceWorkbook(
       name: row.name,
       code: row.member_code,
       grade: gradeLabel(row.grade),
+      gender: genderLabel(row.gender),
       date: toDate(meeting.meeting_date),
       title: meeting.title,
       checkin: timeLabel ?? "—",

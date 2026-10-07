@@ -5,6 +5,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Meeting, MeetingMemberRow, MeetingStats, RangeReport } from "@/lib/attendance";
+import { genderLabel } from "@/lib/member-fields";
 import { useAttendanceApi } from "@/components/attendance/AdminAuthProvider";
 import {
   Banner,
@@ -171,6 +172,7 @@ function MeetingView({ meetings, selectedId, onChangeId, data, loading, onRefres
                 <tr className="bg-blue-dark/40">
                   <th className="px-3 py-2 text-left text-xs font-semibold text-blue-light/70">الاسم</th>
                   <th className="px-3 py-2 text-left text-xs font-semibold text-blue-light/70">الكود</th>
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-blue-light/70">النوع</th>
                   <th className="px-3 py-2 text-center text-xs font-semibold text-blue-light/70">وقت الحضور</th>
                   <th className="px-3 py-2 text-center text-xs font-semibold text-blue-light/70">الحالة</th>
                 </tr>
@@ -180,6 +182,7 @@ function MeetingView({ meetings, selectedId, onChangeId, data, loading, onRefres
                   <tr key={row.member_id} className="border-t border-blue-mid/10">
                     <td className="px-3 py-2 text-sm text-white">{row.name}</td>
                     <td className="px-3 py-2 text-sm text-blue-light/70">{row.member_code}</td>
+                    <td className="px-3 py-2 text-sm text-blue-light/70">{genderLabel(row.gender)}</td>
                     <td className="px-3 py-2 text-center text-sm text-white">{formatTimeAr(row.check_in_time)}</td>
                     <td className="px-3 py-2 text-center"><PresentPill present={row.present} /></td>
                   </tr>
@@ -287,5 +290,4 @@ export default function AttendanceReportsPage() {
     </>
   );
 }
-
 

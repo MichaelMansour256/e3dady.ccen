@@ -8,8 +8,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { useAttendanceApi } from "./AdminAuthProvider";
-import { gradeLabel } from "@/lib/member-fields";
-import type { MemberGrade } from "@/lib/member-fields";
+import { genderLabel, gradeLabel, type MemberGender, type MemberGrade } from "@/lib/member-fields";
 import { Banner, Spinner, primaryBtn, subtleBtn } from "./ui";
 
 export interface QrDialogMember {
@@ -18,6 +17,7 @@ export interface QrDialogMember {
   member_code: string;
   active: boolean;
   grade: MemberGrade | null;
+  gender: MemberGender | null;
 }
 
 interface QrPayload {
@@ -81,12 +81,13 @@ export default function QrDialog({
     <img src="${payload.dataUrl}" alt="QR" />
     <div class="name">${member.name}</div>
     <div class="code">${member.member_code}</div>
+    <div>${gradeLabel(member.grade)} · ${genderLabel(member.gender)}</div>
     <div class="hint">امسح الرمز لتسجيل الحضور</div>
   </div>
   <script>window.onload = function () { window.print(); };</script>
 </body></html>`);
     win.document.close();
-  }, [payload, member.member_code, member.name]);
+  }, [payload, member.gender, member.grade, member.member_code, member.name]);
 
   const copyLink = useCallback(async () => {
     if (!payload) return;
@@ -114,6 +115,7 @@ export default function QrDialog({
         <h2 className="text-lg font-bold text-white">{member.name}</h2>
         <p className="mt-1 text-xs tracking-widest text-blue-light/60">{member.member_code}</p>
         <p className="mt-1 text-sm text-blue-light/70">الصف: {gradeLabel(member.grade)}</p>
+        <p className="mt-1 text-sm text-blue-light/70">النوع: {genderLabel(member.gender)}</p>
 
         {!member.active && (
           <div className="mt-3">

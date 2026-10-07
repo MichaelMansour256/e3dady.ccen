@@ -36,6 +36,7 @@ export async function GET(req: Request) {
         name: m.name,
         member_code: m.member_code,
         grade: m.grade,
+        gender: m.gender,
         active: m.active,
         checkInUrl: getCheckInUrl(m.qr_token),
         dataUrl: await generateQrPngDataUrl(m.qr_token),

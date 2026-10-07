@@ -16,11 +16,17 @@ export type ImportRowStatus =
   | "duplicate_in_file";
 
 export type MemberGrade = "prep_1" | "prep_2" | "prep_3";
+export type MemberGender = "male" | "female";
 
 export const MEMBER_GRADES: Array<{ value: MemberGrade; label: string }> = [
   { value: "prep_1", label: "أولى إعدادي" },
   { value: "prep_2", label: "تانية إعدادي" },
   { value: "prep_3", label: "تالتة إعدادي" },
+];
+
+export const MEMBER_GENDERS: Array<{ value: MemberGender; label: string }> = [
+  { value: "male", label: "ولد" },
+  { value: "female", label: "بنت" },
 ];
 
 export interface MatchableMember {
@@ -51,6 +57,30 @@ const PHONE_OK = /^\+?\d{7,15}$/;
 
 export function gradeLabel(grade: MemberGrade | null | undefined): string {
   return MEMBER_GRADES.find((item) => item.value === grade)?.label ?? "غير محدد";
+}
+
+export function genderLabel(gender: MemberGender | null | undefined): string {
+  return MEMBER_GENDERS.find((item) => item.value === gender)?.label ?? "غير محدد";
+}
+
+export function sanitizeGender(raw: unknown): FieldResult {
+  if (raw === null || raw === undefined) return { ok: true, value: null };
+  const value = toAsciiDigits(asString(raw))
+    .normalize("NFKC")
+    .replace(/[أإآ]/g, "ا")
+    .replace(/[ى]/g, "ي")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+  if (isPlaceholder(value)) return { ok: true, value: null };
+  const compact = value.replace(/\s/g, "");
+  if (["male", "m", "ذكر", "ولد"].includes(compact)) {
+    return { ok: true, value: "male" };
+  }
+  if (["female", "f", "انثى", "بنت"].includes(compact)) {
+    return { ok: true, value: "female" };
+  }
+  return { ok: false, error: "النوع غير صالح — استخدم ولد أو بنت" };
 }
 
 export function sanitizeGrade(raw: unknown): FieldResult {

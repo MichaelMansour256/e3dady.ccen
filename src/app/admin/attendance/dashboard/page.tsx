@@ -15,7 +15,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Meeting, MeetingMemberRow, MeetingStats } from "@/lib/attendance";
-import { MEMBER_GRADES, gradeLabel, type MemberGrade } from "@/lib/member-fields";
+import { genderLabel, gradeLabel, MEMBER_GENDERS, MEMBER_GRADES, type MemberGender, type MemberGrade } from "@/lib/member-fields";
 import { useAttendanceApi } from "@/components/attendance/AdminAuthProvider";
 import {
   Banner,
@@ -67,6 +67,7 @@ export default function AttendanceDashboardPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [gradeFilter, setGradeFilter] = useState<MemberGrade | "all">("all");
+  const [genderFilter, setGenderFilter] = useState<MemberGender | "all">("all");
   const [sortKey, setSortKey] = useState<SortKey>("check_in_time");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
@@ -82,6 +83,7 @@ export default function AttendanceDashboardPage() {
         `/api/attendance/dashboard?${new URLSearchParams({
           ...(target ? { meetingId: target } : {}),
           ...(gradeFilter !== "all" ? { grade: gradeFilter } : {}),
+          ...(genderFilter !== "all" ? { gender: genderFilter } : {}),
         }).toString()}`
       );
       if (res.ok && res.data) {
@@ -97,7 +99,7 @@ export default function AttendanceDashboardPage() {
       }
       setLoading(false);
     },
-    [request, gradeFilter]
+    [request, gradeFilter, genderFilter]
   );
 
   const fetchMeetings = useCallback(async () => {
@@ -350,6 +352,10 @@ export default function AttendanceDashboardPage() {
               <option value="all">كل الصفوف</option>
               {MEMBER_GRADES.map((grade) => <option key={grade.value} value={grade.value}>{grade.label}</option>)}
             </select>
+            <select className={inputClass} value={genderFilter} onChange={(e) => setGenderFilter(e.target.value as MemberGender | "all")}>
+              <option value="all">كل الأنواع</option>
+              {MEMBER_GENDERS.map((gender) => <option key={gender.value} value={gender.value}>{gender.label}</option>)}
+            </select>
           </label>
           <label className="block">
             <span className="mb-1 block text-xs text-blue-light/60">الحالة</span>
@@ -408,6 +414,7 @@ export default function AttendanceDashboardPage() {
                   <th className="px-3 py-2 text-left text-xs font-semibold text-blue-light/70">الاسم</th>
                   <th className="px-3 py-2 text-left text-xs font-semibold text-blue-light/70">الكود</th>
                   <th className="px-3 py-2 text-left text-xs font-semibold text-blue-light/70">الصف</th>
+                  <th className="px-3 py-2 text-left text-xs font-semibold text-blue-light/70">النوع</th>
                   <th className="px-3 py-2 text-center text-xs font-semibold text-blue-light/70">الحالة</th>
                   <th className="px-3 py-2 text-center text-xs font-semibold text-blue-light/70">وقت الحضور</th>
                 </tr>
@@ -418,6 +425,7 @@ export default function AttendanceDashboardPage() {
                     <td className="px-3 py-2 text-sm text-white">{row.name}</td>
                     <td className="px-3 py-2 text-sm text-blue-light/70">{row.member_code}</td>
                     <td className="px-3 py-2 text-sm text-blue-light/70">{gradeLabel(row.grade)}</td>
+                    <td className="px-3 py-2 text-sm text-blue-light/70">{genderLabel(row.gender)}</td>
                     <td className="px-3 py-2 text-center">
                       <PresentPill present={row.present} />
                     </td>

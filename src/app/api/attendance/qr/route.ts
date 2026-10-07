@@ -52,6 +52,7 @@ export async function GET(req: Request) {
           name: member.name,
           member_code: member.member_code,
           grade: member.grade,
+          gender: member.gender,
           active: member.active,
         },
       },

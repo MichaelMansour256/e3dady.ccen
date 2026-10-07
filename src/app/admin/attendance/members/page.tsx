@@ -14,7 +14,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { PublicMember } from "@/lib/attendance";
-import { MEMBER_GRADES, gradeLabel, type MemberGrade } from "@/lib/member-fields";
+import { genderLabel, gradeLabel, MEMBER_GENDERS, MEMBER_GRADES, type MemberGender, type MemberGrade } from "@/lib/member-fields";
 import { useAttendanceApi } from "@/components/attendance/AdminAuthProvider";
 import QrDialog from "@/components/attendance/QrDialog";
 import {
@@ -40,6 +40,7 @@ export default function AttendanceMembersPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [gradeFilter, setGradeFilter] = useState<MemberGrade | "all">("all");
+  const [genderFilter, setGenderFilter] = useState<MemberGender | "all">("all");
 
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
@@ -47,15 +48,16 @@ export default function AttendanceMembersPage() {
   const [newPhone, setNewPhone] = useState("");
   const [newDateOfBirth, setNewDateOfBirth] = useState("");
   const [newGrade, setNewGrade] = useState<MemberGrade | "">("");
+  const [newGender, setNewGender] = useState<MemberGender | "">("");
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [qrMember, setQrMember] = useState<PublicMember | null>(null);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importPreview, setImportPreview] = useState<{
     fileName: string; totalRows: number; validRows: number; invalidRows: number;
-    columns: { name: string | null; phone: string | null; date_of_birth: string | null; member_code: string | null; grade: string | null };
+    columns: { name: string | null; phone: string | null; date_of_birth: string | null; member_code: string | null; grade: string | null; gender: string | null };
     counts: { new: number; existing: number; possible_duplicate: number; duplicate_in_file: number; invalid: number };
-    preview: Array<{ row: number; name: string; phone: string | null; date_of_birth: string | null; member_code: string | null; grade: MemberGrade | null; status: string; reason: string | null }>;
+    preview: Array<{ row: number; name: string; phone: string | null; date_of_birth: string | null; member_code: string | null; grade: MemberGrade | null; gender: MemberGender | null; status: string; reason: string | null }>;
     invalid: Array<{ row: number; name: string | null; reason: string }>;
     warnings: string[];
   } | null>(null);
@@ -94,7 +96,7 @@ export default function AttendanceMembersPage() {
     }
     setSaving(true);
     const res = await request<PublicMember>("/api/attendance/members", {
-      json: { name: newName, member_code: newCode, phone: newPhone, date_of_birth: newDateOfBirth || null, grade: newGrade || null },
+      json: { name: newName, member_code: newCode, phone: newPhone, date_of_birth: newDateOfBirth || null, grade: newGrade || null, gender: newGender || null },
     });
     setSaving(false);
     if (!res.ok) {
@@ -105,10 +107,11 @@ export default function AttendanceMembersPage() {
     setNewPhone("");
     setNewDateOfBirth("");
     setNewGrade("");
+    setNewGender("");
     setShowCreate(false);
     setNotice("✅ تم إنشاء العضو ورمز QR الخاص به");
     void load();
-  }, [request, newName, newCode, newPhone, newDateOfBirth, newGrade, load]);
+  }, [request, newName, newCode, newPhone, newDateOfBirth, newGrade, newGender, load]);
 
   const previewImport = useCallback(async () => {
     if (!importFile) return;
@@ -231,10 +234,10 @@ export default function AttendanceMembersPage() {
   );
 
   const saveEdit = useCallback(
-    async (id: string, name: string, member_code: string, phone: string, date_of_birth: string, grade: MemberGrade | "") => {
+    async (id: string, name: string, member_code: string, phone: string, date_of_birth: string, grade: MemberGrade | "", gender: MemberGender | "") => {
       const res = await request<PublicMember>("/api/attendance/members", {
         method: "PATCH",
-        json: { id, name, member_code, phone, date_of_birth: date_of_birth || null, grade: grade || null },
+        json: { id, name, member_code, phone, date_of_birth: date_of_birth || null, grade: grade || null, gender: gender || null },
       });
       if (!res.ok) {
         setNotice(`⚠️ ${res.error ?? "فشل الحفظ"}`);
@@ -253,12 +256,13 @@ export default function AttendanceMembersPage() {
       if (filter === "active" && !m.active) return false;
       if (filter === "inactive" && m.active) return false;
       if (gradeFilter !== "all" && m.grade !== gradeFilter) return false;
+      if (genderFilter !== "all" && m.gender !== genderFilter) return false;
       if (!term) return true;
       return (
         m.name.toLowerCase().includes(term) || m.member_code.toLowerCase().includes(term)
       );
     });
-  }, [members, search, filter, gradeFilter]);
+  }, [members, search, filter, gradeFilter, genderFilter]);
 
   const activeCount = members.filter((m) => m.active).length;
 
@@ -326,6 +330,10 @@ export default function AttendanceMembersPage() {
                 <option value="">اختر الصف</option>
                 {MEMBER_GRADES.map((grade) => <option key={grade.value} value={grade.value}>{grade.label}</option>)}
               </select>
+              <select value={newGender} onChange={(e) => setNewGender(e.target.value as MemberGender | "")} className={inputClass} aria-label="النوع (اختياري)">
+                <option value="">اختر النوع</option>
+                {MEMBER_GENDERS.map((gender) => <option key={gender.value} value={gender.value}>{gender.label}</option>)}
+              </select>
             </div>
             <div className="flex gap-2">
               <button type="button" onClick={() => void create()} disabled={saving} className={primaryBtn}>
@@ -335,19 +343,15 @@ export default function AttendanceMembersPage() {
                 إلغاء
               </button>
             </div>
-            <select value={gradeFilter} onChange={(e) => setGradeFilter(e.target.value as MemberGrade | "all")} className={inputClass} aria-label="تصفية حسب الصف">
-              <option value="all">كل الصفوف</option>
-              {MEMBER_GRADES.map((grade) => <option key={grade.value} value={grade.value}>{grade.label}</option>)}
-            </select>
             <p className="mt-2 text-xs text-blue-light/50">
-              الهاتف وتاريخ الميلاد والصف الدراسي اختياريون. يتم توليد رمز QR عشوائي آمن على الخادم عند الإنشاء.
+              الهاتف وتاريخ الميلاد والصف الدراسي والنوع اختياريون. يتم توليد رمز QR عشوائي آمن على الخادم عند الإنشاء.
             </p>
           </div>
         )}
 
         <div className="mb-4 rounded-xl bg-blue-dark/40 p-3">
           <h3 className="mb-2 font-semibold text-white">📥 استيراد أعضاء من Excel</h3>
-          <p className="mb-2 text-xs text-blue-light/60">Name مطلوب، وPhone وDate of Birth اختياريان. يدعم .xlsx و .xls.</p>
+          <p className="mb-2 text-xs text-blue-light/60">Name مطلوب، وPhone وDate of Birth وGrade وGender اختياريون. يدعم .xlsx و .xls.</p>
           <div className="flex flex-wrap items-center gap-2">
             <input type="file" accept=".xlsx,.xls" onChange={(e) => { setImportFile(e.target.files?.[0] ?? null); setImportPreview(null); setImportResult(null); }} className="text-sm text-blue-light" />
             <button type="button" onClick={() => void previewImport()} disabled={!importFile || importBusy} className={primaryBtn}>معاينة البيانات</button>
@@ -355,10 +359,10 @@ export default function AttendanceMembersPage() {
           {importPreview && (
             <div className="mt-3 space-y-2 text-sm text-blue-light/80">
               <p>إجمالي الصفوف: {importPreview.totalRows} — صالحة: {importPreview.validRows} — بها أخطاء: {importPreview.invalidRows}</p>
-              <p>الأعمدة: {[importPreview.columns.name, importPreview.columns.phone, importPreview.columns.date_of_birth, importPreview.columns.grade].filter(Boolean).join("، ")}</p>
+              <p>الأعمدة: {[importPreview.columns.name, importPreview.columns.phone, importPreview.columns.date_of_birth, importPreview.columns.grade, importPreview.columns.gender].filter(Boolean).join("، ")}</p>
               {importPreview.warnings.map((warning) => <div key={warning} className="text-amber-200">{warning}</div>)}
               {importPreview.invalid.length > 0 && <div className="text-amber-200">{importPreview.invalid.map((row) => <div key={row.row}>صف {row.row}: {row.reason}</div>)}</div>}
-              <div className="overflow-x-auto"><table className="w-full text-xs"><tbody>{importPreview.preview.map((row) => <tr key={row.row}><td className="p-1">{row.row}</td><td className="p-1">{row.name}</td><td className="p-1">{row.phone ?? "—"}</td><td className="p-1">{row.date_of_birth ?? "—"}</td><td className="p-1">{gradeLabel(row.grade)}</td><td className="p-1">{row.status}</td></tr>)}</tbody></table></div>
+              <div className="overflow-x-auto"><table className="w-full text-xs"><tbody>{importPreview.preview.map((row) => <tr key={row.row}><td className="p-1">{row.row}</td><td className="p-1">{row.name}</td><td className="p-1">{row.phone ?? "—"}</td><td className="p-1">{row.date_of_birth ?? "—"}</td><td className="p-1">{gradeLabel(row.grade)}</td><td className="p-1">{genderLabel(row.gender)}</td><td className="p-1">{row.status}</td></tr>)}</tbody></table></div>
               <button type="button" onClick={() => void confirmImport()} disabled={importBusy || importPreview.counts.new === 0} className={successBtn}>تأكيد الاستيراد ({importPreview.counts.new})</button>
             </div>
           )}
@@ -390,6 +394,16 @@ export default function AttendanceMembersPage() {
               </button>
             ))}
           </div>
+          <div className="flex flex-wrap gap-2">
+            <select value={gradeFilter} onChange={(e) => setGradeFilter(e.target.value as MemberGrade | "all")} className={inputClass} aria-label="تصفية حسب الصف">
+              <option value="all">كل الصفوف</option>
+              {MEMBER_GRADES.map((grade) => <option key={grade.value} value={grade.value}>{grade.label}</option>)}
+            </select>
+            <select value={genderFilter} onChange={(e) => setGenderFilter(e.target.value as MemberGender | "all")} className={inputClass} aria-label="تصفية حسب النوع">
+              <option value="all">كل الأنواع</option>
+              {MEMBER_GENDERS.map((gender) => <option key={gender.value} value={gender.value}>{gender.label}</option>)}
+            </select>
+          </div>
         </div>
 
         {error && <Banner tone="error">{error}</Banner>}
@@ -416,6 +430,7 @@ export default function AttendanceMembersPage() {
                   <th className="px-2 py-2 font-semibold">العضو</th>
                   <th className="px-2 py-2 font-semibold">الكود</th>
                   <th className="px-2 py-2 font-semibold">الصف</th>
+                  <th className="px-2 py-2 font-semibold">النوع</th>
                   <th className="px-2 py-2 text-center font-semibold">الحالة</th>
                   <th className="px-2 py-2 text-center font-semibold">QR</th>
                   <th className="px-2 py-2 text-center font-semibold">إجراءات</th>
@@ -435,7 +450,7 @@ export default function AttendanceMembersPage() {
                 ))}
                 {visible.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-2 py-6 text-center text-blue-light/50">
+                    <td colSpan={7} className="px-2 py-6 text-center text-blue-light/50">
                       لا نتائج مطابقة
                     </td>
                   </tr>
@@ -465,7 +480,7 @@ function MemberRow({
   onToggleActive: () => void;
   onRegenerate: () => void;
   onDelete: () => void;
-  onSave: (id: string, name: string, code: string, phone: string, dateOfBirth: string, grade: MemberGrade | "") => Promise<boolean>;
+  onSave: (id: string, name: string, code: string, phone: string, dateOfBirth: string, grade: MemberGrade | "", gender: MemberGender | "") => Promise<boolean>;
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(member.name);
@@ -473,6 +488,7 @@ function MemberRow({
   const [phone, setPhone] = useState(member.phone ?? "");
   const [dateOfBirth, setDateOfBirth] = useState(member.date_of_birth ?? "");
   const [grade, setGrade] = useState<MemberGrade | "">(member.grade ?? "");
+  const [gender, setGender] = useState<MemberGender | "">(member.gender ?? "");
   const [busy, setBusy] = useState(false);
 
   return (
@@ -486,6 +502,10 @@ function MemberRow({
             <select value={grade} onChange={(e) => setGrade(e.target.value as MemberGrade | "")} className={inputClass} aria-label="الصف الدراسي (اختياري)">
               <option value="">اختر الصف</option>
               {MEMBER_GRADES.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+            </select>
+            <select value={gender} onChange={(e) => setGender(e.target.value as MemberGender | "")} className={inputClass} aria-label="النوع (اختياري)">
+              <option value="">اختر النوع</option>
+              {MEMBER_GENDERS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
             </select>
           </div>
         ) : (
@@ -510,6 +530,7 @@ function MemberRow({
         )}
       </td>
       <td className="px-2 py-2 text-blue-light/70">{gradeLabel(member.grade)}</td>
+      <td className="px-2 py-2 text-blue-light/70">{genderLabel(member.gender)}</td>
       <td className="px-2 py-2 text-center">
         {member.active ? (
           <span className="text-green-400">✅ نشط</span>
@@ -531,7 +552,7 @@ function MemberRow({
                 disabled={busy}
                 onClick={async () => {
                   setBusy(true);
-                  const ok = await onSave(member.id, name, code, phone, dateOfBirth, grade);
+                  const ok = await onSave(member.id, name, code, phone, dateOfBirth, grade, gender);
                   setBusy(false);
                   if (ok) setEditing(false);
                 }}
@@ -547,6 +568,7 @@ function MemberRow({
                   setPhone(member.phone ?? "");
                   setDateOfBirth(member.date_of_birth ?? "");
                   setGrade(member.grade ?? "");
+                  setGender(member.gender ?? "");
                   setEditing(false);
                 }}
                 className={subtleBtn}

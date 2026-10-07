@@ -14,13 +14,13 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatDateAr, formatTimeAr } from "./ui";
-import { gradeLabel, type MemberGrade } from "@/lib/member-fields";
+import { genderLabel, gradeLabel, type MemberGender, type MemberGrade } from "@/lib/member-fields";
 
 interface IdentifyResponse {
   ok: boolean;
   status: "found" | "inactive_member" | "invalid_token" | "error";
   message?: string;
-  member?: { name: string; member_code: string; grade?: MemberGrade | null } | null;
+  member?: { name: string; member_code: string; grade?: MemberGrade | null; gender?: MemberGender | null } | null;
   meeting?: { id?: string; title: string; meeting_date: string } | null;
   checked_in?: boolean;
   check_in_time?: string | null;
@@ -126,6 +126,9 @@ export default function CheckinRunner({ token }: { token: string }) {
                 </p>
                 <p className="mt-1 text-sm text-blue-light/70">
                   الصف: {gradeLabel(state.data.member.grade)}
+                </p>
+                <p className="mt-1 text-sm text-blue-light/70">
+                  النوع: {genderLabel(state.data.member.gender)}
                 </p>
               </>
             )}

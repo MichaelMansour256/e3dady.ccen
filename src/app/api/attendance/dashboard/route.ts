@@ -22,7 +22,7 @@ import {
   type MeetingMemberRow,
 } from "@/lib/attendance";
 import { badRequest, databaseError, requireAdmin } from "@/lib/attendance-api";
-import { sanitizeGrade, type MemberGrade } from "@/lib/member-fields";
+import { sanitizeGender, sanitizeGrade, type MemberGender, type MemberGrade } from "@/lib/member-fields";
 
 type SortKey = "check_in_time" | "name" | "member_code";
 
@@ -57,11 +57,18 @@ export async function GET(req: Request) {
   const search = (searchParams.get("search") ?? "").toLowerCase().trim();
   const filter = searchParams.get("filter");
   const rawGrade = searchParams.get("grade");
+  const rawGender = searchParams.get("gender");
   let grade: MemberGrade | null = null;
   if (rawGrade) {
     const gradeResult = sanitizeGrade(rawGrade);
     if (!gradeResult.ok || !gradeResult.value) return badRequest("invalid grade");
     grade = gradeResult.value as MemberGrade;
+  }
+  let gender: MemberGender | null = null;
+  if (rawGender) {
+    const genderResult = sanitizeGender(rawGender);
+    if (!genderResult.ok || !genderResult.value) return badRequest("invalid gender");
+    gender = genderResult.value as MemberGender;
   }
   const sort = (searchParams.get("sort") ?? "check_in_time") as SortKey;
   const dir = searchParams.get("dir") === "asc" ? "asc" : "desc";
@@ -82,10 +89,10 @@ export async function GET(req: Request) {
     }
 
     const report = await meetingReport(meeting.id);
-    const gradeFiltered = grade ? report.filter((row) => row.grade === grade) : report;
-    const stats = statsFromReport(gradeFiltered);
+    const scoped = report.filter((row) => (!grade || row.grade === grade) && (!gender || row.gender === gender));
+    const stats = statsFromReport(scoped);
 
-    let rows = gradeFiltered;
+    let rows = scoped;
     if (search) {
       rows = rows.filter(
         (r) =>

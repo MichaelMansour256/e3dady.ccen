@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { MemberHistory } from "@/lib/attendance";
-import { gradeLabel } from "@/lib/member-fields";
+import { genderLabel, gradeLabel } from "@/lib/member-fields";
 import { useAttendanceApi } from "@/components/attendance/AdminAuthProvider";
 import {
   Banner,
@@ -77,6 +77,7 @@ export default function MemberHistoryPage() {
           <h2 className="text-xl font-bold text-white">{member.name}</h2>
           <p className="text-xs tracking-widest text-blue-light/50">{member.member_code}</p>
           <p className="text-sm text-blue-light/70">الصف: {gradeLabel(member.grade)}</p>
+          <p className="text-sm text-blue-light/70">النوع: {genderLabel(member.gender)}</p>
         </div>
         <div className="flex gap-2">
           <Link href="/admin/attendance/members" className={subtleBtn}>
