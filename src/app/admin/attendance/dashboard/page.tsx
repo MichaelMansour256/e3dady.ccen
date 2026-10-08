@@ -417,6 +417,7 @@ export default function AttendanceDashboardPage() {
                   <th className="px-3 py-2 text-left text-xs font-semibold text-blue-light/70">النوع</th>
                   <th className="px-3 py-2 text-center text-xs font-semibold text-blue-light/70">الحالة</th>
                   <th className="px-3 py-2 text-center text-xs font-semibold text-blue-light/70">وقت الحضور</th>
+                  <th className="px-3 py-2 text-center text-xs font-semibold text-blue-light/70">الاتصال</th>
                 </tr>
               </thead>
               <tbody>
@@ -431,6 +432,21 @@ export default function AttendanceDashboardPage() {
                     </td>
                     <td className="px-3 py-2 text-center text-sm text-white">
                       {formatTimeAr(row.check_in_time)}
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      {!row.present && row.phone ? (
+                        <a
+                          href={`tel:${row.phone.replace(/\s+/g, "")}`}
+                          className={`${successBtn} inline-flex min-h-10 items-center justify-center whitespace-nowrap`}
+                          aria-label={`اتصال بالعضو ${row.name}`}
+                        >
+                          📞 اتصال
+                        </a>
+                      ) : !row.present ? (
+                        <span className="text-xs text-blue-light/50">لا يوجد رقم</span>
+                      ) : (
+                        <span className="text-xs text-blue-light/40">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}

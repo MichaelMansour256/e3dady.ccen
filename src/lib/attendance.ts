@@ -89,6 +89,7 @@ export interface MeetingMemberRow {
   member_id: string;
   name: string;
   member_code: string;
+  phone: string | null;
   grade: MemberGrade | null;
   gender: MemberGender | null;
   active: boolean;
@@ -725,6 +726,7 @@ export async function meetingReport(meetingId: string): Promise<MeetingMemberRow
         member_id: m.id,
         name: m.name,
         member_code: m.member_code,
+        phone: m.phone,
         grade: m.grade,
         gender: m.gender,
         active: m.active,
