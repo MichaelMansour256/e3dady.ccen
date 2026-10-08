@@ -15,7 +15,7 @@ import {
  * 📚 Content manager — the admin half of Studies & Resources.
  *
  * Rendered inside the existing /admin dashboard as one more tab, so it reuses
- * the dashboard's login, its `x-admin-password` header and its visual language.
+ * the dashboard's login session and its visual language.
  * Everything it does goes through /api/admin/content (admin-only); the public
  * site only ever sees published rows.
  *
@@ -100,7 +100,7 @@ const INPUT =
 const LABEL = "text-xs font-semibold text-blue-light/70";
 const CHIP = "rounded-full px-3 py-1.5 text-xs font-semibold transition";
 
-export default function ContentManager({ password }: { password: string }) {
+export default function ContentManager() {
   const [items, setItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -111,11 +111,8 @@ export default function ContentManager({ password }: { password: string }) {
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [imageUploading, setImageUploading] = useState(false);
 
-  const headers = useMemo(() => ({ "x-admin-password": password }), [password]);
-  const jsonHeaders = useMemo(
-    () => ({ "x-admin-password": password, "content-type": "application/json" }),
-    [password]
-  );
+  const headers = useMemo(() => ({}), []);
+  const jsonHeaders = useMemo(() => ({ "content-type": "application/json" }), []);
 
   /** Applies a fetched library to state (kept out of the effect body itself). */
   const applyLibrary = useCallback((result: { items: ContentItem[]; error: string }) => {
@@ -743,4 +740,3 @@ export default function ContentManager({ password }: { password: string }) {
     </div>
   );
 }
-

@@ -1,12 +1,9 @@
 /**
  * Admin authentication for the attendance section.
  *
- * The project's existing admin auth is stateless: the browser sends the admin
- * password in an `x-admin-password` header and every /api/admin/* route checks
- * it with `isAuthorized()` (src/lib/auth.ts). The main /admin page keeps that
- * password in React state, which is lost on navigation — so the attendance
- * section also stores it in localStorage, and *only after* it has been verified
- * against /api/admin/auth.
+ * The project's existing admin auth uses the server-side ADMIN_PASSWORD
+ * credential. After it is verified, the server issues an HttpOnly session
+ * cookie; the password is never stored in browser storage or React state.
  *
  * Nothing here replaces server-side checks: every attendance API route
  * re-validates the password on each request and the database enforces the real
@@ -15,13 +12,9 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-/** Shared with the main /admin page so one login unlocks both. */
-export const ADMIN_PASSWORD_STORAGE_KEY = "admin_password";
-
 export type AdminAuthStatus = "checking" | "anonymous" | "authenticated";
 
 export interface AdminAuth {
-  password: string;
   status: AdminAuthStatus;
   authed: boolean;
   /** Login error, ready to display (Arabic). */
@@ -34,26 +27,18 @@ export interface AdminAuth {
 }
 
 export function useAdminAuth(): AdminAuth {
-  const [password, setPassword] = useState("");
   const [status, setStatus] = useState<AdminAuthStatus>("checking");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  // Read the stored password in an effect (not during render) so the server and
-  // the first client render agree on the "checking" state — no hydration mismatch.
   useEffect(() => {
-    let stored = "";
-    try {
-      stored = window.localStorage.getItem(ADMIN_PASSWORD_STORAGE_KEY) ?? "";
-    } catch {
-      stored = "";
-    }
-    if (stored) {
-      setPassword(stored);
-      setStatus("authenticated");
-    } else {
-      setStatus("anonymous");
-    }
+    fetch("/api/admin/auth", { cache: "no-store" })
+      .then((res) => {
+        setStatus(res.ok ? "authenticated" : "anonymous");
+      })
+      .catch(() => {
+        setStatus("anonymous");
+      });
   }, []);
 
   const login = useCallback(async (candidate: string) => {
@@ -78,8 +63,6 @@ export function useAdminAuth(): AdminAuth {
         setError("تعذّر التحقق من كلمة المرور. حاول مرة أخرى.");
         return false;
       }
-      window.localStorage.setItem(ADMIN_PASSWORD_STORAGE_KEY, value);
-      setPassword(value);
       setStatus("authenticated");
       return true;
     } catch {
@@ -91,40 +74,17 @@ export function useAdminAuth(): AdminAuth {
   }, []);
 
   const logout = useCallback(() => {
-    try {
-      window.localStorage.removeItem(ADMIN_PASSWORD_STORAGE_KEY);
-    } catch {
-      /* ignore private-mode failures */
-    }
-    setPassword("");
+    void fetch("/api/admin/auth", { method: "DELETE", cache: "no-store" });
     setStatus("anonymous");
   }, []);
 
   const authed = status === "authenticated";
 
-  // Memoised so `request()` keeps a stable identity between renders and fetch
-  // effects never loop.
-  const headers = useMemo(
-    () => {
-      const headers: Record<string, string> = {};
-      if (authed) {
-        headers["x-admin-password"] = password;
-      }
-      return headers;
-    },
-    [authed, password]
-  );
+  const headers = useMemo(() => ({}), []);
   const jsonHeaders = useMemo(
-    () => {
-      const headers: Record<string, string> = {};
-      if (authed) {
-        headers["x-admin-password"] = password;
-        headers["content-type"] = "application/json";
-      }
-      return headers;
-    },
-    [authed, password]
+    () => ({ "content-type": "application/json" }),
+    []
   );
 
-  return { password, status, authed, error, pending, headers, jsonHeaders, login, logout };
+  return { status, authed, error, pending, headers, jsonHeaders, login, logout };
 }

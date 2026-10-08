@@ -7,14 +7,14 @@ import { BIBLE_BOOKS } from "@/lib/bibleBooks";
 import ContentManager from "@/components/admin/ContentManager";
 import { meetingConfig } from "@/config";
 import { routing } from "@/i18n/routing";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 type Photo = { id: string; url: string; width: number; height: number };
 type GalleryEvent = { name: string; path: string; photos: Photo[] };
 type SpecialEvent = { id: string; title: string; titleAr: string; date: string; time: string; description?: string; descriptionAr?: string };
 const inputCls = "w-full rounded-xl bg-blue-dark/60 px-4 py-2 text-white placeholder-blue-light/40 outline-none ring-1 ring-blue-mid/40 focus:ring-blue-accent text-sm";
 export default function AdminPage() {
-  const [password, setPassword] = useState("");
-  const [authed, setAuthed] = useState(false);
-  const [authError, setAuthError] = useState(false);
+  const { status, authed, error: authError, pending, headers, login } = useAdminAuth();
+  const [passwordInput, setPasswordInput] = useState("");
   const [tab, setTab] = useState<"gallery" | "events" | "verse" | "prayer" | "notify" | "history" | "content" | "attendance">("gallery");
   // Prayer state
   type PrayerRequest = { id: string; name: string; request: string; pray_count: number; status: string; created_at: string };
@@ -172,7 +172,6 @@ export default function AdminPage() {
       setNotifSending(false);
     }
   }
-  const headers = { "x-admin-password": password };
   const fetchFolders = useCallback(async () => {
     const res = await fetch("/api/gallery");
     setFolders(await res.json());
@@ -191,16 +190,13 @@ export default function AdminPage() {
     const res = await fetch("/api/admin/prayer", { headers });
     const data = await res.json();
     setPrayers(Array.isArray(data) ? data : []);
-  }, [password]);
+  }, [headers]);
   useEffect(() => {
     if (authed) { fetchFolders(); fetchSpecialEvents(); fetchInvitations(); fetchPrayers(); }
   }, [authed, fetchFolders, fetchSpecialEvents, fetchInvitations, fetchPrayers]);
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    fetch("/api/admin/auth", { method: "POST", headers }).then((r) => {
-      if (r.status === 401) { setAuthError(true); return; }
-      setAuthed(true);
-    });
+    await login(passwordInput);
   }
   async function createFolder() {
     if (!newFolder.trim()) return;
@@ -256,18 +252,22 @@ export default function AdminPage() {
     fetchSpecialEvents();
   }
   const currentPhotos = folders.find((e) => e.path === selectedFolder)?.photos ?? [];
+  if (status === "checking") {
+    return <div className="flex min-h-dvh items-center justify-center page-gradient-high text-sm text-blue-light/70">Checking access…</div>;
+  }
   if (!authed) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-6 page-gradient-high">
         <div className="w-full max-w-sm rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-8 backdrop-blur-sm">
           <h1 className="mb-6 text-center text-2xl font-bold text-white">Admin Login</h1>
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <input type="password" placeholder="Password" value={password}
-              onChange={(e) => { setPassword(e.target.value); setAuthError(false); }}
+            <input type="password" placeholder="Password" value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              autoComplete="current-password"
               className={inputCls} />
-            {authError && <p className="text-sm text-red-400">Wrong password</p>}
-            <button type="submit" className="rounded-xl bg-blue-accent py-3 font-semibold text-white hover:bg-blue-mid">
-              Login
+            {authError && <p className="text-sm text-red-400">{authError}</p>}
+            <button type="submit" disabled={pending} className="rounded-xl bg-blue-accent py-3 font-semibold text-white hover:bg-blue-mid disabled:opacity-60">
+              {pending ? "Checking…" : "Login"}
             </button>
           </form>
         </div>
@@ -667,7 +667,7 @@ export default function AdminPage() {
           </section>
         )}
         {/* ── CONTENT TAB (Studies & Resources) ── */}
-        {tab === "content" && <ContentManager password={password} />}
+        {tab === "content" && <ContentManager />}
       </div>
     </div>
   );

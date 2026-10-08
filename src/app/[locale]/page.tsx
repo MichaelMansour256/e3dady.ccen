@@ -1,6 +1,6 @@
 import { useTranslations, useLocale } from "next-intl";
-import Image from "next/image";
 import Link from "next/link";
+import AdminLogo from "@/components/AdminLogo";
 import SocialLinks from "@/components/SocialLinks";
 import { meetingConfig, siteConfig, homeQuickLinks, isFeatureEnabled } from "@/config";
 
@@ -26,10 +26,11 @@ export default function HomePage() {
 
         {/* Circle logo */}
         <div className="animate-fade-up relative mb-6">
-          <div className="absolute inset-0 rounded-full bg-blue-accent/25 blur-2xl scale-125" />
-          <div className="relative h-40 w-40 overflow-hidden rounded-full shadow-2xl shadow-blue-accent/40 ring-4 ring-blue-accent/50">
-            <Image src={siteConfig.assets.logo} alt={`${siteConfig.shortName} Logo`} width={160} height={160} className="h-full w-full object-cover" priority />
-          </div>
+          <AdminLogo
+            src={siteConfig.assets.logo}
+            alt={`${siteConfig.shortName} Logo`}
+            shortName={siteConfig.shortName}
+          />
         </div>
 
         {/* Text */}

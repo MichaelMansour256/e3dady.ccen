@@ -201,7 +201,7 @@ Copy `.env.example` to `.env.local`. Never commit real values.
 | `ONESIGNAL_APP_ID` | **Secret** | OneSignal app ID (server; same value as above) |
 | `ONESIGNAL_API_KEY` | **Secret** | OneSignal REST API key for server-side sends |
 | `NEXT_PUBLIC_SITE_URL` | Public | Base URL for notification click-through links |
-| `ADMIN_PASSWORD` | **Secret** | Admin dashboard password (sent as `x-admin-password`) |
+| `ADMIN_PASSWORD` | **Secret** | Admin/servant credential used to issue the HttpOnly admin session cookie |
 | `CRON_SECRET` | **Secret** | Bearer token protecting `/api/cron/*` and `/api/test-notification` |
 
 ---
@@ -294,7 +294,8 @@ Step-by-step instructions: **[TEMPLATE.md](./TEMPLATE.md)**.
   read published content; writes go through authenticated server routes.
 - **Attendance is staff-only.** Writes use the service role key on the server
   and are locked down with `supabase-attendance-lockdown.sql`.
-- **Admin routes** require the admin password; **cron routes** require a bearer
+- **Admin routes** require an HttpOnly session issued after verifying the admin
+  password; **cron routes** require a bearer
   token.
 - **Prayer requests** are moderated before they become public.
 - Never commit `.env.local`, generated build output or production credentials.

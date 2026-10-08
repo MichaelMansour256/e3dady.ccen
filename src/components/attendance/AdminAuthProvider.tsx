@@ -2,10 +2,10 @@
  * Auth gate + API client for every /admin/attendance/* screen.
  *
  * The layout wraps its children in this provider, so:
- *   • the admin password is read once and shared through context
+ *   • the existing admin session is checked once and shared through context
  *   • pages never mount before authentication is resolved (no 401 on first paint)
- *   • every request goes through `request()`, which attaches the existing
- *     x-admin-password header, normalises errors into Arabic messages and maps
+ *   • every request goes through `request()`, which uses the HttpOnly session
+ *     cookie, normalises errors into Arabic messages and maps
  *     the "tables missing" case onto `missingSchema` for a clear setup notice
  */
 "use client";

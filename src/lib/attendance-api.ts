@@ -4,7 +4,7 @@
  * Every admin route starts with `requireAdmin(req)` and every write ends in the
  * same error mapping, so no route can accidentally leak a raw Postgres message
  * to the browser. Auth is the project's existing mechanism: the
- * `x-admin-password` header checked against ADMIN_PASSWORD (src/lib/auth.ts).
+ * HttpOnly admin session cookie checked against ADMIN_PASSWORD (src/lib/auth.ts).
  */
 import { NextResponse } from "next/server";
 import { isAuthorized } from "./auth";
@@ -19,22 +19,15 @@ export function requireAdmin(req: Request): NextResponse | null {
 /**
  * Staff check for operations that MODIFY data (attendance recording).
  *
- * Distinguishes the two failure modes required by the security model:
- *   • no `x-admin-password` header at all → 401 (unauthenticated visitor)
- *   • a header that does not match ADMIN_PASSWORD → 403 (not staff)
+ * The session check runs on the server before any Supabase write; an absent or
+ * invalid session is rejected as unauthenticated.
  *
  * The check runs on the server before any Supabase write; frontend state,
  * query parameters and QR contents are never trusted.
  */
 export function requireStaff(req: Request): NextResponse | null {
-  if (!req.headers.get("x-admin-password")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
   if (!isAuthorized(req)) {
-    return NextResponse.json(
-      { error: "Forbidden — attendance can only be recorded by authorized staff" },
-      { status: 403 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   return null;
 }
