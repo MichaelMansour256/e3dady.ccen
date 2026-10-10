@@ -4,7 +4,6 @@
  */
 import { NextResponse } from "next/server";
 import { classifyImportRows } from "@/lib/member-fields";
-import { allocateMemberCodes } from "@/lib/member-fields";
 import { createMembersBulk, listMembers } from "@/lib/attendance";
 import { badRequest, databaseError, readJson, requireAdmin } from "@/lib/attendance-api";
 import {
@@ -108,15 +107,8 @@ export async function POST(req: Request) {
     }
 
     const newRows = classified.filter((item) => item.status === "new");
-    const suppliedCodes = newRows.map((item) => item.row.member_code).filter((code): code is string => Boolean(code));
-    const generatedCodes = allocateMemberCodes(
-      existing.map((member) => member.member_code),
-      newRows.filter((item) => !item.row.member_code).length,
-      suppliedCodes
-    );
-    let generatedIndex = 0;
     const toCreate = newRows.map((item) => ({
-      member_code: item.row.member_code || generatedCodes[generatedIndex++],
+      member_code: item.row.member_code || undefined,
       name: item.row.name,
       phone: item.row.phone,
       date_of_birth: item.row.date_of_birth,

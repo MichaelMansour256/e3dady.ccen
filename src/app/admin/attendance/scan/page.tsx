@@ -15,7 +15,7 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Meeting } from "@/lib/attendance";
+import type { Meeting, PublicMember } from "@/lib/attendance";
 import { genderLabel, gradeLabel, type MemberGender, type MemberGrade } from "@/lib/member-fields";
 import { extractCheckinToken } from "@/lib/checkin-token";
 import { useAttendanceApi } from "@/components/attendance/AdminAuthProvider";
@@ -94,6 +94,9 @@ export default function AttendanceScanPage() {
   const [manual, setManual] = useState("");
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<{ token: string; data: IdentifyResponse } | null>(null);
+  const [memberSearch, setMemberSearch] = useState("");
+  const [memberResults, setMemberResults] = useState<PublicMember[]>([]);
+  const [selectedMember, setSelectedMember] = useState<PublicMember | null>(null);
   const logId = useRef(0);
 
   const refreshMeeting = useCallback(async () => {
@@ -111,6 +114,21 @@ export default function AttendanceScanPage() {
   useEffect(() => {
     void refreshMeeting();
   }, [refreshMeeting]);
+
+  useEffect(() => {
+    const term = memberSearch.trim();
+    if (!term) {
+      const timer = window.setTimeout(() => setMemberResults([]), 0);
+      return () => window.clearTimeout(timer);
+    }
+    const timer = window.setTimeout(async () => {
+      const res = await request<PublicMember[]>(
+        `/api/attendance/members?search=${encodeURIComponent(term)}`
+      );
+      setMemberResults(res.ok && res.data ? res.data.slice(0, 20) : []);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [memberSearch, request]);
 
   /** Abort the request if Supabase hangs — a stuck "busy" would silently
    *  swallow every later scan, looking exactly like "nothing happened". */
@@ -152,11 +170,11 @@ export default function AttendanceScanPage() {
 
   /** Step 2 — staff CONFIRMS; the protected endpoint re-verifies server-side. */
   const confirm = useCallback(async () => {
-    if (!preview || busy) return;
+    if ((!preview && !selectedMember) || busy) return;
     setBusy(true);
     try {
       const res = await request<CheckInResponse>("/api/attendance/checkin", {
-        json: { token: preview.token },
+        json: preview ? { token: preview.token } : { member_id: selectedMember?.id },
         signal: requestSignal(),
       });
       const payload: CheckInResponse =
@@ -178,11 +196,12 @@ export default function AttendanceScanPage() {
         ].slice(0, 12)
       );
       setPreview(null);
+      setSelectedMember(null);
       if (payload.status === "success") void refreshMeeting();
     } finally {
       setBusy(false);
     }
-  }, [busy, preview, request, refreshMeeting, requestSignal]);
+  }, [busy, preview, selectedMember, request, refreshMeeting, requestSignal]);
 
   // Clear the result card after a few seconds so it never blocks the camera view.
   useEffect(() => {
@@ -233,7 +252,7 @@ export default function AttendanceScanPage() {
       )}
 
       <Card title="📷 مسح رمز QR" className="mb-4">
-        <QrScanner onToken={(token) => void identify(token)} paused={busy || Boolean(result) || Boolean(preview)} />
+        <QrScanner onToken={(token) => void identify(token)} paused={busy || Boolean(result) || Boolean(preview) || Boolean(selectedMember)} />
 
         <div className="mt-4 border-t border-blue-mid/25 pt-4">
           <p className="mb-2 text-xs text-blue-light/60">
@@ -255,6 +274,63 @@ export default function AttendanceScanPage() {
             </button>
           </div>
         </div>
+      </Card>
+
+      <Card title="🔎 تسجيل الحضور بالاسم أو الكود" className="mb-4">
+        <input
+          value={memberSearch}
+          onChange={(e) => setMemberSearch(e.target.value)}
+          placeholder="اكتب اسم الولد أو كود العضوية (مثال: M001)"
+          className={inputClass}
+          dir="auto"
+          aria-label="البحث بالاسم أو كود العضوية"
+        />
+        {memberSearch.trim() && (
+          <div className="mt-3 space-y-2">
+            {memberResults.length === 0 ? (
+              <p className="text-sm text-blue-light/60">لا توجد نتائج مطابقة</p>
+            ) : (
+              memberResults.map((member) => (
+                <div key={member.id} className="flex flex-col gap-3 rounded-2xl border border-blue-mid/25 bg-blue-dark/30 p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-semibold text-white">{member.name}</p>
+                    <p className="text-sm text-blue-light/70">
+                      {member.member_code} · {gradeLabel(member.grade)} · {genderLabel(member.gender)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className={primaryBtn}
+                    disabled={busy}
+                    onClick={() => {
+                      setSelectedMember(member);
+                      setMemberSearch("");
+                      setMemberResults([]);
+                    }}
+                  >
+                    تسجيل الحضور
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+        {selectedMember && (
+          <div className="mt-3 rounded-2xl border border-blue-accent/40 bg-blue-dark/40 p-3">
+            <p className="font-semibold text-white">{selectedMember.name}</p>
+            <p className="text-sm text-blue-light/70">
+              {selectedMember.member_code} · {gradeLabel(selectedMember.grade)} · {genderLabel(selectedMember.gender)}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" className={primaryBtn} disabled={busy} onClick={() => void confirm()}>
+                {busy ? "جارٍ التسجيل…" : "تأكيد تسجيل الحضور"}
+              </button>
+              <button type="button" className={subtleBtn} disabled={busy} onClick={() => setSelectedMember(null)}>
+                إلغاء
+              </button>
+            </div>
+          </div>
+        )}
       </Card>
 
       {preview && (

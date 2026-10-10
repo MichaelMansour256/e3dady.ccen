@@ -229,18 +229,14 @@ export async function getMemberByQrToken(token: string): Promise<Member | null> 
 
 /** Next sequential member code (M001, M002, …); falls back to M001. */
 export async function nextMemberCode(): Promise<string> {
-  const members = await listMembers();
-  if (members.length === 0) return "M001";
-
-  const last = members[members.length - 1].member_code;
-  const num = parseInt(last.replace(/\D+/g, ""), 10);
-  const prefix = last.replace(/\d+$/, "") || "M";
-  const width = Math.max(3, String(Number.isNaN(num) ? 1 : num).length);
-  return `${prefix}${String((Number.isNaN(num) ? 0 : num) + 1).padStart(width, "0")}`;
+  const { data, error } = await supabase.rpc("peek_next_member_code");
+  if (error) throw error;
+  if (typeof data !== "string") throw new Error("Invalid next member code response");
+  return data;
 }
 
 export interface MemberInput {
-  member_code: string;
+  member_code?: string;
   name: string;
   phone?: string | null;
   date_of_birth?: string | null;
@@ -253,18 +249,19 @@ export interface MemberInput {
  * Throws (with a Postgres code) so the route can map 23505 → "duplicate code".
  */
 export async function createMember(input: MemberInput): Promise<Member> {
+  const row: Record<string, unknown> = {
+    name: input.name.trim(),
+    phone: input.phone?.trim() || null,
+    date_of_birth: input.date_of_birth || null,
+    grade: input.grade || null,
+    gender: input.gender || null,
+    qr_token: generateQrToken(),
+    active: true,
+  };
+  if (input.member_code?.trim()) row.member_code = input.member_code.trim();
   const { data, error } = await supabase
     .from("members")
-    .insert({
-      member_code: input.member_code.trim(),
-      name: input.name.trim(),
-      phone: input.phone?.trim() || null,
-      date_of_birth: input.date_of_birth || null,
-      grade: input.grade || null,
-      gender: input.gender || null,
-      qr_token: generateQrToken(),
-      active: true,
-    })
+    .insert(row)
     .select()
     .single();
 
@@ -310,7 +307,7 @@ export async function createMembersBulk(inputs: MemberInput[]): Promise<Member[]
     .from("members")
     .insert(
       inputs.map((input) => ({
-        member_code: input.member_code.trim(),
+        ...(input.member_code?.trim() ? { member_code: input.member_code.trim() } : {}),
         name: input.name.trim(),
         phone: input.phone?.trim() || null,
         date_of_birth: input.date_of_birth || null,
@@ -323,6 +320,21 @@ export async function createMembersBulk(inputs: MemberInput[]): Promise<Member[]
     .select();
   if (error) throw error;
   return (data ?? []) as Member[];
+}
+
+export async function checkInByMemberId(memberId: string): Promise<CheckInResult> {
+  const { data, error } = await supabase.rpc("check_in_with_member_id", {
+    p_member_id: memberId,
+  });
+  if (!error) {
+    const outcome = normaliseRpcOutcome(data);
+    if (outcome) return outcome;
+    logError("checkInByMemberId/unexpected-payload", data);
+    return { status: "invalid_token", infrastructureError: true };
+  }
+  if (error.code === "PGRST202") return checkInMemberViaTables(memberId);
+  logError("checkInByMemberId", error);
+  return { status: "invalid_token", infrastructureError: true };
 }
 
 /** New random token — the previous QR stops working immediately. */
@@ -563,6 +575,35 @@ async function checkInViaTables(token: string): Promise<CheckInResult> {
   }
 
   logError("checkInViaTables", error);
+  return { status: "invalid_token", infrastructureError: true };
+}
+
+async function checkInMemberViaTables(memberId: string): Promise<CheckInResult> {
+  const member = await getMemberById(memberId);
+  if (!member) return { status: "invalid_token" };
+  const who = { name: member.name, member_code: member.member_code, grade: member.grade, gender: member.gender };
+  if (!member.active) return { status: "inactive_member", member: who };
+  const meeting = await getActiveMeeting();
+  if (!meeting) return { status: "no_active_meeting", member: who };
+  const meetingInfo = { id: meeting.id, title: meeting.title, meeting_date: meeting.meeting_date };
+  const { data, error } = await supabase
+    .from("attendance")
+    .insert({ meeting_id: meeting.id, member_id: member.id })
+    .select()
+    .single();
+  if (!error) {
+    return { status: "success", member: who, meeting: meetingInfo, check_in_time: (data as AttendanceRecord).check_in_time };
+  }
+  if (error.code === "23505" || /duplicate key|unique/i.test(error.message)) {
+    const { data: existing } = await supabase
+      .from("attendance")
+      .select("check_in_time")
+      .eq("meeting_id", meeting.id)
+      .eq("member_id", member.id)
+      .maybeSingle();
+    return { status: "already_recorded", member: who, meeting: meetingInfo, check_in_time: existing?.check_in_time ?? null };
+  }
+  logError("checkInMemberViaTables", error);
   return { status: "invalid_token", infrastructureError: true };
 }
 

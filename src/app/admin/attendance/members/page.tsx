@@ -44,7 +44,6 @@ export default function AttendanceMembersPage() {
 
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newCode, setNewCode] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [newDateOfBirth, setNewDateOfBirth] = useState("");
   const [newGrade, setNewGrade] = useState<MemberGrade | "">("");
@@ -82,21 +81,19 @@ export default function AttendanceMembersPage() {
     void load();
   }, [load]);
 
-  const openCreate = useCallback(async () => {
+  const openCreate = useCallback(() => {
     setShowCreate(true);
     setNotice(null);
-    const res = await request<{ nextCode: string }>("/api/attendance/members?nextCode=1");
-    setNewCode(res.data?.nextCode ?? "M001");
-  }, [request]);
+  }, []);
 
   const create = useCallback(async () => {
-    if (!newName.trim() || !newCode.trim()) {
-      setNotice("⚠️ أدخل اسم العضو وكود العضو");
+    if (!newName.trim()) {
+      setNotice("⚠️ أدخل اسم العضو");
       return;
     }
     setSaving(true);
     const res = await request<PublicMember>("/api/attendance/members", {
-      json: { name: newName, member_code: newCode, phone: newPhone, date_of_birth: newDateOfBirth || null, grade: newGrade || null, gender: newGender || null },
+      json: { name: newName, phone: newPhone, date_of_birth: newDateOfBirth || null, grade: newGrade || null, gender: newGender || null },
     });
     setSaving(false);
     if (!res.ok) {
@@ -111,7 +108,7 @@ export default function AttendanceMembersPage() {
     setShowCreate(false);
     setNotice("✅ تم إنشاء العضو ورمز QR الخاص به");
     void load();
-  }, [request, newName, newCode, newPhone, newDateOfBirth, newGrade, newGender, load]);
+  }, [request, newName, newPhone, newDateOfBirth, newGrade, newGender, load]);
 
   const previewImport = useCallback(async () => {
     if (!importFile) return;
@@ -310,12 +307,6 @@ export default function AttendanceMembersPage() {
           <div className="mb-4 rounded-xl bg-blue-dark/40 p-3">
             <div className="mb-2 flex flex-col gap-2 sm:flex-row">
               <input
-                value={newCode}
-                onChange={(e) => setNewCode(e.target.value)}
-                placeholder="كود العضو (M001)"
-                className={`${inputClass} sm:max-w-[10rem]`}
-              />
-              <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="اسم العضو"
@@ -344,7 +335,7 @@ export default function AttendanceMembersPage() {
               </button>
             </div>
             <p className="mt-2 text-xs text-blue-light/50">
-              الهاتف وتاريخ الميلاد والصف الدراسي والنوع اختياريون. يتم توليد رمز QR عشوائي آمن على الخادم عند الإنشاء.
+              يتم توليد كود العضو الدائم ورمز QR عشوائي آمن على الخادم عند الإنشاء. الهاتف وتاريخ الميلاد والصف الدراسي والنوع اختياريون.
             </p>
           </div>
         )}
@@ -519,15 +510,7 @@ function MemberRow({
         )}
       </td>
       <td className="px-2 py-2 text-blue-light/70">
-        {editing ? (
-          <input
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            className={`${inputClass} max-w-[7rem]`}
-          />
-        ) : (
-          member.member_code
-        )}
+        {member.member_code}
       </td>
       <td className="px-2 py-2 text-blue-light/70">{gradeLabel(member.grade)}</td>
       <td className="px-2 py-2 text-blue-light/70">{genderLabel(member.gender)}</td>

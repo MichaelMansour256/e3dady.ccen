@@ -75,6 +75,28 @@ alter table public.members drop constraint if exists members_gender_valid;
 alter table public.members add constraint members_gender_valid
   check (gender is null or gender in ('male', 'female'));
 
+-- Permanent, race-safe codes. The sequence is independent of row counts, so
+-- deletions and concurrent imports cannot reuse a code.
+create sequence if not exists public.member_code_seq;
+select setval(
+  'public.member_code_seq',
+  greatest(
+    coalesce(max(nullif(regexp_replace(member_code, '\D', '', 'g'), '')::bigint), 0),
+    1
+  ),
+  coalesce(max(nullif(regexp_replace(member_code, '\D', '', 'g'), '')::bigint), 0) > 0
+)
+from public.members;
+alter table public.members
+  alter column member_code set default ('M' || lpad(nextval('public.member_code_seq')::text, 3, '0'));
+update public.members
+   set member_code = 'M' || lpad(nextval('public.member_code_seq')::text, 3, '0')
+ where member_code is null or length(btrim(member_code)) = 0;
+alter table public.members alter column member_code set not null;
+create unique index if not exists members_member_code_unique_idx on public.members (member_code);
+create unique index if not exists members_member_code_normalized_unique_idx
+  on public.members (lower(btrim(member_code)));
+
 create index if not exists idx_members_qr_token    on public.members (qr_token);
 create index if not exists idx_members_active_code on public.members (active, member_code);
 
@@ -239,6 +261,65 @@ revoke all on function public.check_in_with_token(text) from public;
 -- existing deployments apply supabase-attendance-lockdown.sql to revoke the
 -- anon/authenticated grants made by older versions of this file.
 grant execute on function public.check_in_with_token(text) to service_role;
+
+create or replace function public.peek_next_member_code()
+returns text
+language sql
+security definer
+set search_path = public
+as $$
+  select 'M' || lpad(last_value::text, 3, '0')
+    from public.member_code_seq;
+$$;
+
+create or replace function public.check_in_with_member_id(p_member_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_member public.members%rowtype;
+  v_meeting public.meetings%rowtype;
+  v_row public.attendance%rowtype;
+begin
+  select * into v_member from public.members where id = p_member_id limit 1;
+  if not found then return jsonb_build_object('status', 'invalid_token'); end if;
+  if not v_member.active then
+    return jsonb_build_object('status', 'inactive_member',
+      'member', jsonb_build_object('name', v_member.name, 'member_code', v_member.member_code, 'grade', v_member.grade, 'gender', v_member.gender));
+  end if;
+  select * into v_meeting from public.meetings where status = 'active'
+    order by meeting_date desc, created_at desc limit 1;
+  if not found then
+    return jsonb_build_object('status', 'no_active_meeting',
+      'member', jsonb_build_object('name', v_member.name, 'member_code', v_member.member_code, 'grade', v_member.grade, 'gender', v_member.gender));
+  end if;
+  insert into public.attendance (meeting_id, member_id)
+    values (v_meeting.id, v_member.id)
+    on conflict (meeting_id, member_id) do nothing
+    returning * into v_row;
+  if v_row.id is null then
+    select * into v_row from public.attendance
+      where meeting_id = v_meeting.id and member_id = v_member.id;
+    return jsonb_build_object('status', 'already_recorded',
+      'member', jsonb_build_object('name', v_member.name, 'member_code', v_member.member_code, 'grade', v_member.grade, 'gender', v_member.gender),
+      'meeting', jsonb_build_object('id', v_meeting.id, 'title', v_meeting.title,
+        'meeting_date', to_char(v_meeting.meeting_date, 'YYYY-MM-DD')),
+      'check_in_time', v_row.check_in_time);
+  end if;
+  return jsonb_build_object('status', 'success',
+    'member', jsonb_build_object('name', v_member.name, 'member_code', v_member.member_code, 'grade', v_member.grade, 'gender', v_member.gender),
+    'meeting', jsonb_build_object('id', v_meeting.id, 'title', v_meeting.title,
+      'meeting_date', to_char(v_meeting.meeting_date, 'YYYY-MM-DD')),
+    'check_in_time', v_row.check_in_time);
+end;
+$$;
+
+revoke all on function public.peek_next_member_code() from public;
+revoke all on function public.check_in_with_member_id(uuid) from public;
+grant execute on function public.peek_next_member_code() to service_role;
+grant execute on function public.check_in_with_member_id(uuid) to service_role;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Row Level Security + grants

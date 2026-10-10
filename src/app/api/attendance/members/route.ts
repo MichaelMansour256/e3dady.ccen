@@ -20,7 +20,7 @@ import {
   updateMember,
 } from "@/lib/attendance";
 import { badRequest, databaseError, readJson, requireAdmin } from "@/lib/attendance-api";
-import { sanitizeDateOfBirth, sanitizeGender, sanitizeGrade, sanitizePhone } from "@/lib/member-fields";
+import { memberCodeMatchKey, nameMatchKey, sanitizeDateOfBirth, sanitizeGender, sanitizeGrade, sanitizePhone } from "@/lib/member-fields";
 
 export async function GET(req: Request) {
   const denied = requireAdmin(req);
@@ -35,12 +35,14 @@ export async function GET(req: Request) {
 
     let members = await listMembers();
 
-    const search = (searchParams.get("search") ?? "").toLowerCase().trim();
+    const search = (searchParams.get("search") ?? "").trim();
     if (search) {
+      const codeTerm = memberCodeMatchKey(search);
+      const nameTerm = nameMatchKey(search);
       members = members.filter(
         (m) =>
-          m.name.toLowerCase().includes(search) ||
-          m.member_code.toLowerCase().includes(search) ||
+          nameMatchKey(m.name).includes(nameTerm) ||
+          memberCodeMatchKey(m.member_code).includes(codeTerm) ||
           (m.phone ?? "").includes(search)
       );
     }
@@ -65,11 +67,10 @@ export async function POST(req: Request) {
     gender?: unknown;
   }>(req);
   const name = typeof body.name === "string" ? body.name.trim() : "";
-  let code = typeof body.member_code === "string" ? body.member_code.trim() : "";
+  const code = typeof body.member_code === "string" ? body.member_code.trim() : "";
 
   if (!name) return badRequest("name is required");
   if (name.length > 120) return badRequest("name is too long");
-  if (!code) code = await nextMemberCode();
   if (code.length > 32) return badRequest("member_code is too long");
   const phone = sanitizePhone(body.phone);
   if (!phone.ok) return badRequest(phone.error);
@@ -81,7 +82,7 @@ export async function POST(req: Request) {
   if (!gender.ok) return badRequest(gender.error);
 
   try {
-    const member = await createMember({ member_code: code, name, phone: phone.value, date_of_birth: dateOfBirth.value, grade: grade.value as "prep_1" | "prep_2" | "prep_3" | null, gender: gender.value as "male" | "female" | null });
+    const member = await createMember({ member_code: code || undefined, name, phone: phone.value, date_of_birth: dateOfBirth.value, grade: grade.value as "prep_1" | "prep_2" | "prep_3" | null, gender: gender.value as "male" | "female" | null });
     return NextResponse.json(toPublicMember(member), { status: 201 });
   } catch (err) {
     return databaseError("members.POST", err);
@@ -121,9 +122,6 @@ export async function PATCH(req: Request) {
 
     const patch: { name?: string; member_code?: string; active?: boolean; phone?: string | null; date_of_birth?: string | null; grade?: "prep_1" | "prep_2" | "prep_3" | null; gender?: "male" | "female" | null } = {};
     if (typeof body.name === "string" && body.name.trim()) patch.name = body.name;
-    if (typeof body.member_code === "string" && body.member_code.trim()) {
-      patch.member_code = body.member_code;
-    }
     if (typeof body.active === "boolean") patch.active = body.active;
     if ("phone" in body) {
       const phone = sanitizePhone(body.phone);

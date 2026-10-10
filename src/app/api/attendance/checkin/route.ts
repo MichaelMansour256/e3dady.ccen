@@ -25,7 +25,7 @@
  *   HTTP 401/403 unauthorized • HTTP 400 malformed • HTTP 503 database
  */
 import { NextResponse } from "next/server";
-import { checkIn, isPlausibleQrToken, type CheckInStatus } from "@/lib/attendance";
+import { checkIn, checkInByMemberId, isPlausibleQrToken, type CheckInStatus } from "@/lib/attendance";
 import { readJson, requireStaff } from "@/lib/attendance-api";
 
 const MESSAGES: Record<CheckInStatus, string> = {
@@ -42,10 +42,14 @@ export async function POST(req: Request) {
   if (denied) return denied;
 
   // 2) Shape validation.
-  const body = await readJson<{ token?: unknown }>(req);
+  const body = await readJson<{ token?: unknown; member_id?: unknown }>(req);
+  const memberId = typeof body.member_id === "string" ? body.member_id.trim() : "";
   const token = typeof body.token === "string" ? body.token : "";
 
-  if (!isPlausibleQrToken(token)) {
+  if (memberId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(memberId)) {
+    return NextResponse.json({ ok: false, status: "invalid_token", message: MESSAGES.invalid_token }, { status: 400 });
+  }
+  if (!memberId && !isPlausibleQrToken(token)) {
     return NextResponse.json(
       { ok: false, status: "invalid_token", message: MESSAGES.invalid_token },
       { status: 400 }
@@ -53,7 +57,7 @@ export async function POST(req: Request) {
   }
 
   // 3) Record (once) via the SECURITY DEFINER RPC / tables fallback.
-  const result = await checkIn(token);
+  const result = memberId ? await checkInByMemberId(memberId) : await checkIn(token);
 
   if (result.infrastructureError) {
     // Technical cause is logged in src/lib/attendance.ts — never sent here.
@@ -73,7 +77,12 @@ export async function POST(req: Request) {
     {
       ok,
       status: result.status,
-      message: MESSAGES[result.status],
+      message:
+        result.status === "success" && result.member
+          ? `تم تسجيل حضور ${result.member.name} بنجاح`
+          : result.status === "already_recorded"
+            ? "تم تسجيل حضور هذا العضو بالفعل"
+            : MESSAGES[result.status],
       member: result.member,
       meeting: result.meeting,
       check_in_time: result.check_in_time ?? null,
