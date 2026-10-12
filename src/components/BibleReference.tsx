@@ -17,5 +17,5 @@ export default function BibleReference({
   verse,
   className,
 }: BibleReferenceProps) {
-  return <span className={className}>{bookName} {toArabicIndicDigits(chapter)}:{toArabicIndicDigits(verse)}</span>;
+  return <span className={className}>{bookName} {toArabicIndicDigits(chapter)}: {toArabicIndicDigits(verse)}</span>;
 }
