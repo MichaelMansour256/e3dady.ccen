@@ -5,10 +5,9 @@ import Image from "next/image";
 import PageHeader from "@/components/PageHeader";
 import WeeklyMeetingCard from "@/components/WeeklyMeetingCard";
 import { meetingConfig } from "@/config";
-import { getNextMeetingISO } from "@/lib/schedule";
 
 type SpecialEvent = { id: string; title: string; titleAr: string; date: string; time: string; description?: string; descriptionAr?: string };
-type Invitation = { date: string; url: string; publicId: string };
+type Invitation = { date: string; url: string; publicId: string; width: number; height: number };
 
 function DateStrip({ events, invitations, onInvitationTap }: {
   events: SpecialEvent[];
@@ -65,7 +64,6 @@ export default function EventsPage() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [fullscreenImg, setFullscreenImg] = useState<string | null>(null);
-  const [showHistory, setShowHistory] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -82,9 +80,9 @@ export default function EventsPage() {
   const upcoming = events.filter((e) => e.date >= today);
   const past = events.filter((e) => e.date < today);
 
-  // Next meeting-day invitation
-  const nextFriday = getNextMeetingISO();
-  const nextInvitation = invitations.find((i) => i.date === nextFriday);
+  // getInvitations returns records newest first, based on their meeting date.
+  const latestInvitation = invitations[0];
+  const olderInvitations = invitations.slice(1);
 
   return (
     <div className="min-h-dvh page-gradient">
@@ -94,16 +92,37 @@ export default function EventsPage() {
         <WeeklyMeetingCard />
       </div>
 
-      {/* Next Friday invitation banner */}
-      {nextInvitation && (
-        <button onClick={() => setFullscreenImg(nextInvitation.url)}
-          className="mx-4 mb-2 w-[calc(100%-2rem)] overflow-hidden rounded-2xl border border-yellow-400/30 shadow-lg shadow-yellow-400/10 active:scale-95 transition">
-          <Image src={nextInvitation.url} alt="invitation" width={600} height={300}
-            className="w-full object-cover max-h-48" />
+      {/* Latest invitation */}
+      {latestInvitation && (
+        <button onClick={() => setFullscreenImg(latestInvitation.url)}
+          className="mx-4 mb-2 flex w-[calc(100%-2rem)] justify-center overflow-hidden rounded-2xl border border-yellow-400/30 bg-black/10 shadow-lg shadow-yellow-400/10 active:scale-95 transition">
+          <Image src={latestInvitation.url} alt={latestInvitation.date}
+            width={latestInvitation.width} height={latestInvitation.height}
+            className="h-auto w-full object-contain" sizes="(max-width: 640px) calc(100vw - 2rem), 600px" />
         </button>
       )}
 
       <DateStrip events={events} invitations={invitations} onInvitationTap={setFullscreenImg} />
+
+      {olderInvitations.length > 0 && (
+        <section className="px-4 pb-4">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-blue-light/50">
+            {isAr ? "دعوات سابقة" : "Older Invitations"}
+          </p>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {olderInvitations.map((inv) => (
+              <button key={inv.publicId} onClick={() => setFullscreenImg(inv.url)}
+                className="relative overflow-hidden rounded-xl border border-blue-mid/30 bg-black/10 p-1 active:scale-95 transition">
+                <Image src={inv.url} alt={inv.date} width={inv.width} height={inv.height}
+                  className="h-auto max-h-32 w-full object-contain" sizes="(max-width: 640px) 30vw, 160px" />
+                <div className="absolute bottom-0 left-0 right-0 bg-black/60 py-0.5 text-center text-xs text-white/80">
+                  {inv.date}
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {loading ? (
         <div className="flex justify-center pt-10 text-blue-light/50 text-sm">Loading…</div>
@@ -132,29 +151,6 @@ export default function EventsPage() {
           )}
 
           {/* Invitation history */}
-          {invitations.length > 0 && (
-            <section className="mt-4">
-              <button onClick={() => setShowHistory((p) => !p)}
-                className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-blue-light/50 mb-2">
-                <span>{isAr ? "سجل الدعوات" : "Invitation History"}</span>
-                <span>{showHistory ? "▲" : "▼"}</span>
-              </button>
-              {showHistory && (
-                <div className="grid grid-cols-3 gap-2">
-                  {invitations.map((inv) => (
-                    <button key={inv.publicId} onClick={() => setFullscreenImg(inv.url)}
-                      className="relative aspect-square overflow-hidden rounded-xl border border-blue-mid/30 active:scale-95 transition">
-                      <Image src={inv.url} alt={inv.date} fill className="object-cover" sizes="33vw" />
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/50 py-0.5 text-center text-xs text-white/70">
-                        {inv.date}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
-
           {upcoming.length === 0 && past.length === 0 && invitations.length === 0 && (
             <div className="flex flex-col items-center pt-8 text-blue-light/40 gap-2">
               <span className="text-4xl">📅</span>
@@ -169,7 +165,7 @@ export default function EventsPage() {
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95"
           onClick={() => setFullscreenImg(null)}>
           <button className="absolute top-4 right-4 text-white/70 text-2xl">✕</button>
-          <Image src={fullscreenImg} alt="invitation" width={800} height={800}
+          <Image src={fullscreenImg} alt="invitation" width={1200} height={1600}
             className="max-h-[90dvh] max-w-full object-contain rounded-xl" />
         </div>
       )}
@@ -192,8 +188,9 @@ function EventCard({ event, isAr, invitation, onInvitationTap }: {
     <div className="rounded-2xl border border-yellow-400/30 bg-yellow-400/5 overflow-hidden backdrop-blur-sm">
       {invitation && (
         <button onClick={() => onInvitationTap(invitation.url)} className="w-full">
-          <Image src={invitation.url} alt="invitation" width={600} height={200}
-            className="w-full object-cover max-h-40" />
+          <Image src={invitation.url} alt={invitation.date}
+            width={invitation.width} height={invitation.height}
+            className="h-auto w-full object-contain" />
         </button>
       )}
       <div className="flex items-start gap-3 p-4">

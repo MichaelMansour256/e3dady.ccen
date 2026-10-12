@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import PageHeader from "@/components/PageHeader";
+import BibleReference from "@/components/BibleReference";
 
 type Verse = {
   book: number;
@@ -51,7 +52,11 @@ export default function VerseOfWeekPage() {
 
               <div className="mt-4 flex items-center justify-between">
                 <span className="text-sm font-bold text-blue-accent">
-                  {verse.bookName} {verse.chapter}:{verse.verse}
+                  <BibleReference
+                    bookName={verse.bookName}
+                    chapter={verse.chapter}
+                    verse={verse.verse}
+                  />
                 </span>
                 <span className="text-xs text-blue-light/40">ترجمة فاندايك</span>
               </div>

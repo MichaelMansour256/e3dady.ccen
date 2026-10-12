@@ -7,6 +7,8 @@ export type Invitation = {
   date: string; // YYYY-MM-DD
   url: string;
   publicId: string;
+  width: number;
+  height: number;
 };
 
 export async function getInvitations(): Promise<Invitation[]> {
@@ -17,14 +19,18 @@ export async function getInvitations(): Promise<Invitation[]> {
       .max_results(200)
       .execute();
 
-    return resources.map(
-      (r: { public_id: string; secure_url: string }) => ({
-        // public_id format: invitations/YYYY-MM-DD (may have suffix on overwrite)
-        date: r.public_id.replace("invitations/", "").split("_")[0],
-        url: r.secure_url,
-        publicId: r.public_id,
-      })
-    );
+    return resources
+      .map(
+        (r: { public_id: string; secure_url: string; width?: number; height?: number }) => ({
+          // public_id format: invitations/YYYY-MM-DD (may have suffix on overwrite)
+          date: r.public_id.replace("invitations/", "").split("_")[0],
+          url: r.secure_url,
+          publicId: r.public_id,
+          width: r.width ?? 1,
+          height: r.height ?? 1,
+        })
+      )
+      .sort((a: Invitation, b: Invitation) => b.date.localeCompare(a.date));
   } catch {
     return [];
   }
