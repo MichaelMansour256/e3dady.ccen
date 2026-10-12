@@ -78,7 +78,6 @@ export default function EventsPage() {
 
   const today = new Date().toISOString().split("T")[0];
   const upcoming = events.filter((e) => e.date >= today);
-  const past = events.filter((e) => e.date < today);
 
   // getInvitations returns records newest first, based on their meeting date.
   const latestInvitation = invitations[0];
@@ -139,19 +138,7 @@ export default function EventsPage() {
             </section>
           )}
 
-          {past.length > 0 && (
-            <section>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-blue-light/50">
-                {isAr ? "فعاليات سابقة" : "Past Events"}
-              </p>
-              <div className="flex flex-col gap-3 opacity-60">
-                {[...past].reverse().map((e) => <EventCard key={e.id} event={e} isAr={isAr} invitation={invitations.find((i) => i.date === e.date)} onInvitationTap={setFullscreenImg} />)}
-              </div>
-            </section>
-          )}
-
-          {/* Invitation history */}
-          {upcoming.length === 0 && past.length === 0 && invitations.length === 0 && (
+          {upcoming.length === 0 && invitations.length === 0 && (
             <div className="flex flex-col items-center pt-8 text-blue-light/40 gap-2">
               <span className="text-4xl">📅</span>
               <p className="text-sm">{isAr ? "لا توجد فعاليات حالياً" : "No events yet"}</p>

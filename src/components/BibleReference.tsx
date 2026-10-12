@@ -5,23 +5,17 @@ type BibleReferenceProps = {
   className?: string;
 };
 
-/**
- * Keep the Arabic book name and the numeric passage as separate bidi runs.
- * This prevents the browser from reordering the punctuation or digits inside
- * an RTL paragraph.
- */
+const ARABIC_INDIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+
+function toArabicIndicDigits(value: number): string {
+  return String(value).replace(/\d/g, (digit) => ARABIC_INDIC_DIGITS[Number(digit)]);
+}
+
 export default function BibleReference({
   bookName,
   chapter,
   verse,
   className,
 }: BibleReferenceProps) {
-  return (
-    <span dir="rtl" className={className}>
-      <span>{bookName}</span>{" "}
-      <span dir="ltr" style={{ unicodeBidi: "isolate" }}>
-        {chapter}:{verse}
-      </span>
-    </span>
-  );
+  return <span className={className}>{bookName} {toArabicIndicDigits(chapter)}:{toArabicIndicDigits(verse)}</span>;
 }
