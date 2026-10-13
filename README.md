@@ -77,6 +77,11 @@ only asks the chat model to summarize those retrieved sources. Set
 `OPENROUTER_API_KEY`, `OPENROUTER_EMBEDDING_MODEL`, `OPENROUTER_CHAT_MODEL`, and
 `BIBLE_RAG_MIN_SCORE` as documented in [`.env.example`](./.env.example).
 
+If the original RAG SQL was already applied, run
+[`supabase-bible-rag-hybrid-fix.sql`](./supabase-bible-rag-hybrid-fix.sql).
+It prevents exact Arabic keyword matches such as `المحبة` from being removed
+only because their dense similarity score is below the threshold.
+
 | Area | What it offers |
 | ---- | -------------- |
 | **Home** | Animated hero, meeting branding, quick-access links, social links |

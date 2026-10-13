@@ -51,12 +51,11 @@ as $$
   with candidates as (
     select
       v.*,
-      case when query_embedding is null then 0::real
+      case when query_embedding is null or v.embedding is null then 0::real
         else (1 - (v.embedding <=> query_embedding))::real end as semantic_score,
       ts_rank_cd(v.search_vector, websearch_to_tsquery('simple', nullif(query_text, '')))::real as lexical_score
     from public.bible_verses v
     where (testament_filter = 'ALL' or v.testament = testament_filter)
-      and (query_embedding is null or v.embedding is not null)
       and (
         nullif(query_text, '') is null
         or v.search_vector @@ websearch_to_tsquery('simple', query_text)
@@ -69,7 +68,12 @@ as $$
       else (0.75 * c.semantic_score + 0.25 * least(c.lexical_score, 1::real))
     end)::real as score
   from candidates c
-  where query_embedding is null or c.semantic_score >= min_score
+  -- Keep strong lexical hits even when the embedding model gives them a
+  -- lower semantic score. This is important for exact Arabic terms such as
+  -- "المحبة", which must not be discarded by the dense threshold.
+  where query_embedding is null
+    or c.semantic_score >= min_score
+    or c.lexical_score > 0
   order by
     (case when query_embedding is null
       then c.lexical_score
