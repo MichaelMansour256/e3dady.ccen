@@ -1,5 +1,20 @@
 -- Apply this after the original Bible RAG schema if it is already installed.
 -- It preserves exact Arabic keyword hits even when dense similarity is low.
+create or replace function public.normalize_arabic(input text)
+returns text
+language sql immutable
+as $$
+  select translate(
+    regexp_replace(coalesce(input, ''), '[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed]', '', 'g'),
+    'أإآٱىة',
+    'اااايه'
+  );
+$$;
+
+alter table public.bible_verses
+  add column if not exists embedding_model text not null default 'openai/text-embedding-3-small',
+  add column if not exists embedding_dimensions integer not null default 1536;
+
 create or replace function public.search_bible_verses(
   query_embedding vector(1536) default null,
   query_text text default '',
@@ -26,13 +41,13 @@ as $$
         else (1 - (v.embedding <=> query_embedding))::real end as semantic_score,
       ts_rank_cd(
         v.search_vector,
-        websearch_to_tsquery('simple', nullif(query_text, ''))
+        websearch_to_tsquery('simple', nullif(public.normalize_arabic(query_text), ''))
       )::real as lexical_score
     from public.bible_verses v
     where (testament_filter = 'ALL' or v.testament = testament_filter)
       and (
         nullif(query_text, '') is null
-        or v.search_vector @@ websearch_to_tsquery('simple', query_text)
+        or v.search_vector @@ websearch_to_tsquery('simple', public.normalize_arabic(query_text))
         or query_embedding is not null
       )
   )

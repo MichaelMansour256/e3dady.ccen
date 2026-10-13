@@ -11,6 +11,8 @@ create table if not exists public.bible_verses (
   text_ar text not null,
   text_ar_plain text not null,
   embedding vector(1536),
+  embedding_model text not null default 'openai/text-embedding-3-small',
+  embedding_dimensions integer not null default 1536,
   search_vector tsvector generated always as (
     to_tsvector('simple', coalesce(book, '') || ' ' || coalesce(text_ar_plain, ''))
   ) stored,
@@ -23,6 +25,17 @@ create index if not exists bible_verses_embedding_idx
 create index if not exists bible_verses_search_idx
   on public.bible_verses using gin (search_vector);
 create index if not exists bible_verses_testament_idx on public.bible_verses (testament);
+
+create or replace function public.normalize_arabic(input text)
+returns text
+language sql immutable
+as $$
+  select translate(
+    regexp_replace(coalesce(input, ''), '[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed]', '', 'g'),
+    'أإآٱىة',
+    'اااايه'
+  );
+$$;
 
 alter table public.bible_verses enable row level security;
 drop policy if exists "Bible verses are publicly readable" on public.bible_verses;
@@ -53,12 +66,12 @@ as $$
       v.*,
       case when query_embedding is null or v.embedding is null then 0::real
         else (1 - (v.embedding <=> query_embedding))::real end as semantic_score,
-      ts_rank_cd(v.search_vector, websearch_to_tsquery('simple', nullif(query_text, '')))::real as lexical_score
+      ts_rank_cd(v.search_vector, websearch_to_tsquery('simple', nullif(public.normalize_arabic(query_text), '')))::real as lexical_score
     from public.bible_verses v
     where (testament_filter = 'ALL' or v.testament = testament_filter)
       and (
         nullif(query_text, '') is null
-        or v.search_vector @@ websearch_to_tsquery('simple', query_text)
+        or v.search_vector @@ websearch_to_tsquery('simple', public.normalize_arabic(query_text))
         or query_embedding is not null
       )
   )

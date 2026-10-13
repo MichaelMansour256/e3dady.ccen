@@ -70,6 +70,20 @@ first, then ingest a legally obtained Van Dyck JSON or CSV dataset:
 python scripts/ingest_bible.py data/bible.json
 ```
 
+For the Smith and Van Dyck source already used by this application:
+
+```bash
+python scripts/ingest_bible.py --getbible --text-only
+```
+
+`--text-only` populates the verified canonical text and normalized lexical
+index without pretending that vectors exist. To enable semantic retrieval,
+run the same command without `--text-only` after configuring OpenRouter. The
+script verifies that the source is Arabic Smith and Van Dyck and that returned
+vectors are 1536-dimensional before upserting. The API reports the stored
+vector count and uses lexical retrieval when vectors are absent, rather than
+claiming that semantic retrieval succeeded.
+
 The ingestion script creates `text_ar_plain` for lexical matching and stores
 `text_ar` plus `text_plain`-compatible metadata. The API combines cosine
 similarity with PostgreSQL full-text search, returns up to five sources, and
@@ -81,6 +95,12 @@ If the original RAG SQL was already applied, run
 [`supabase-bible-rag-hybrid-fix.sql`](./supabase-bible-rag-hybrid-fix.sql).
 It prevents exact Arabic keyword matches such as `المحبة` from being removed
 only because their dense similarity score is below the threshold.
+
+With a local development server running, the live API checks can be run with:
+
+```bash
+node scripts/test_bible_rag_live.mjs
+```
 
 | Area | What it offers |
 | ---- | -------------- |

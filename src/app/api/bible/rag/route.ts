@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { generateGroundedAnswer, retrieveBibleSources, type TestamentFilter } from "@/lib/bible-rag";
+import {
+  BibleRagError,
+  generateGroundedAnswer,
+  retrieveBibleSources,
+  type TestamentFilter,
+} from "@/lib/bible-rag";
 
 export const runtime = "nodejs";
 
@@ -14,13 +19,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "يرجى إدخال سؤال من 1 إلى 500 حرفًا." }, { status: 400 });
     }
     const sources = await retrieveBibleSources(query, testamentFilter as TestamentFilter);
-    const answer = await generateGroundedAnswer(query, sources);
+    let answer = `إليك آيات مرتبطة بسؤالك «${query}».`;
+    try {
+      answer = await generateGroundedAnswer(query, sources);
+    } catch (error) {
+      if (!(error instanceof BibleRagError) || error.status !== 502) throw error;
+      console.warn("[bible/rag] optional summary unavailable; returning retrieved sources");
+    }
     return NextResponse.json({
       answer,
       sources: sources.map(({ text_ar, ...source }) => ({ ...source, text: text_ar })),
     });
   } catch (error) {
     console.error("[bible/rag]", error);
-    return NextResponse.json({ error: "تعذر البحث الآن. تأكد من إعداد فهرس الكتاب المقدس ثم حاول مرة أخرى." }, { status: 500 });
+    if (error instanceof BibleRagError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    return NextResponse.json({ error: "تعذر البحث الآن بسبب خطأ غير متوقع." }, { status: 500 });
   }
 }
