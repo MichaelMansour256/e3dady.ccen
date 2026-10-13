@@ -43,6 +43,7 @@ export const moreMenuItems: NavItem[] = [
 
 /** Sections listed on the "Bible" page (keys from the `bible` namespace). */
 export const bibleSections: NavItem[] = [
+  { key: "search", href: "/bible/search", icon: "🔎", feature: "bible" },
   { key: "verseOfWeek", href: "/bible/verse", icon: "✨", feature: "bible" },
   { key: "studies", href: "/bible/studies", icon: "📚", feature: "bible" },
   { key: "resources", href: "/bible/resources", icon: "🗂️", feature: "bible" },

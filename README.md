@@ -60,6 +60,23 @@ attendance tracking.
 
 ### For Members
 
+#### Bible topic search
+
+The `/ar/bible/search` page provides Arabic topic and concept search using a
+Supabase pgvector index. Apply [`supabase-bible-rag.sql`](./supabase-bible-rag.sql)
+first, then ingest a legally obtained Van Dyck JSON or CSV dataset:
+
+```bash
+python scripts/ingest_bible.py data/bible.json
+```
+
+The ingestion script creates `text_ar_plain` for lexical matching and stores
+`text_ar` plus `text_plain`-compatible metadata. The API combines cosine
+similarity with PostgreSQL full-text search, returns up to five sources, and
+only asks the chat model to summarize those retrieved sources. Set
+`OPENROUTER_API_KEY`, `OPENROUTER_EMBEDDING_MODEL`, `OPENROUTER_CHAT_MODEL`, and
+`BIBLE_RAG_MIN_SCORE` as documented in [`.env.example`](./.env.example).
+
 | Area | What it offers |
 | ---- | -------------- |
 | **Home** | Animated hero, meeting branding, quick-access links, social links |

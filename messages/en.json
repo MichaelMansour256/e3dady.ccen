@@ -13,6 +13,7 @@
   },
   "bible": {
     "title": "Bible",
+    "search": "Topic search",
     "verseOfWeek": "Verse of the Week",
     "studies": "Studies",
     "resources": "Resources"
