@@ -74,6 +74,10 @@ body {
   outline-offset: 3px;
 }
 
+.nav-indicator {
+  will-change: transform;
+}
+
 .pressable {
   transition: transform 160ms ease, box-shadow 160ms ease;
 }
@@ -83,6 +87,11 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .nav-indicator {
+    transition: none !important;
+    will-change: auto;
+  }
+
   .pressable,
   .pressable:active {
     transition: none;
@@ -99,6 +108,18 @@ body {
 }
 .page-gradient-high {
   background: radial-gradient(ellipse at 50% 30%, var(--gradient-mid) 0%, var(--gradient-dark) 70%);
+}
+
+/* The admin dashboard retains the original dark card treatment while the
+   public app uses the cream-first palette. This keeps its existing white
+   labels on an intentionally dark surface instead of a translucent cream one. */
+.admin-dashboard {
+  --blue-dark: #0f172a;
+  --blue-light: #cbd5e1;
+}
+
+.admin-dashboard section {
+  background-color: rgb(18 32 107 / 0.94);
 }
 
 @keyframes fadeUp {
@@ -141,6 +162,13 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .admin-dashboard *,
+  .admin-dashboard *::before,
+  .admin-dashboard *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+
   .install-banner-enter,
   .install-banner-exit {
     animation-duration: 1ms;

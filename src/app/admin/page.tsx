@@ -276,8 +276,8 @@ export default function AdminPage() {
   }
   return (
     <div className="min-h-dvh px-4 py-6 page-gradient">
-      <div className="mx-auto max-w-2xl">
-        <h1 className="mb-4 text-2xl font-bold text-white">🛠 Admin Dashboard</h1>
+      <div className="admin-dashboard mx-auto max-w-2xl">
+        <h1 className="mb-4 text-2xl font-bold text-[#0F172A]">🛠 Admin Dashboard</h1>
         {/* Tabs */}
         <div className="grid grid-cols-2 gap-2 mb-6">
           {(["gallery", "events", "verse", "prayer", "notify", "history", "content"] as const).map((t) => (

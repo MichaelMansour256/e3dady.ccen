@@ -7,6 +7,7 @@ import { Icon, type IconName } from "@/components/Icon";
 
 /** Bottom tabs from the central navigation config (feature-gated). */
 const tabs = bottomNavTabs.filter((t) => isFeatureEnabled(t.feature));
+const renderedTabs = [...tabs.filter((tab) => tab.key !== "games"), ...tabs.filter((tab) => tab.key === "games")];
 const iconByKey: Record<string, IconName> = {
   home: "home",
   events: "calendar",
@@ -18,15 +19,28 @@ const iconByKey: Record<string, IconName> = {
 export default function BottomNav({ locale }: { locale: string }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const activeKey = tabs.find(({ href }) =>
+    href === "/"
+      ? pathname === `/${locale}` || pathname === `/${locale}/`
+      : pathname.startsWith(`/${locale}${href}`)
+  )?.key ?? "home";
+  const activeIndex = renderedTabs.findIndex(({ key }) => key === activeKey);
+  const visualIndex = locale === "ar" ? renderedTabs.length - 1 - activeIndex : activeIndex;
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-w-2xl border-t border-black/10 bg-white/95 px-2 shadow-[0_-8px_24px_rgba(18,32,107,0.1)] backdrop-blur-sm"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      style={{ paddingBottom: "env(safe-area-inset-bottom)", direction: locale === "ar" ? "rtl" : "ltr" }}>
+      <span
+        aria-hidden="true"
+        className="nav-indicator pointer-events-none absolute bottom-0 left-2 h-1 rounded-full bg-coral transition-transform duration-300 ease-out"
+        style={{
+          width: "calc((100% - 1rem) / 5)",
+          transform: `translateX(${visualIndex * 100}%)`,
+        }}
+      />
       {tabs.map(({ key, href }) => {
         if (key === "games") return null;
         const fullHref = `/${locale}${href === "/" ? "" : href}`;
-        const isActive = href === "/"
-          ? pathname === `/${locale}` || pathname === `/${locale}/`
-          : pathname.startsWith(`/${locale}${href}`);
+        const isActive = key === activeKey;
         return (
           <Link key={key} href={fullHref}
             aria-current={isActive ? "page" : undefined}
