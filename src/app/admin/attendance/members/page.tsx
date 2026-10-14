@@ -266,7 +266,7 @@ export default function AttendanceMembersPage() {
   if (missingSchema) {
     return (
       <EmptyState
-        icon="🗄️"
+        icon="menu"
         title="جداول الحضور غير موجودة بعد"
         hint="شغّل ملف supabase-attendance-migration.sql في Supabase SQL Editor ثم أعد تحميل الصفحة."
       />
@@ -402,7 +402,7 @@ export default function AttendanceMembersPage() {
 
         {!loading && members.length === 0 && !error && (
           <EmptyState
-            icon="👥"
+            icon="user"
             title="لا يوجد أعضاء بعد"
             hint="أضف أول عضو ثم اطبع رمز QR الخاص به."
             action={

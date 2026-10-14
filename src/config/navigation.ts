@@ -1,4 +1,5 @@
 import type { FeatureKey } from "./features";
+import type { IconName } from "@/components/Icon";
 
 /**
  * Central navigation configuration.
@@ -13,7 +14,7 @@ export interface NavItem {
   /** Path relative to the locale root: "/" or "/more/gallery". */
   href: string;
   /** Named icon rendered by the shared SVG icon system. */
-  icon: string;
+  icon: IconName;
   /** Feature gate — the item is hidden when the feature is disabled. */
   feature?: FeatureKey;
 }

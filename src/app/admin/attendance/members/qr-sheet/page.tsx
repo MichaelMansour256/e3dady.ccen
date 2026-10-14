@@ -99,7 +99,7 @@ export default function QrSheetPage() {
         {loading && <Spinner label="جارٍ توليد الرموز…" />}
         {!loading && cards.length === 0 && !error && (
           <EmptyState
-            icon="🖨️"
+            icon="printer"
             title="لا يوجد أعضاء لطباعتهم"
             hint="أضف أعضاء أولًا من صفحة الأعضاء."
           />

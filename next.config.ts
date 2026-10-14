@@ -1,9 +1,10 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import nextPWA from "next-pwa";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
-const withPWA = require("next-pwa")({
+const withPWA = nextPWA({
   dest: "public",
   // IMPORTANT (OneSignal): next-pwa must NOT register /sw.js at scope "/".
   // Two service workers cannot control the same scope — /sw.js would replace

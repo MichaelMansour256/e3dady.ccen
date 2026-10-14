@@ -267,22 +267,22 @@ export default function AttendanceDashboardPage() {
             </span>
           </div>
           <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <StatCard label="إجمالي الأعضاء" value={data?.stats.totalMembers ?? 0} icon="👥" />
+            <StatCard label="إجمالي الأعضاء" value={data?.stats.totalMembers ?? 0} icon="user" />
             <StatCard
               label="الحاضرون"
               value={data?.stats.present ?? 0}
-              icon="✅"
+              icon="check"
               valueClassName="text-green-300"
               className="bg-green-500/15"
             />
             <StatCard
               label="الغائبون"
               value={data?.stats.absent ?? 0}
-              icon="❌"
+              icon="x"
               valueClassName="text-red-300"
               className="bg-red-500/15"
             />
-            <StatCard label="نسبة الحضور" value={`${data?.stats.attendanceRate ?? 0}%`} icon="📊" />
+            <StatCard label="نسبة الحضور" value={`${data?.stats.attendanceRate ?? 0}%`} icon="calendar" />
           </div>
           <div className="flex flex-wrap gap-2">
             <Link href="/admin/attendance/scan" className={successBtn}>
@@ -303,7 +303,7 @@ export default function AttendanceDashboardPage() {
         </Card>
       ) : (
         <EmptyState
-          icon="📭"
+          icon="mail"
           title="لا يوجد اجتماع مفتوح حاليًا"
           hint="افتح اجتماعًا من صفحة الاجتماعات ليبدأ المسح بتسجيل الحضور هنا مباشرة."
           action={
@@ -397,7 +397,7 @@ export default function AttendanceDashboardPage() {
         {filteredMembers.length === 0 ? (
           <div className="mt-4">
             <EmptyState
-              icon="🔍"
+              icon="search"
               title={search || filter !== "all" ? "لا توجد نتائج مطابقة" : "لا يوجد أعضاء في هذا الاجتماع"}
               hint={
                 search || filter !== "all"

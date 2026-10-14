@@ -15,6 +15,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatDateAr, formatTimeAr } from "./ui";
 import { genderLabel, gradeLabel, type MemberGender, type MemberGrade } from "@/lib/member-fields";
+import { Icon, type IconName } from "@/components/Icon";
 
 interface IdentifyResponse {
   ok: boolean;
@@ -32,11 +33,11 @@ type State =
   | { kind: "network" };
 
 /** Header line (emoji + title) for each outcome. */
-const HEADLINES: Record<IdentifyResponse["status"], string> = {
-  found: "🪪 بيانات العضو",
-  inactive_member: "⚠️ هذا العضو غير نشط",
-  invalid_token: "❌ QR Code غير صالح",
-  error: "❌ تعذّر الاتصال",
+const HEADLINES: Record<IdentifyResponse["status"], { icon: IconName; text: string }> = {
+  found: { icon: "user", text: "بيانات العضو" },
+  inactive_member: { icon: "x", text: "هذا العضو غير نشط" },
+  invalid_token: { icon: "x", text: "QR Code غير صالح" },
+  error: { icon: "x", text: "تعذّر الاتصال" },
 };
 
 const SUBTITLES: Partial<Record<IdentifyResponse["status"], string>> = {
@@ -86,7 +87,7 @@ export default function CheckinRunner({ token }: { token: string }) {
         {state.kind === "loading" && (
           <>
             <div className="mb-4 text-5xl" aria-hidden>
-              ⏳
+              <Icon name="clock" size={44} className="mx-auto text-blue-accent" />
             </div>
             <h1 className="text-xl font-bold text-white">جارٍ تسجيل الحضور…</h1>
             <p className="mt-2 text-sm text-blue-light/60">لا تغلق الصفحة</p>
@@ -96,9 +97,9 @@ export default function CheckinRunner({ token }: { token: string }) {
         {state.kind === "network" && (
           <>
             <div className="mb-4 text-5xl" aria-hidden>
-              📶
+              <Icon name="refresh" size={44} className="mx-auto text-blue-accent" />
             </div>
-            <h1 className="text-xl font-bold text-white">❌ تعذّر الاتصال</h1>
+            <h1 className="text-xl font-bold text-white"><Icon name="x" size={20} className="inline-block align-text-bottom text-coral" /> تعذّر الاتصال</h1>
             <p className="mt-2 text-sm text-blue-light/60">
               تحقّق من اتصالك بالإنترنت وحاول مرة أخرى.
             </p>
@@ -115,7 +116,10 @@ export default function CheckinRunner({ token }: { token: string }) {
         {state.kind === "result" && (
           <>
             <h1 className="text-xl font-bold leading-relaxed text-white">
-              {HEADLINES[state.data.status] ?? "ℹ️" }
+              {(() => {
+                const headline = HEADLINES[state.data.status] ?? { icon: "clock" as const, text: "الحالة" };
+                return <><Icon name={headline.icon} size={22} className="me-2 inline-block align-text-bottom text-coral" />{headline.text}</>;
+              })()}
             </h1>
 
             {state.data.member && (
@@ -138,7 +142,7 @@ export default function CheckinRunner({ token }: { token: string }) {
                 {state.data.checked_in ? (
                   <>
                     <p className="text-lg font-semibold text-green-300">
-                      ✓ تم تسجيل الحضور بالفعل
+                      <Icon name="check" size={18} className="me-1 inline-block text-success" /> تم تسجيل الحضور بالفعل
                     </p>
                     <p className="mt-2 text-sm text-blue-light/60">
                       وقت التسجيل:{" "}
@@ -149,7 +153,7 @@ export default function CheckinRunner({ token }: { token: string }) {
                   </>
                 ) : (
                   <p className="text-lg font-semibold text-white">
-                    ❌ لم يتم تسجيل الحضور بعد
+                    <Icon name="x" size={18} className="me-1 inline-block text-coral" /> لم يتم تسجيل الحضور بعد
                   </p>
                 )}
 
@@ -172,7 +176,7 @@ export default function CheckinRunner({ token }: { token: string }) {
 
             {state.data.status === "found" && (
               <p className="mt-5 border-t border-blue-mid/25 pt-4 text-xs leading-relaxed text-blue-light/50">
-                🔒 لا يمكن تسجيل الحضور من هذه الصفحة — التسجيل يتم فقط بواسطة خادم/مسؤول
+                <Icon name="x" size={14} className="me-1 inline-block" /> لا يمكن تسجيل الحضور من هذه الصفحة — التسجيل يتم فقط بواسطة خادم/مسؤول
                 مصرّح له من شاشة المسح الخاصة بالإدارة.
               </p>
             )}

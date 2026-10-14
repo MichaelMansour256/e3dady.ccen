@@ -56,7 +56,7 @@ export default function MemberHistoryPage() {
   if (error || !history?.member) {
     return (
       <EmptyState
-        icon="🔍"
+        icon="search"
         title={error ?? "العضو غير موجود"}
         hint="تأكد من الرابط أو ارجع لقائمة الأعضاء."
         action={
@@ -99,16 +99,16 @@ export default function MemberHistoryPage() {
       )}
 
       <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard label="اجتماعات حضرها" value={attended} icon="✅" className="bg-green-500/15" valueClassName="text-green-300" />
-        <StatCard label="اجتماعات غاب عنها" value={missed} icon="❌" className="bg-red-500/15" valueClassName="text-red-300" />
-        <StatCard label="نسبة الحضور" value={`${rate}%`} icon="📊" />
-        <StatCard label="إجمالي الاجتماعات" value={expected} icon="📅" />
+        <StatCard label="اجتماعات حضرها" value={attended} icon="check" className="bg-green-500/15" valueClassName="text-green-300" />
+        <StatCard label="اجتماعات غاب عنها" value={missed} icon="x" className="bg-red-500/15" valueClassName="text-red-300" />
+        <StatCard label="نسبة الحضور" value={`${rate}%`} icon="calendar" />
+        <StatCard label="إجمالي الاجتماعات" value={expected} icon="calendar" />
       </div>
 
       <Card title="🕘 سجل الحضور">
         {rows.length === 0 ? (
           <EmptyState
-            icon="📭"
+            icon="mail"
             title="لا يوجد سجل بعد"
             hint="سيظهر السجل بعد أول اجتماع يتم تسجيله بعد انضمام العضو."
           />

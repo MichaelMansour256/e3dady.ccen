@@ -8,6 +8,7 @@
  */
 "use client";
 import type { ReactNode } from "react";
+import { Icon, type IconName } from "@/components/Icon";
 
 /* ── Class recipes (same values as the existing admin page) ───────────────── */
 
@@ -127,13 +128,13 @@ export function StatCard({
 }: {
   label: string;
   value: ReactNode;
-  icon?: string;
+  icon?: IconName;
   valueClassName?: string;
   className?: string;
 }) {
   return (
     <div className={`rounded-2xl ${className ?? "bg-blue-dark/60"} p-4 text-center`}>
-      {icon && <div className="mb-1 text-2xl">{icon}</div>}
+      {icon && <Icon name={icon} size={24} className="mx-auto mb-1 text-blue-accent" />}
       <div className={`text-2xl font-bold ${valueClassName ?? "text-white"}`}>{value}</div>
       <div className="text-xs text-blue-light/60">{label}</div>
     </div>
@@ -141,19 +142,19 @@ export function StatCard({
 }
 
 export function EmptyState({
-  icon = "ℹ️",
+  icon = "clock",
   title,
   hint,
   action,
 }: {
-  icon?: string;
+  icon?: IconName;
   title: string;
   hint?: string;
   action?: ReactNode;
 }) {
   return (
     <div className="rounded-2xl border border-blue-mid/40 bg-blue-primary/20 p-8 text-center">
-      <div className="mb-3 text-4xl">{icon}</div>
+      <Icon name={icon} size={36} className="mx-auto mb-3 text-blue-accent" />
       <h3 className="mb-1 text-lg font-semibold text-white">{title}</h3>
       {hint && <p className="mb-4 text-sm text-blue-light/60">{hint}</p>}
       {action}
@@ -196,9 +197,8 @@ export function Spinner({ label = "جارٍ التحميل…" }: { label?: stri
 /** Present/absent pill shared by every attendance table. */
 export function PresentPill({ present }: { present: boolean }) {
   return present ? (
-    <span className="font-semibold text-green-400">✅ حاضر</span>
+    <span className="flex items-center justify-center gap-1 font-semibold text-green-400"><Icon name="check" size={16} /> حاضر</span>
   ) : (
-    <span className="font-semibold text-red-400">❌ غائب</span>
+    <span className="flex items-center justify-center gap-1 font-semibold text-red-400"><Icon name="x" size={16} /> غائب</span>
   );
 }
-

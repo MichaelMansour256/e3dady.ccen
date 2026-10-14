@@ -132,7 +132,7 @@ export default function QrScanner({
         // other QR). Prove the decoder works and separate that from token
         // validation — never stay silent here.
         const preview = raw.length > 40 ? `${raw.slice(0, 40)}…` : raw;
-        setMessage(`✅ تم قراءة رمز QR بنجاح — لكنه ليس رمز عضو: ${preview}`);
+        setMessage(`تم قراءة رمز QR بنجاح — لكنه ليس رمز عضو: ${preview}`);
         return;
       }
       const now = Date.now();
@@ -295,7 +295,7 @@ export default function QrScanner({
           // Never keep looping silently with no decoder at all.
           console.error("[QR] ERROR: no QR decoder available — stopping the scan loop");
           setDecoder("failed");
-          setMessage("❌ تعذّر تشغيل قارئ QR — استخدم الإدخال اليدوي بالأسفل أو أعد تحميل الصفحة.");
+          setMessage("تعذّر تشغيل قارئ QR — استخدم الإدخال اليدوي بالأسفل أو أعد تحميل الصفحة.");
           return;
         }
 
@@ -381,7 +381,7 @@ export default function QrScanner({
         <p className="text-center text-xs text-blue-light/50" aria-live="polite">
           <Icon name="camera" size={14} /> الكاميرا تعمل ·{" "}
           {decoder === "failed" ? (
-            <>❌ القارئ: تعذّر تشغيله — استخدم الإدخال اليدوي أو أعد تحميل الصفحة</>
+            <>القارئ: تعذّر تشغيله — استخدم الإدخال اليدوي أو أعد تحميل الصفحة</>
           ) : (
             <>
               <Icon name="search" size={14} /> القارئ: {decoder === "native" ? "BarcodeDetector" : "jsQR"} ·{" "}

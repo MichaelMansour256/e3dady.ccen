@@ -12,7 +12,8 @@
  * This is a server component (RSC) — data fetching happens on the server, so
  * the page loads fast on mobile and works without client JS.
  */
-import { checkIn, type CheckInResult } from "@/lib/attendance";
+import { checkIn } from "@/lib/attendance";
+import { Icon, type IconName } from "@/components/Icon";
 
 interface CheckinResult {
   type: "success" | "already_recorded" | "invalid_token" | "inactive_member" | "no_active_meeting" | "error";
@@ -89,9 +90,9 @@ function renderResult(
   fmtDate: (d: string) => string,
   fmtTime: (d: string) => string
 ) {
-  const successCard = (result: CheckinResult, emoji: string, title: string) => (
+  const successCard = (result: CheckinResult, icon: IconName, title: string) => (
     <>
-      <div className="mb-6 text-5xl">{`${emoji} ${title}`}</div>
+      <div className="mb-6 flex items-center justify-center gap-2 text-2xl"><Icon name={icon} size={36} className="text-success" />{title}</div>
       <h2 className="mb-2 text-2xl font-bold text-white">{result.member?.name}</h2>
       <p className="mb-1 text-sm text-blue-light/60">{result.member?.member_code}</p>
       <div className="my-4 border-t border-blue-mid/20" />
@@ -105,13 +106,13 @@ function renderResult(
 
   switch (result.type) {
     case "success":
-      return successCard(result, "✅", "تم تسجيل الحضور");
+      return successCard(result, "check", "تم تسجيل الحضور");
     case "already_recorded":
-      return successCard(result, "ℹ️", "الحضور مسجل بالفعل");
+      return successCard(result, "clock", "الحضور مسجل بالفعل");
     case "invalid_token":
       return (
         <div className="flex flex-col items-center gap-4">
-          <div className="text-5xl">❌ QR Code غير صالح</div>
+          <div className="flex items-center gap-2 text-2xl"><Icon name="x" size={36} className="text-coral" /> QR Code غير صالح</div>
           <p className="text-sm text-blue-light/60">
             الرمز المستخدم غير صالح أو غير مسجل.
           </p>
@@ -120,7 +121,7 @@ function renderResult(
     case "inactive_member":
       return (
         <div className="flex flex-col items-center gap-4">
-          <div className="text-5xl">⚠️ هذا العضو غير نشط</div>
+          <div className="flex items-center gap-2 text-2xl"><Icon name="x" size={36} className="text-coral" /> هذا العضو غير نشط</div>
           <p className="text-sm text-blue-light/60">
             تواصل مع الإدارة إذا كنت تعتقد أنك تستقبل هذه الرسالة بالخطأ.
           </p>
@@ -129,7 +130,7 @@ function renderResult(
     case "no_active_meeting":
       return (
         <div className="flex flex-col items-center gap-4">
-          <div className="text-5xl">ℹ️ لا يوجد اجتماع مفتوح حاليًا</div>
+          <div className="flex items-center gap-2 text-2xl"><Icon name="calendar" size={36} className="text-blue-accent" /> لا يوجد اجتماع مفتوح حاليًا</div>
           <p className="text-sm text-blue-light/60">
             لا يوجد اجتماع جارٍ الآن. الرجاء المحاولة أثناء الاجتماع.
           </p>
@@ -138,7 +139,7 @@ function renderResult(
     case "error":
       return (
         <div className="flex flex-col items-center gap-4">
-          <div className="text-5xl">❌ حدث خطأ</div>
+          <div className="flex items-center gap-2 text-2xl"><Icon name="x" size={36} className="text-coral" /> حدث خطأ</div>
           <p className="text-sm text-blue-light/60">{result.message || "خطأ غير معروف"}</p>
         </div>
       );

@@ -120,7 +120,7 @@ export default function QrDialog({
 
         {!member.active && (
           <div className="mt-3">
-            <Banner tone="warning">⚠️ هذا العضو غير نشط — الرمز لن يُسجّل حضورًا</Banner>
+            <Banner tone="warning"><Icon name="x" size={16} className="me-1 inline-block" /> هذا العضو غير نشط — الرمز لن يُسجّل حضورًا</Banner>
           </div>
         )}
 

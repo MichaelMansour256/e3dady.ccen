@@ -20,6 +20,7 @@ import { genderLabel, gradeLabel, type MemberGender, type MemberGrade } from "@/
 import { extractCheckinToken } from "@/lib/checkin-token";
 import { useAttendanceApi } from "@/components/attendance/AdminAuthProvider";
 import QrScanner from "@/components/attendance/Scanner";
+import { Icon, type IconName } from "@/components/Icon";
 import {
   Banner,
   Card,
@@ -74,13 +75,13 @@ const TONES: Record<ScanStatus, "success" | "info" | "warning" | "error"> = {
   error: "error",
 };
 
-const ICONS: Record<ScanStatus, string> = {
-  success: "✅",
-  already_recorded: "🔁",
-  invalid_token: "❌",
-  inactive_member: "⚠️",
-  no_active_meeting: "⏰",
-  error: "❌",
+const ICONS: Record<ScanStatus, IconName> = {
+  success: "check",
+  already_recorded: "refresh",
+  invalid_token: "x",
+  inactive_member: "clock",
+  no_active_meeting: "clock",
+  error: "x",
 };
 
 export default function AttendanceScanPage() {
@@ -238,7 +239,7 @@ export default function AttendanceScanPage() {
             </div>
           ) : (
             <EmptyState
-              icon="⏰"
+              icon="clock"
               title="لا يوجد اجتماع مفتوح"
               hint="افتح اجتماعًا أولًا حتى يُسجَّل الحضور عند المسح."
               action={
@@ -381,7 +382,7 @@ export default function AttendanceScanPage() {
         <div className="mb-4">
           <Banner tone={TONES[result.status]}>
             <div className="flex items-start gap-2">
-              <span className="text-lg">{ICONS[result.status]}</span>
+              <Icon name={ICONS[result.status]} size={20} className="shrink-0" />
               <div>
                 <p className="font-semibold">{result.message}</p>
                 {result.member && (
@@ -413,7 +414,7 @@ export default function AttendanceScanPage() {
             {log.map((entry) => (
               <li key={entry.id} className="flex items-center justify-between gap-2 py-2 text-sm">
                 <span className="truncate text-white">
-                  {ICONS[entry.status]}{" "}
+                  <Icon name={ICONS[entry.status]} size={16} className="inline-block align-text-bottom" />{" "}
                   {entry.name ?? (entry.status === "invalid_token" ? "رمز غير صالح" : "—")}
                   {entry.member_code && (
                     <span className="ms-2 text-xs text-blue-light/50">{entry.member_code}</span>

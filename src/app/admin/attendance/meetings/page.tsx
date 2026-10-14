@@ -289,7 +289,7 @@ export default function AttendanceMeetingsPage() {
         </Card>
       ) : (
         <EmptyState
-          icon="📭"
+          icon="mail"
           title="لا يوجد اجتماع مفتوح حاليًا"
           hint="المسح لن يسجّل الحضور حتى تفتح اجتماعًا."
           action={
@@ -372,7 +372,7 @@ export default function AttendanceMeetingsPage() {
       >
         {meetings.length === 0 ? (
           <EmptyState
-            icon="🗓️"
+            icon="calendar"
             title="لا توجد اجتماعات بعد"
             hint="أنشئ أول اجتماع لتبدأ تسجيل الحضور."
             action={

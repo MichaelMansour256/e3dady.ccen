@@ -58,19 +58,19 @@ function RangeView({ from, to, onChangeFrom, onChangeTo, data, loading, onRefres
       {loading && data && <p className="mt-4 text-xs text-blue-light/50">جارٍ تحديث التقرير…</p>}
       {!from || !to || !data ? (
         !from || !to ? (
-          <EmptyState icon="🗓️" title="اختر مجىء التاريخ" hint="حدّد تاريخي البداية والنهاية ثم اضغط تحديث." />
+          <EmptyState icon="calendar" title="اختر مجىء التاريخ" hint="حدّد تاريخي البداية والنهاية ثم اضغط تحديث." />
         ) : loading ? (
           <Spinner label="جارٍ تحميل التقرير…" />
         ) : (
-          <EmptyState icon="📭" title="لا توجد بيانات بعد" hint="اضغط تحديث لجلب تقرير هذه الفترة." />
+          <EmptyState icon="mail" title="لا توجد بيانات بعد" hint="اضغط تحديث لجلب تقرير هذه الفترة." />
         )
       ) : (
       <div className="mt-4">
         <div className="mb-4 flex flex-wrap gap-3">
-          <StatCard label="إجمالي الأعضاء" value={data.totals.totalMembers} icon="👥" className="bg-blue-dark/60" />
-          <StatCard label="الحاضرون" value={data.totals.present} icon="✅" valueClassName="text-green-300" className="bg-green-500/15" />
-          <StatCard label="الغائبون" value={data.totals.absent} icon="❌" valueClassName="text-red-300" className="bg-red-500/15" />
-          <StatCard label="نسبة الحضور" value={`${data.totals.attendanceRate}%`} icon="📊" />
+          <StatCard label="إجمالي الأعضاء" value={data.totals.totalMembers} icon="user" className="bg-blue-dark/60" />
+          <StatCard label="الحاضرون" value={data.totals.present} icon="check" valueClassName="text-green-300" className="bg-green-500/15" />
+          <StatCard label="الغائبون" value={data.totals.absent} icon="x" valueClassName="text-red-300" className="bg-red-500/15" />
+          <StatCard label="نسبة الحضور" value={`${data.totals.attendanceRate}%`} icon="calendar" />
         </div>
         {data.meetings.length > 0 ? (
           <div className="mt-4">
@@ -105,7 +105,7 @@ function RangeView({ from, to, onChangeFrom, onChangeTo, data, loading, onRefres
             </div>
           </div>
         ) : (
-          <EmptyState icon="📭" title="لا توجد اجتماعات في هذا المجىء" hint="جرّب توسيع الفترة الزمنية." />
+          <EmptyState icon="mail" title="لا توجد اجتماعات في هذا المجىء" hint="جرّب توسيع الفترة الزمنية." />
         )}
       </div>
       )}
@@ -154,10 +154,10 @@ function MeetingView({ meetings, selectedId, onChangeId, data, loading, onRefres
       {loading && !data && <Spinner label="جارٍ تحميل تقرير الاجتماع…" />}
       {stats && (
       <div className="mb-4 flex flex-wrap gap-3">
-        <StatCard label="إجمالي الأعضاء" value={stats.totalMembers} icon="👥" className="bg-blue-dark/60" />
-        <StatCard label="الحاضرون" value={stats.present} icon="✅" valueClassName="text-green-300" className="bg-green-500/15" />
-        <StatCard label="الغائبون" value={stats.absent} icon="❌" valueClassName="text-red-300" className="bg-red-500/15" />
-        <StatCard label="نسبة الحضور" value={`${stats.attendanceRate}%`} icon="📊" />
+        <StatCard label="إجمالي الأعضاء" value={stats.totalMembers} icon="user" className="bg-blue-dark/60" />
+        <StatCard label="الحاضرون" value={stats.present} icon="check" valueClassName="text-green-300" className="bg-green-500/15" />
+        <StatCard label="الغائبون" value={stats.absent} icon="x" valueClassName="text-red-300" className="bg-red-500/15" />
+        <StatCard label="نسبة الحضور" value={`${stats.attendanceRate}%`} icon="calendar" />
       </div>
       )}
       {data && (
@@ -193,7 +193,7 @@ function MeetingView({ meetings, selectedId, onChangeId, data, loading, onRefres
         </div>
       )}
       {!data && !loading && !selectedMeeting && (
-        <EmptyState icon="📋" title="اختر اجتماعًا لعرض التقرير" hint="ستظهر قائمة بالحضور بعد الاختيار" />
+        <EmptyState icon="book" title="اختر اجتماعًا لعرض التقرير" hint="ستظهر قائمة بالحضور بعد الاختيار" />
       )}
     </Card>
   );
@@ -290,4 +290,3 @@ export default function AttendanceReportsPage() {
     </>
   );
 }
-
