@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import PageHeader from "@/components/PageHeader";
 import Slideshow from "@/components/Slideshow";
@@ -8,6 +9,7 @@ type Photo = { id: string; url: string; width: number; height: number };
 type Event = { name: string; path: string; photos: Photo[] };
 
 export default function GalleryPage() {
+  const t = useTranslations("gallery");
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeEvent, setActiveEvent] = useState<string | null>(null); // null = all
@@ -27,7 +29,7 @@ export default function GalleryPage() {
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title="Gallery" icon="🖼️" />
+      <PageHeader title={t("title")} icon="🖼️" />
 
       {/* Event filter tabs */}
       <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-none">
@@ -36,7 +38,7 @@ export default function GalleryPage() {
           className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
             activeEvent === null ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"
           }`}>
-          All
+          {t("all")}
         </button>
         {events.map((e) => (
           <button key={e.path} onClick={() => setActiveEvent(e.path)}
@@ -54,18 +56,18 @@ export default function GalleryPage() {
           <button
             onClick={() => setSlideshow({ photos: displayedPhotos, index: 0 })}
             className="flex items-center gap-2 rounded-xl bg-blue-primary/40 px-4 py-2 text-sm text-white border border-blue-mid/40">
-            ▶ Play Slideshow ({displayedPhotos.length} photos)
+            ▶ {t("playSlideshow")} ({displayedPhotos.length} {t("photos")})
           </button>
         </div>
       )}
 
       {/* Grid */}
       {loading ? (
-        <div className="flex justify-center pt-20 text-blue-light/50">Loading…</div>
+        <div className="flex justify-center pt-20 text-blue-light/50">{t("loading")}</div>
       ) : displayedPhotos.length === 0 ? (
         <div className="flex flex-col items-center pt-20 text-blue-light/50 gap-2">
           <span className="text-5xl">🖼️</span>
-          <p className="text-sm">No photos yet</p>
+          <p className="text-sm">{t("empty")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-0.5 px-0.5">

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import PageHeader from "@/components/PageHeader";
 import WeeklyMeetingCard from "@/components/WeeklyMeetingCard";
@@ -60,6 +60,7 @@ function DateStrip({ events, invitations, onInvitationTap }: {
 export default function EventsPage() {
   const locale = useLocale();
   const isAr = locale === "ar";
+  const t = useTranslations("events");
   const [events, setEvents] = useState<SpecialEvent[]>([]);
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +86,7 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title={isAr ? "الفعاليات" : "Events"} icon="📅" />
+      <PageHeader title={t("title")} icon="📅" />
 
       <div className="pt-4 pb-2">
         <WeeklyMeetingCard />
@@ -106,7 +107,7 @@ export default function EventsPage() {
       {olderInvitations.length > 0 && (
         <section className="px-4 pb-4">
           <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-blue-light/50">
-            {isAr ? "دعوات سابقة" : "Older Invitations"}
+            {t("olderInvitations")}
           </p>
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
             {olderInvitations.map((inv) => (
@@ -124,13 +125,13 @@ export default function EventsPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center pt-10 text-blue-light/50 text-sm">Loading…</div>
+        <div className="flex justify-center pt-10 text-blue-light/50 text-sm">{t("loading")}</div>
       ) : (
         <div className="px-4 pb-4">
           {upcoming.length > 0 && (
             <section className="mb-4">
               <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-blue-light/50">
-                {isAr ? "فعاليات قادمة" : "Upcoming"}
+                {t("upcomingEvents")}
               </p>
               <div className="flex flex-col gap-3">
                 {upcoming.map((e) => <EventCard key={e.id} event={e} isAr={isAr} invitation={invitations.find((i) => i.date === e.date)} onInvitationTap={setFullscreenImg} />)}
@@ -141,7 +142,7 @@ export default function EventsPage() {
           {upcoming.length === 0 && invitations.length === 0 && (
             <div className="flex flex-col items-center pt-8 text-blue-light/40 gap-2">
               <span className="text-4xl">📅</span>
-              <p className="text-sm">{isAr ? "لا توجد فعاليات حالياً" : "No events yet"}</p>
+              <p className="text-sm">{t("empty")}</p>
             </div>
           )}
         </div>

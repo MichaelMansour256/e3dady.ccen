@@ -9,7 +9,11 @@
   "events": {
     "title": "Events",
     "upcoming": "Upcoming",
-    "past": "Past Events"
+    "past": "Past Events",
+    "olderInvitations": "Older Invitations",
+    "upcomingEvents": "Upcoming",
+    "empty": "No events yet",
+    "loading": "Loading…"
   },
   "bible": {
     "title": "Bible",
@@ -20,10 +24,48 @@
   },
   "games": {
     "title": "Games",
+    "challenge": "Bible verse challenge game",
+    "playNow": "Play Now ▶",
+    "back": "Back",
     "holyWordle": "HolyWordle",
     "crossword": "Crossword",
     "whoAmI": "Who Am I?",
     "emojiBible": "Emoji Bible"
+  },
+  "verse": {
+    "title": "Verse of the Week",
+    "loading": "Loading…",
+    "empty": "No verse of the week has been selected yet",
+    "translation": "Van Dyck translation",
+    "note": "Note",
+    "weekLabel": "Verse of the week"
+  },
+  "search": {
+    "title": "Topic search"
+  },
+  "gallery": {
+    "title": "Gallery",
+    "all": "All",
+    "playSlideshow": "Play Slideshow",
+    "photos": "photos",
+    "loading": "Loading…",
+    "empty": "No photos yet"
+  },
+  "contact": {
+    "title": "Contact",
+    "followUs": "Follow Us"
+  },
+  "prayerWall": {
+    "title": "Prayer Wall",
+    "thanks": "Thank you! Your request is under review",
+    "pending": "It will appear after servant approval",
+    "addAnother": "Add another",
+    "share": "Share a Prayer Request",
+    "namePlaceholder": "Your name (optional)",
+    "requestPlaceholder": "Write your prayer request here…",
+    "send": "Send Request 🙏",
+    "loading": "Loading…",
+    "empty": "No prayer requests yet"
   },
   "more": {
     "title": "More",

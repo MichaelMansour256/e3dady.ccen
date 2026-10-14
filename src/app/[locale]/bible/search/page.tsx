@@ -1,6 +1,8 @@
 import PageHeader from "@/components/PageHeader";
 import BibleRagSearch from "@/components/bible/BibleRagSearch";
+import { useTranslations } from "next-intl";
 
 export default function BibleSearchPage() {
-  return <div className="min-h-dvh page-gradient"><PageHeader title="البحث الموضوعي" icon="🔎" /><BibleRagSearch /></div>;
+  const t = useTranslations("search");
+  return <div className="min-h-dvh page-gradient"><PageHeader title={t("title")} icon="🔎" /><BibleRagSearch /></div>;
 }

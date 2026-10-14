@@ -1,4 +1,5 @@
 import { NextIntlClientProvider } from "next-intl";
+import type { Metadata } from "next";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
@@ -10,6 +11,25 @@ import { Cairo, Inter } from "next/font/google";
 
 const cairo = Cairo({ subsets: ["arabic"], weight: ["400", "600", "700"], variable: "--font-cairo", display: "swap" });
 const inter = Inter({ subsets: ["latin"], weight: ["400", "600", "700"], variable: "--font-inter", display: "swap" });
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const isAr = locale === "ar";
+  return {
+    title: isAr ? "اجتماع شباب إعدادي" : siteConfig.name,
+    description: isAr ? siteConfig.description.ar : siteConfig.description.en,
+    alternates: {
+      languages: {
+        ar: "/ar",
+        en: "/en",
+      },
+    },
+  };
+}
 
 export default async function LocaleLayout({
   children,

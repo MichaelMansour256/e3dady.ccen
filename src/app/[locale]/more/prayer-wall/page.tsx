@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import PageHeader from "@/components/PageHeader";
 
 type Prayer = { id: string; name: string; request: string; pray_count: number; created_at: string };
@@ -8,6 +8,7 @@ type Prayer = { id: string; name: string; request: string; pray_count: number; c
 export default function PrayerWallPage() {
   const locale = useLocale();
   const isAr = locale === "ar";
+  const t = useTranslations("prayerWall");
 
   const [prayers, setPrayers] = useState<Prayer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,15 +16,17 @@ export default function PrayerWallPage() {
   const [request, setRequest] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [prayedIds, setPrayedIds] = useState<Set<string>>(new Set());
+  const [prayedIds, setPrayedIds] = useState<Set<string>>(() => {
+    if (typeof window === "undefined") return new Set();
+    const stored = window.localStorage.getItem("prayedIds");
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  });
 
   useEffect(() => {
     fetch("/api/prayer")
       .then((r) => r.json())
       .then((data) => { setPrayers(Array.isArray(data) ? data : []); setLoading(false); });
     // Load prayed ids from localStorage
-    const stored = localStorage.getItem("prayedIds");
-    if (stored) setPrayedIds(new Set(JSON.parse(stored)));
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -59,7 +62,7 @@ export default function PrayerWallPage() {
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title={isAr ? "جدار الصلاة" : "Prayer Wall"} icon="✝️" />
+      <PageHeader title={t("title")} icon="✝️" />
 
       <div className="flex flex-col gap-4 px-4 py-4 max-w-lg mx-auto">
 
@@ -67,34 +70,34 @@ export default function PrayerWallPage() {
         {submitted ? (
           <div className="rounded-2xl border border-green-400/30 bg-green-400/10 p-5 text-center" dir="rtl">
             <p className="text-2xl mb-2">🙏</p>
-            <p className="font-semibold text-white">{isAr ? "شكراً! طلبك قيد المراجعة" : "Thank you! Your request is under review"}</p>
-            <p className="text-sm text-blue-light/60 mt-1">{isAr ? "سيظهر بعد موافقة الخادم" : "It will appear after servant approval"}</p>
+            <p className="font-semibold text-white">{t("thanks")}</p>
+            <p className="text-sm text-blue-light/60 mt-1">{t("pending")}</p>
             <button onClick={() => setSubmitted(false)}
               className="mt-3 text-sm text-blue-accent underline">
-              {isAr ? "أضف طلباً آخر" : "Add another"}
+              {t("addAnother")}
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} dir="rtl"
             className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4 backdrop-blur-sm">
             <p className="font-semibold text-white mb-3">
-              {isAr ? "✝️ شارك بطلب صلاة" : "✝️ Share a Prayer Request"}
+              {t("share")}
             </p>
             <div className="flex flex-col gap-2">
               <input
-                placeholder={isAr ? "اسمك (اختياري)" : "Your name (optional)"}
+                placeholder={t("namePlaceholder")}
                 value={name} onChange={(e) => setName(e.target.value)}
                 className="w-full rounded-xl bg-blue-dark/60 px-4 py-2 text-white placeholder-blue-light/40 outline-none ring-1 ring-blue-mid/40 focus:ring-blue-accent text-sm"
               />
               <textarea
-                placeholder={isAr ? "اكتب طلب صلاتك هنا…" : "Write your prayer request here…"}
+                placeholder={t("requestPlaceholder")}
                 value={request} onChange={(e) => setRequest(e.target.value)}
                 rows={3}
                 className="w-full rounded-xl bg-blue-dark/60 px-4 py-2 text-white placeholder-blue-light/40 outline-none ring-1 ring-blue-mid/40 focus:ring-blue-accent text-sm resize-none"
               />
               <button type="submit" disabled={submitting || !request.trim()}
                 className="rounded-xl bg-blue-accent py-2 text-sm font-semibold text-white hover:bg-blue-mid disabled:opacity-50 transition">
-                {submitting ? "…" : isAr ? "أرسل الطلب 🙏" : "Send Request 🙏"}
+                {submitting ? "…" : t("send")}
               </button>
             </div>
           </form>
@@ -103,12 +106,12 @@ export default function PrayerWallPage() {
         {/* Prayer cards */}
         {loading ? (
           <div className="flex justify-center pt-8 text-blue-light/50 text-sm">
-            {isAr ? "جاري التحميل…" : "Loading…"}
+            {t("loading")}
           </div>
         ) : prayers.length === 0 ? (
           <div className="flex flex-col items-center pt-8 gap-2 text-blue-light/40">
             <span className="text-4xl">✝️</span>
-            <p className="text-sm">{isAr ? "لا توجد طلبات صلاة بعد" : "No prayer requests yet"}</p>
+            <p className="text-sm">{t("empty")}</p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
