@@ -22,7 +22,7 @@ type LoadStatus = "loading" | "ready" | "error";
 
 const CHIP = "shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition";
 const INPUT =
-  "rounded-xl bg-blue-dark/60 px-3 py-2 text-sm text-white placeholder-blue-light/40 outline-none ring-1 ring-blue-mid/40 focus:ring-blue-accent";
+  "rounded-xl border border-navy/15 bg-white px-3 py-2 text-sm text-navy placeholder-navy/40 outline-none focus:border-coral";
 
 
 /**
@@ -200,7 +200,7 @@ export default function ContentLibrary({
           <button
             type="button"
             onClick={() => setCategory(null)}
-            className={`${CHIP} ${category === null ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}
+            className={`${CHIP} ${category === null ? "bg-coral text-navy" : "border border-navy/10 bg-white text-navy/70 shadow-sm"}`}
           >
             {t("allCategories")}
           </button>
@@ -209,7 +209,7 @@ export default function ContentLibrary({
               key={option.value}
               type="button"
               onClick={() => setCategory(category === option.value ? null : option.value)}
-              className={`${CHIP} ${category === option.value ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}
+              className={`${CHIP} ${category === option.value ? "bg-coral text-navy" : "border border-navy/10 bg-white text-navy/70 shadow-sm"}`}
             >
               <Icon name={option.icon} size={15} /> {option.label}
             </button>
@@ -223,7 +223,7 @@ export default function ContentLibrary({
           <button
             type="button"
             onClick={() => setFormat(null)}
-            className={`${CHIP} ${format === null ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}
+            className={`${CHIP} ${format === null ? "bg-coral text-navy" : "border border-navy/10 bg-white text-navy/70 shadow-sm"}`}
           >
             {t("allTypes")}
           </button>
@@ -232,7 +232,7 @@ export default function ContentLibrary({
               key={option.value}
               type="button"
               onClick={() => setFormat(format === option.value ? null : option.value)}
-              className={`${CHIP} ${format === option.value ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}
+              className={`${CHIP} ${format === option.value ? "bg-coral text-navy" : "border border-navy/10 bg-white text-navy/70 shadow-sm"}`}
             >
               <Icon name={option.icon} size={15} /> {option.label}
             </button>
@@ -241,12 +241,12 @@ export default function ContentLibrary({
       )}
       {/* ── Optional Bible reference filter ── */}
       {referenceText ? (
-        <div className="flex items-center gap-2 rounded-xl border border-blue-accent/30 bg-blue-accent/10 px-3 py-2">
-          <span className="flex items-center gap-1 text-sm font-semibold text-blue-accent"><Icon name="book" size={15} /> {referenceText}</span>
+        <div className="flex items-center gap-2 rounded-xl border border-coral/30 bg-coral/10 px-3 py-2">
+          <span className="flex items-center gap-1 text-sm font-semibold text-coral"><Icon name="book" size={15} /> {referenceText}</span>
           <button
             type="button"
             onClick={clearReference}
-            className="ms-auto rounded-full bg-blue-dark/40 px-2.5 py-1 text-xs text-blue-light/70 transition hover:text-white"
+            className="focus-ring ms-auto rounded-full bg-white px-2.5 py-1 text-xs text-navy/70 shadow-sm transition hover:text-coral"
           >
             <Icon name="x" size={14} /> {t("clearReference")}
           </button>
@@ -256,7 +256,7 @@ export default function ContentLibrary({
           <button
             type="button"
             onClick={() => setReferenceOpen((open) => !open)}
-            className="self-start text-xs font-semibold text-blue-light/60 transition hover:text-white"
+            className="focus-ring self-start text-xs font-semibold text-navy/70 transition hover:text-coral"
           >
             <Icon name="book" size={15} /> {t("reference")} <Icon name={referenceOpen ? "arrow" : "arrow"} size={13} className={referenceOpen ? "rotate-90" : "-rotate-90"} />
           </button>
@@ -295,17 +295,17 @@ export default function ContentLibrary({
 
       {/* ── Results ── */}
       {status === "loading" && (
-        <p className="py-10 text-center text-sm text-blue-light/50">{t("loading")}</p>
+        <p className="py-10 text-center text-sm text-navy/60">{t("loading")}</p>
       )}
 
       {status === "error" && (
-        <div className="flex flex-col items-center gap-3 py-10 text-blue-light/50">
+        <div className="flex flex-col items-center gap-3 py-10 text-navy/60">
           <Icon name="x" size={30} className="text-coral" />
           <p className="text-sm">{t("error")}</p>
           <button
             type="button"
             onClick={retry}
-            className="rounded-xl bg-blue-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-mid"
+            className="focus-ring pressable rounded-xl bg-coral px-4 py-2 text-sm font-semibold text-navy transition hover:brightness-95"
           >
             {t("retry")}
           </button>
@@ -313,11 +313,11 @@ export default function ContentLibrary({
       )}
 
       {status === "ready" && visible.length === 0 && (
-        <div className="flex flex-col items-center gap-2 py-10 text-center text-blue-light/40">
+        <div className="flex flex-col items-center gap-2 py-10 text-center text-navy/50">
           <Icon name={kind === "study" ? "book" : "menu"} size={36} className="text-coral" />
           <p className="text-sm">{emptyMessage}</p>
           {filtersActive && (
-            <button type="button" onClick={clearAllFilters} className="text-sm text-blue-accent underline">
+            <button type="button" onClick={clearAllFilters} className="focus-ring text-sm font-semibold text-coral underline">
               {t("clearFilters")}
             </button>
           )}

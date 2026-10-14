@@ -83,30 +83,30 @@ export default function CheckinRunner({ token }: { token: string }) {
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-5 py-8">
-      <div className="w-full max-w-sm rounded-3xl border border-blue-mid/40 bg-blue-primary/30 p-7 text-center shadow-xl backdrop-blur-sm">
+      <div className="w-full max-w-sm rounded-3xl border border-navy/10 bg-white p-7 text-center shadow-xl shadow-navy/10">
         {state.kind === "loading" && (
           <>
             <div className="mb-4 text-5xl" aria-hidden>
-              <Icon name="clock" size={44} className="mx-auto text-blue-accent" />
+              <Icon name="clock" size={44} className="mx-auto text-coral" />
             </div>
-            <h1 className="text-xl font-bold text-white">جارٍ تسجيل الحضور…</h1>
-            <p className="mt-2 text-sm text-blue-light/60">لا تغلق الصفحة</p>
+            <h1 className="text-xl font-bold text-navy">جارٍ تسجيل الحضور…</h1>
+            <p className="mt-2 text-sm text-navy/70">لا تغلق الصفحة</p>
           </>
         )}
 
         {state.kind === "network" && (
           <>
             <div className="mb-4 text-5xl" aria-hidden>
-              <Icon name="refresh" size={44} className="mx-auto text-blue-accent" />
+              <Icon name="refresh" size={44} className="mx-auto text-coral" />
             </div>
-            <h1 className="text-xl font-bold text-white"><Icon name="x" size={20} className="inline-block align-text-bottom text-coral" /> تعذّر الاتصال</h1>
-            <p className="mt-2 text-sm text-blue-light/60">
+            <h1 className="text-xl font-bold text-navy"><Icon name="x" size={20} className="inline-block align-text-bottom text-coral" /> تعذّر الاتصال</h1>
+            <p className="mt-2 text-sm text-navy/70">
               تحقّق من اتصالك بالإنترنت وحاول مرة أخرى.
             </p>
             <button
               type="button"
               onClick={() => void submit()}
-              className="mt-6 w-full rounded-2xl bg-blue-accent px-4 py-3 font-semibold text-white transition hover:bg-blue-mid"
+              className="focus-ring pressable mt-6 w-full rounded-2xl bg-coral px-4 py-3 font-semibold text-navy transition hover:brightness-95"
             >
               إعادة المحاولة
             </button>
@@ -115,7 +115,7 @@ export default function CheckinRunner({ token }: { token: string }) {
 
         {state.kind === "result" && (
           <>
-            <h1 className="text-xl font-bold leading-relaxed text-white">
+            <h1 className="text-xl font-bold leading-relaxed text-navy">
               {(() => {
                 const headline = HEADLINES[state.data.status] ?? { icon: "clock" as const, text: "الحالة" };
                 return <><Icon name={headline.icon} size={22} className="me-2 inline-block align-text-bottom text-coral" />{headline.text}</>;
@@ -124,46 +124,46 @@ export default function CheckinRunner({ token }: { token: string }) {
 
             {state.data.member && (
               <>
-                <p className="mt-5 text-2xl font-bold text-white">{state.data.member.name}</p>
-                <p className="mt-1 text-xs tracking-widest text-blue-light/50">
+                <p className="mt-5 text-2xl font-bold text-navy">{state.data.member.name}</p>
+                <p className="mt-1 text-xs tracking-widest text-navy/50">
                   Attendance ID: {state.data.member.member_code}
                 </p>
-                <p className="mt-1 text-sm text-blue-light/70">
+                <p className="mt-1 text-sm text-navy/70">
                   الصف: {gradeLabel(state.data.member.grade)}
                 </p>
-                <p className="mt-1 text-sm text-blue-light/70">
+                <p className="mt-1 text-sm text-navy/70">
                   النوع: {genderLabel(state.data.member.gender)}
                 </p>
               </>
             )}
 
             {state.data.status === "found" && (
-              <div className="mt-5 border-t border-blue-mid/25 pt-4">
+              <div className="mt-5 border-t border-navy/10 pt-4">
                 {state.data.checked_in ? (
                   <>
-                    <p className="text-lg font-semibold text-green-300">
+                    <p className="text-lg font-semibold text-green-700">
                       <Icon name="check" size={18} className="me-1 inline-block text-success" /> تم تسجيل الحضور بالفعل
                     </p>
-                    <p className="mt-2 text-sm text-blue-light/60">
+                    <p className="mt-2 text-sm text-navy/70">
                       وقت التسجيل:{" "}
-                      <span className="font-semibold text-blue-light">
+                      <span className="font-semibold text-navy">
                         {formatTimeAr(state.data.check_in_time)}
                       </span>
                     </p>
                   </>
                 ) : (
-                  <p className="text-lg font-semibold text-white">
+                  <p className="text-lg font-semibold text-navy">
                     <Icon name="x" size={18} className="me-1 inline-block text-coral" /> لم يتم تسجيل الحضور بعد
                   </p>
                 )}
 
                 {state.data.meeting ? (
-                  <p className="mt-3 text-sm text-blue-light/70">
+                  <p className="mt-3 text-sm text-navy/70">
                     الاجتماع الحالي: {state.data.meeting.title} ·{" "}
                     {formatDateAr(state.data.meeting.meeting_date)}
                   </p>
                 ) : (
-                  <p className="mt-3 text-sm text-blue-light/60">
+                  <p className="mt-3 text-sm text-navy/70">
                     لا يوجد اجتماع مفتوح حاليًا
                   </p>
                 )}
@@ -171,11 +171,11 @@ export default function CheckinRunner({ token }: { token: string }) {
             )}
 
             {SUBTITLES[state.data.status] && (
-              <p className="mt-4 text-sm text-blue-light/60">{SUBTITLES[state.data.status]}</p>
+              <p className="mt-4 text-sm text-navy/70">{SUBTITLES[state.data.status]}</p>
             )}
 
             {state.data.status === "found" && (
-              <p className="mt-5 border-t border-blue-mid/25 pt-4 text-xs leading-relaxed text-blue-light/50">
+              <p className="mt-5 border-t border-navy/10 pt-4 text-xs leading-relaxed text-navy/60">
                 <Icon name="x" size={14} className="me-1 inline-block" /> لا يمكن تسجيل الحضور من هذه الصفحة — التسجيل يتم فقط بواسطة خادم/مسؤول
                 مصرّح له من شاشة المسح الخاصة بالإدارة.
               </p>

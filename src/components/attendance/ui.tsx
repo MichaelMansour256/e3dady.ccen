@@ -16,7 +16,7 @@ export const inputClass =
   "w-full rounded-xl bg-blue-dark/60 px-4 py-2 text-white placeholder-blue-light/40 outline-none ring-1 ring-blue-mid/40 focus:ring-blue-accent text-sm";
 
 export const primaryBtn =
-  "rounded-xl bg-blue-accent px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-mid disabled:opacity-50 disabled:cursor-not-allowed";
+  "rounded-xl bg-blue-accent px-4 py-2 text-sm font-semibold text-navy transition hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed";
 
 export const subtleBtn =
   "rounded-xl bg-blue-dark/60 px-3 py-2 text-sm font-semibold text-blue-light/80 transition hover:bg-blue-mid hover:text-white disabled:opacity-50";

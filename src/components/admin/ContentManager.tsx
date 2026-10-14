@@ -348,7 +348,7 @@ export default function ContentManager() {
                   }))
                 }
                 className={`flex-1 rounded-xl py-2 text-sm font-semibold transition ${
-                  draft.type === kind ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"
+                  draft.type === kind ? "bg-blue-accent text-navy" : "bg-blue-primary/40 text-blue-light/70"
                 }`}
               >
                 {kind === "study" ? "📚 Study" : "🗂️ Resource"}
@@ -608,7 +608,7 @@ export default function ContentManager() {
               key={value}
               type="button"
               onClick={() => setScope(value)}
-              className={`${CHIP} ${scope === value ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}
+              className={`${CHIP} ${scope === value ? "bg-blue-accent text-navy" : "bg-blue-primary/40 text-blue-light/70"}`}
             >
               {label}
             </button>

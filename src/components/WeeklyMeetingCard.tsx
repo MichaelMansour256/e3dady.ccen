@@ -25,7 +25,7 @@ export default function WeeklyMeetingCard() {
           </p>
         </div>
         {countdown.isToday && (
-          <span className="ms-auto rounded-full bg-blue-accent px-3 py-0.5 text-xs font-bold text-white animate-pulse">
+          <span className="ms-auto rounded-full bg-blue-accent px-3 py-0.5 text-xs font-bold text-navy animate-pulse">
             {isAr ? "اليوم!" : "Today!"}
           </span>
         )}

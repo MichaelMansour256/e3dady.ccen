@@ -48,9 +48,9 @@ export default function AttendanceNav({ current }: { current?: string }) {
             key={tab.key}
             href={tab.href}
             aria-current={isActive ? "page" : undefined}
-            className={`flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition ${
+            className={`focus-ring flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition ${
               isActive
-                ? "bg-blue-accent text-white"
+                ? "bg-blue-accent text-navy"
                 : "text-blue-light/70 hover:bg-blue-primary/60 hover:text-white"
             }`}
           >

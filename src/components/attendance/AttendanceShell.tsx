@@ -15,7 +15,7 @@ export default function AttendanceShell({ children }: { children: React.ReactNod
   const { logout } = useAttendanceApi();
 
   return (
-    <div className="min-h-dvh px-3 py-5 page-gradient sm:px-4 sm:py-6">
+    <div className="admin-surface px-3 py-5 sm:px-4 sm:py-6">
       <div className="mx-auto max-w-5xl">
         <header className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden">
           <div>

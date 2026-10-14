@@ -36,15 +36,15 @@ export default function GalleryPage() {
       <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-none">
         <button
           onClick={() => setActiveEvent(null)}
-          className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-            activeEvent === null ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"
+          className={`focus-ring shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+            activeEvent === null ? "bg-coral text-navy" : "border border-navy/10 bg-white text-navy/70 shadow-sm"
           }`}>
           {t("all")}
         </button>
         {events.map((e) => (
           <button key={e.path} onClick={() => setActiveEvent(e.path)}
-            className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
-              activeEvent === e.path ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"
+            className={`focus-ring shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+              activeEvent === e.path ? "bg-coral text-navy" : "border border-navy/10 bg-white text-navy/70 shadow-sm"
             }`}>
             {e.name}
           </button>
@@ -56,17 +56,17 @@ export default function GalleryPage() {
         <div className="px-4 pb-2">
           <button
             onClick={() => setSlideshow({ photos: displayedPhotos, index: 0 })}
-            className="flex items-center gap-2 rounded-xl bg-blue-primary/40 px-4 py-2 text-sm text-white border border-blue-mid/40">
-            ▶ {t("playSlideshow")} ({displayedPhotos.length} {t("photos")})
+            className="focus-ring pressable flex items-center gap-2 rounded-xl bg-navy px-4 py-2 text-sm font-semibold text-white">
+            <Icon name="play" size={16} /> {t("playSlideshow")} ({displayedPhotos.length} {t("photos")})
           </button>
         </div>
       )}
 
       {/* Grid */}
       {loading ? (
-        <div className="flex justify-center pt-20 text-blue-light/50">{t("loading")}</div>
+        <div className="flex justify-center pt-20 text-navy/60">{t("loading")}</div>
       ) : displayedPhotos.length === 0 ? (
-        <div className="flex flex-col items-center pt-20 text-blue-light/50 gap-2">
+        <div className="flex flex-col items-center pt-20 text-navy/50 gap-2">
           <Icon name="sparkles" size={44} className="text-coral" />
           <p className="text-sm">{t("empty")}</p>
         </div>
@@ -74,7 +74,7 @@ export default function GalleryPage() {
         <div className="grid grid-cols-3 gap-0.5 px-0.5">
           {displayedPhotos.map((photo, i) => (
             <button key={photo.id} onClick={() => setSlideshow({ photos: displayedPhotos, index: i })}
-              className="relative aspect-square overflow-hidden bg-blue-primary/20">
+              className="relative aspect-square overflow-hidden bg-navy/5">
               <Image src={photo.url} alt="" fill className="object-cover transition hover:scale-105" sizes="33vw" />
             </button>
           ))}

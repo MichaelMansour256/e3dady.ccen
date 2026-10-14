@@ -60,7 +60,7 @@ export default function ContentCard({
     : undefined;
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-blue-mid/40 bg-blue-primary/30 backdrop-blur-sm">
+    <article className="overflow-hidden rounded-2xl border border-navy/10 bg-white shadow-sm">
       {item.image && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={item.image} alt="" loading="lazy" className="h-36 w-full object-cover" />
@@ -68,11 +68,11 @@ export default function ContentCard({
 
       <div className="flex flex-col gap-3 p-4">
         <div className="flex items-start gap-3">
-          <Icon name={format?.icon ?? category?.icon ?? (item.type === "study" ? "book" : "menu")} size={24} />
+          <Icon name={format?.icon ?? category?.icon ?? (item.type === "study" ? "book" : "menu")} size={24} className="text-coral" />
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-semibold leading-snug text-white">{title}</h2>
+            <h2 className="text-base font-semibold leading-snug text-navy">{title}</h2>
             {description && (
-              <p className="mt-1 line-clamp-3 text-sm leading-relaxed text-blue-light/75">{description}</p>
+              <p className="mt-1 line-clamp-3 text-sm leading-relaxed text-navy/70">{description}</p>
             )}
           </div>
         </div>
@@ -80,12 +80,12 @@ export default function ContentCard({
         {(category || format || refLabel || relatedStudy) && (
           <div className="flex flex-wrap items-center gap-1.5">
             {category && (
-              <span className="rounded-full bg-blue-dark/40 px-2.5 py-1 text-xs text-blue-light/70">
+              <span className="rounded-full bg-cream px-2.5 py-1 text-xs text-navy/75">
                 <Icon name={category.icon} size={14} /> {category.label}
               </span>
             )}
             {format && (
-              <span className="rounded-full bg-blue-dark/40 px-2.5 py-1 text-xs text-blue-light/70">
+              <span className="rounded-full bg-cream px-2.5 py-1 text-xs text-navy/75">
                 <Icon name={format.icon} size={14} /> {format.label}
               </span>
             )}
@@ -93,13 +93,13 @@ export default function ContentCard({
               <Link
                 href={referenceHref(locale, siblingSection, reference)}
                 title={isAr ? `شاهد ${siblingSection === "studies" ? "الدراسات" : "الموارد"} المتعلقة بـ ${refLabel}` : `Show ${siblingSection === "studies" ? "studies" : "resources"} for ${refLabel}`}
-                className="rounded-full bg-blue-accent/15 px-2.5 py-1 text-xs font-semibold text-blue-accent transition hover:bg-blue-accent/25"
+                className="rounded-full bg-coral/15 px-2.5 py-1 text-xs font-semibold text-coral transition hover:bg-coral/25"
               >
                 <Icon name="book" size={14} /> {refLabel} <Icon name="arrow" size={14} />
               </Link>
             )}
             {refLabel && !showReferenceLink && (
-              <span className="rounded-full bg-blue-accent/15 px-2.5 py-1 text-xs font-semibold text-blue-accent">
+              <span className="rounded-full bg-coral/15 px-2.5 py-1 text-xs font-semibold text-coral">
                 <Icon name="book" size={14} /> {refLabel}
               </span>
             )}
@@ -109,7 +109,7 @@ export default function ContentCard({
                 target="_blank"
                 rel="noopener noreferrer"
                 title={isAr ? "افتح الدراسة المرتبطة" : "Open the related study"}
-                className="rounded-full bg-yellow-400/10 px-2.5 py-1 text-xs text-yellow-300/90 transition hover:bg-yellow-400/20"
+                className="rounded-full bg-butter px-2.5 py-1 text-xs text-navy transition hover:brightness-95"
               >
                 <Icon name="book" size={14} /> {t("relatedStudy")}: {contentTitle(relatedStudy, isAr)}
               </a>
@@ -122,7 +122,7 @@ export default function ContentCard({
           target="_blank"
           rel="noopener noreferrer"
           title={t("openInNewTab")}
-          className="flex items-center justify-center gap-2 rounded-xl bg-blue-accent py-2.5 text-sm font-semibold text-white transition hover:bg-blue-mid active:scale-[0.98]"
+          className="focus-ring pressable flex items-center justify-center gap-2 rounded-xl bg-coral py-2.5 text-sm font-semibold text-navy transition hover:brightness-95 active:scale-[0.98]"
         >
           <Icon name={format?.icon ?? "arrow"} size={16} />
           {action}

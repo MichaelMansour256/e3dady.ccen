@@ -211,7 +211,7 @@ export default function InstallBanner() {
         id="install-banner"
         role="dialog"
         aria-label={t("dialogLabel")}
-        className={`pointer-events-auto relative mx-auto w-full max-w-lg overflow-hidden rounded-2xl border border-blue-accent/30 bg-gradient-to-br from-blue-primary/80 to-blue-dark/95 p-3 shadow-2xl shadow-blue-dark/60 backdrop-blur-md sm:p-4 ${
+        className={`pointer-events-auto relative mx-auto w-full max-w-lg overflow-hidden rounded-2xl border border-coral/30 bg-navy p-3 shadow-2xl shadow-navy/40 sm:p-4 ${
           phase === "closing" ? "install-banner-exit" : "install-banner-enter"
         }`}
       >
@@ -235,7 +235,7 @@ export default function InstallBanner() {
           {/* Copy */}
           <div className="min-w-0">
             <p className="text-sm font-bold text-white">{t("title")}</p>
-            <p className="mt-0.5 text-xs leading-relaxed text-blue-light/80 sm:line-clamp-2">{t("description")}</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-white/75 sm:line-clamp-2">{t("description")}</p>
           </div>
 
           {/* Actions — full-width comfortable targets on mobile, inline on sm+.
@@ -246,7 +246,7 @@ export default function InstallBanner() {
               onClick={() => close(true)}
               aria-label={t("laterAria")}
               disabled={busy}
-              className="h-10 flex-1 rounded-xl border border-blue-mid/40 bg-white/5 px-4 text-xs font-semibold text-blue-light transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-blue-dark active:scale-95 disabled:opacity-60 sm:flex-none sm:text-sm"
+              className="focus-ring h-10 flex-1 rounded-xl border border-white/25 bg-white/10 px-4 text-xs font-semibold text-white transition hover:bg-white/20 active:scale-95 disabled:opacity-60 sm:flex-none sm:text-sm"
             >
               {t("later")}
             </button>
@@ -255,7 +255,7 @@ export default function InstallBanner() {
               onClick={install}
               aria-label={t("installAria")}
               disabled={busy}
-              className="h-10 flex-1 rounded-xl bg-gradient-to-l from-blue-accent to-blue-mid px-5 text-sm font-bold text-white shadow-lg shadow-blue-accent/25 transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-blue-dark active:scale-95 disabled:opacity-60 sm:flex-none"
+              className="focus-ring pressable h-10 flex-1 rounded-xl bg-coral px-5 text-sm font-bold text-navy transition hover:brightness-110 active:scale-95 disabled:opacity-60 sm:flex-none"
             >
               {t("install")}
             </button>

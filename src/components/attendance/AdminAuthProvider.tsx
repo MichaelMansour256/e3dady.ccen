@@ -108,7 +108,7 @@ export default function AdminAuthProvider({ children }: { children: React.ReactN
 
   if (auth.status === "checking") {
     return (
-      <div className="min-h-dvh page-gradient-high">
+      <div className="admin-surface min-h-dvh">
         <Spinner label="جارٍ التحقق من صلاحية الدخول…" />
       </div>
     );
@@ -116,7 +116,7 @@ export default function AdminAuthProvider({ children }: { children: React.ReactN
 
   if (!auth.authed) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center px-6 page-gradient-high">
+      <div className="admin-surface flex min-h-dvh flex-col items-center justify-center px-6">
         <div className={`w-full max-w-sm ${cardClass} p-8 backdrop-blur-sm`}>
           <h1 className="mb-2 text-center text-2xl font-bold text-white">🔐 Admin Login</h1>
           <p className="mb-6 text-center text-sm text-blue-light/60">

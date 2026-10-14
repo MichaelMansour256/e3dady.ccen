@@ -255,10 +255,10 @@ export default function NotificationsPage() {
           <div className="flex items-center gap-2">
             {filters.map(({ key, label, count }) => (
               <button key={key} onClick={() => setFilter(key)}
-                className={`flex-1 rounded-xl py-2 text-xs font-semibold transition ${
+                className={`focus-ring flex-1 rounded-xl py-2 text-xs font-semibold transition ${
                   filter === key
-                    ? "bg-blue-accent text-white"
-                    : "bg-blue-dark/40 text-blue-light/60"
+                    ? "bg-coral text-navy"
+                    : "border border-navy/10 bg-white text-navy/70 shadow-sm"
                 }`}>
                 {label} {count > 0 && `(${count})`}
               </button>
@@ -268,7 +268,7 @@ export default function NotificationsPage() {
               disabled={unreadCount === 0}
               title={t("markAllRead")}
               aria-label={t("markAllRead")}
-              className="rounded-xl bg-blue-dark/40 px-3 py-2 text-xs font-semibold text-blue-accent transition hover:bg-blue-mid/40 disabled:opacity-40"
+              className="focus-ring rounded-xl border border-navy/10 bg-white px-3 py-2 text-coral transition hover:bg-cream disabled:opacity-40"
             >
               <Icon name="check" />
             </button>
@@ -280,10 +280,10 @@ export default function NotificationsPage() {
           <div className="flex flex-col gap-3">
             {[0, 1, 2].map((i) => (
               <div key={i}
-                className="animate-pulse rounded-2xl border border-blue-mid/30 bg-blue-primary/20 p-4">
-                <div className="mb-2 h-4 w-2/3 rounded bg-blue-mid/40" />
-                <div className="mb-3 h-3 w-full rounded bg-blue-mid/25" />
-                <div className="h-3 w-1/3 rounded bg-blue-mid/20" />
+                className="animate-pulse rounded-2xl border border-navy/10 bg-white p-4 shadow-sm">
+                <div className="mb-2 h-4 w-2/3 rounded bg-navy/10" />
+                <div className="mb-3 h-3 w-full rounded bg-navy/10" />
+                <div className="h-3 w-1/3 rounded bg-navy/10" />
               </div>
             ))}
           </div>
@@ -291,11 +291,11 @@ export default function NotificationsPage() {
 
         {/* Error state — friendly message + retry, never a raw API error */}
         {!loading && error && (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-red-400/30 bg-red-400/10 p-6 text-center">
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-red-600/30 bg-white p-6 text-center shadow-sm">
             <Icon name="mail" className="text-coral" />
-            <p className="text-sm text-white/80">{t("error")}</p>
+            <p className="text-sm text-navy/80">{t("error")}</p>
             <button onClick={() => fetchPage(0, sidRef.current)}
-              className="rounded-xl bg-blue-accent px-4 py-2 text-xs font-semibold text-white hover:bg-blue-mid transition">
+              className="focus-ring rounded-xl bg-coral px-4 py-2 text-xs font-semibold text-navy transition hover:brightness-95">
               {t("retry")}
             </button>
           </div>
@@ -303,13 +303,13 @@ export default function NotificationsPage() {
 
         {/* Empty states */}
         {!loading && !error && items.length === 0 && (
-          <div className="flex flex-col items-center pt-10 gap-2 text-blue-light/40">
+          <div className="flex flex-col items-center pt-10 gap-2 text-navy/50">
             <Icon name="mail" className="text-navy/40" />
             <p className="text-sm">{t("empty")}</p>
           </div>
         )}
         {!loading && !error && items.length > 0 && visible.length === 0 && (
-          <div className="flex flex-col items-center pt-10 gap-2 text-blue-light/40">
+          <div className="flex flex-col items-center pt-10 gap-2 text-navy/50">
             <Icon name="mail" className="text-coral" />
             <p className="text-sm">{t("emptyFiltered")}</p>
           </div>
@@ -322,31 +322,31 @@ export default function NotificationsPage() {
               const unread = !readIds.has(n.id);
               return (
                 <button key={n.id} onClick={() => open(n)}
-                  className={`relative w-full rounded-2xl border p-4 text-start backdrop-blur-sm transition active:scale-[0.98] ${
+                  className={`focus-ring relative w-full rounded-2xl border p-4 text-start shadow-sm transition active:scale-[0.98] ${
                     unread
-                      ? "border-blue-accent/50 bg-blue-primary/40"
-                      : "border-blue-mid/30 bg-blue-primary/20 opacity-80"
+                      ? "border-coral/50 bg-white"
+                      : "border-navy/10 bg-white opacity-90"
                   }`}>
                   {/* unread dot */}
                   {unread && (
                     <span aria-hidden
-                      className="absolute top-3 end-3 h-2 w-2 animate-pulse rounded-full bg-blue-accent" />
+                      className="absolute top-3 end-3 h-2 w-2 animate-pulse rounded-full bg-coral" />
                   )}
                   {n.image && (
-                    <div className="relative mb-3 h-40 w-full overflow-hidden rounded-xl border border-blue-mid/30">
+                    <div className="relative mb-3 h-40 w-full overflow-hidden rounded-xl border border-navy/10">
                       <Image src={n.image} alt="" fill unoptimized
                         sizes="(max-width: 512px) 100vw, 512px"
                         className="object-cover" />
                     </div>
                   )}
-                  <p className={`mb-1 text-sm leading-snug text-white ${unread ? "font-bold" : "font-semibold"}`}
+                  <p className={`mb-1 text-sm leading-snug text-navy ${unread ? "font-bold" : "font-semibold"}`}
                     dir="auto">
                     {heading(n)}
                   </p>
-                  <p className="mb-2 line-clamp-3 text-xs leading-relaxed text-blue-light/70" dir="auto">
+                  <p className="mb-2 line-clamp-3 text-xs leading-relaxed text-navy/70" dir="auto">
                     {body(n)}
                   </p>
-                  <p className="text-[11px] text-blue-light/40">{n.whenLabel}</p>
+                  <p className="text-[11px] text-navy/50">{n.whenLabel}</p>
                 </button>
               );
             })}
@@ -356,7 +356,7 @@ export default function NotificationsPage() {
         {/* Pagination */}
         {!loading && !error && hasMore && items.length > 0 && (
           <button onClick={() => fetchPage(items.length, sidRef.current)} disabled={loadingMore}
-            className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 py-3 text-sm font-semibold text-blue-light/80 backdrop-blur-sm transition hover:bg-blue-mid/40 disabled:opacity-50">
+            className="focus-ring rounded-2xl border border-navy/10 bg-white py-3 text-sm font-semibold text-navy shadow-sm transition hover:bg-cream disabled:opacity-50">
             {loadingMore ? "…" : t("loadMore")}
           </button>
         )}

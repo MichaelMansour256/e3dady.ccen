@@ -69,35 +69,35 @@ export default function PrayerWallPage() {
 
         {/* Submit form */}
         {submitted ? (
-          <div className="rounded-2xl border border-green-400/30 bg-green-400/10 p-5 text-center" dir="rtl">
+          <div className="rounded-2xl border border-green-600/30 bg-mint p-5 text-center" dir="rtl">
             <Icon name="sparkles" className="mx-auto mb-2 text-coral" />
-            <p className="font-semibold text-white">{t("thanks")}</p>
-            <p className="text-sm text-blue-light/60 mt-1">{t("pending")}</p>
+            <p className="font-semibold text-navy">{t("thanks")}</p>
+            <p className="text-sm text-navy/70 mt-1">{t("pending")}</p>
             <button onClick={() => setSubmitted(false)}
-              className="mt-3 text-sm text-blue-accent underline">
+              className="focus-ring mt-3 text-sm font-semibold text-coral underline">
               {t("addAnother")}
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} dir="rtl"
-            className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4 backdrop-blur-sm">
-            <p className="font-semibold text-white mb-3">
+            className="rounded-2xl border border-navy/10 bg-white p-4 shadow-sm">
+            <p className="font-semibold text-navy mb-3">
               {t("share")}
             </p>
             <div className="flex flex-col gap-2">
               <input
                 placeholder={t("namePlaceholder")}
                 value={name} onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-xl bg-blue-dark/60 px-4 py-2 text-white placeholder-blue-light/40 outline-none ring-1 ring-blue-mid/40 focus:ring-blue-accent text-sm"
+                className="focus-ring w-full rounded-xl border border-navy/15 bg-cream px-4 py-2 text-navy placeholder-navy/40 outline-none focus:border-coral text-sm"
               />
               <textarea
                 placeholder={t("requestPlaceholder")}
                 value={request} onChange={(e) => setRequest(e.target.value)}
                 rows={3}
-                className="w-full rounded-xl bg-blue-dark/60 px-4 py-2 text-white placeholder-blue-light/40 outline-none ring-1 ring-blue-mid/40 focus:ring-blue-accent text-sm resize-none"
+                className="focus-ring w-full rounded-xl border border-navy/15 bg-cream px-4 py-2 text-navy placeholder-navy/40 outline-none focus:border-coral text-sm resize-none"
               />
               <button type="submit" disabled={submitting || !request.trim()}
-                className="rounded-xl bg-blue-accent py-2 text-sm font-semibold text-navy hover:bg-blue-mid disabled:opacity-50 transition">
+                className="focus-ring pressable rounded-xl bg-coral py-2 text-sm font-semibold text-navy hover:brightness-95 disabled:opacity-50 transition">
                 {submitting ? "…" : t("send")}
               </button>
             </div>
@@ -106,11 +106,11 @@ export default function PrayerWallPage() {
 
         {/* Prayer cards */}
         {loading ? (
-          <div className="flex justify-center pt-8 text-blue-light/50 text-sm">
+          <div className="flex justify-center pt-8 text-navy/60 text-sm">
             {t("loading")}
           </div>
         ) : prayers.length === 0 ? (
-          <div className="flex flex-col items-center pt-8 gap-2 text-blue-light/40">
+          <div className="flex flex-col items-center pt-8 gap-2 text-navy/50">
             <Icon name="book" size={36} className="text-coral" />
             <p className="text-sm">{t("empty")}</p>
           </div>
@@ -123,22 +123,22 @@ export default function PrayerWallPage() {
               });
               return (
                 <div key={prayer.id} dir="rtl"
-                  className="rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-4 backdrop-blur-sm">
+                  className="rounded-2xl border border-navy/10 bg-white p-4 shadow-sm">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
-                      <p className="text-sm font-semibold text-white">{prayer.name}</p>
-                      <p className="text-xs text-blue-light/40">{date}</p>
+                      <p className="text-sm font-semibold text-navy">{prayer.name}</p>
+                      <p className="text-xs text-navy/50">{date}</p>
                     </div>
                     <button onClick={() => handlePray(prayer.id)}
-                      className={`flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition shrink-0 ${
+                      className={`focus-ring flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition shrink-0 ${
                         prayed
-                          ? "bg-blue-accent/20 text-blue-accent cursor-default"
-                          : "bg-blue-primary/60 text-blue-light/70 hover:bg-blue-accent/20 hover:text-blue-accent"
+                          ? "bg-coral/15 text-coral cursor-default"
+                          : "bg-cream text-navy/70 hover:bg-coral/15 hover:text-coral"
                       }`}>
                       <Icon name="sparkles" size={14} /> {prayer.pray_count}
                     </button>
                   </div>
-                  <p className="text-sm leading-relaxed text-white/80">{prayer.request}</p>
+                  <p className="text-sm leading-relaxed text-navy/85">{prayer.request}</p>
                 </div>
               );
             })}

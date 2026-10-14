@@ -116,7 +116,7 @@ export default function EventsPage() {
 
       {olderInvitations.length > 0 && (
         <section className="px-4 pb-4">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-blue-light/50">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
             {t("olderInvitations")}
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -140,7 +140,7 @@ export default function EventsPage() {
         <div className="px-4 pb-4">
           {upcoming.length > 0 && (
             <section className="mb-4">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-blue-light/50">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-navy/55">
                 {t("upcomingEvents")}
               </p>
               <div className="flex flex-col gap-3">
@@ -150,8 +150,8 @@ export default function EventsPage() {
           )}
 
           {upcoming.length === 0 && invitations.length === 0 && (
-            <div className="flex flex-col items-center pt-8 text-blue-light/40 gap-2">
-              <Icon name="calendar" size={40} />
+            <div className="flex flex-col items-center pt-8 text-navy/50 gap-2">
+              <Icon name="calendar" size={40} className="text-coral" />
               <p className="text-sm">{t("empty")}</p>
             </div>
           )}

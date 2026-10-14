@@ -94,16 +94,16 @@ export default function PushBell({ locale }: { locale: string }) {
   }
 
   const box =
-    "flex items-center gap-4 rounded-2xl border border-blue-mid/40 bg-blue-primary/40 p-4 backdrop-blur-sm";
+    "flex items-center gap-4 rounded-2xl border border-navy/10 bg-white p-4 shadow-sm";
 
   if (state === "loading") {
     return (
       <div className={box}>
         <Icon name="mail" className="text-coral" />
-        <span className="text-base font-semibold text-white">
+        <span className="text-base font-semibold text-navy">
           {isAr ? "الإشعارات" : "Notifications"}
         </span>
-        <span className="ms-auto text-sm text-blue-light/50">…</span>
+        <span className="ms-auto text-sm text-navy/50">…</span>
       </div>
     );
   }
@@ -113,10 +113,10 @@ export default function PushBell({ locale }: { locale: string }) {
       <div className={box}>
         <Icon name="mail" className="text-navy/50" />
         <div>
-          <p className="text-base font-semibold text-white">
+          <p className="text-base font-semibold text-navy">
             {isAr ? "الإشعارات غير مدعومة" : "Notifications not supported"}
           </p>
-          <p className="text-xs text-blue-light/60">
+          <p className="text-xs text-navy/70">
             {isAr
               ? "افتح الموقع في كروم أو سفاري لتفعيل الإشعارات"
               : "Open in Chrome or Safari to enable notifications"}
@@ -128,13 +128,13 @@ export default function PushBell({ locale }: { locale: string }) {
 
   if (state === "blocked") {
     return (
-      <div className={`${box} border-red-400/40`}>
+      <div className={`${box} border-red-600/40`}>
         <Icon name="x" className="text-coral" />
         <div>
-          <p className="text-base font-semibold text-white">
+          <p className="text-base font-semibold text-navy">
             {isAr ? "الإشعارات محظورة" : "Notifications blocked"}
           </p>
-          <p className="text-xs text-blue-light/60">
+          <p className="text-xs text-navy/70">
             {isAr
               ? "افتح إعدادات المتصفح ← الإشعارات ← سماح، ثم ارجع هنا"
               : "Open browser settings → Notifications → Allow, then come back"}
@@ -145,10 +145,10 @@ export default function PushBell({ locale }: { locale: string }) {
   }
 
   return (
-    <button onClick={state === "on" ? refresh : enable} disabled={busy} className={`${box} w-full text-start active:scale-95 transition`}>
+    <button onClick={state === "on" ? refresh : enable} disabled={busy} className={`focus-ring ${box} w-full text-start active:scale-95 transition`}>
       <Icon name="mail" className={state === "on" ? "text-success" : "text-coral"} />
       <span className="flex-1">
-        <span className="block text-base font-semibold text-white">
+        <span className="block text-base font-semibold text-navy">
           {state === "on"
             ? isAr ? "الإشعارات مفعّلة" : "Notifications on"
             : busy
@@ -156,20 +156,20 @@ export default function PushBell({ locale }: { locale: string }) {
               : isAr ? "فعّل إشعارات الاجتماع" : "Enable meeting notifications"}
         </span>
         {state !== "on" && (
-          <span className="block text-xs text-blue-light/60">
+          <span className="block text-xs text-navy/70">
             {isAr ? "اضغط للتفعيل — ستصلك الدعوة وآية الأسبوع" : "Tap to enable — get the invite & verse of the week"}
           </span>
         )}
         {state === "on" && subId && (
           <span
-            className="mt-1 block select-all font-mono text-[10px] leading-relaxed text-blue-light/40"
+            className="mt-1 block select-all font-mono text-[10px] leading-relaxed text-navy/50"
             onClick={(e) => e.stopPropagation()}
           >
             id: {subId}
           </span>
         )}
       </span>
-      <span className="ms-auto text-blue-light/50">›</span>
+      <span className="ms-auto text-navy/40">›</span>
     </button>
   );
 }

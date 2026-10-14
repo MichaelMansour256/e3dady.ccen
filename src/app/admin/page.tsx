@@ -253,11 +253,11 @@ export default function AdminPage() {
   }
   const currentPhotos = folders.find((e) => e.path === selectedFolder)?.photos ?? [];
   if (status === "checking") {
-    return <div className="flex min-h-dvh items-center justify-center page-gradient-high text-sm text-blue-light/70">Checking access…</div>;
+    return <div className="admin-surface flex min-h-dvh items-center justify-center text-sm text-blue-light/70">Checking access…</div>;
   }
   if (!authed) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center px-6 page-gradient-high">
+      <div className="admin-surface flex min-h-dvh flex-col items-center justify-center px-6">
         <div className="w-full max-w-sm rounded-2xl border border-blue-mid/40 bg-blue-primary/30 p-8 backdrop-blur-sm">
           <h1 className="mb-6 text-center text-2xl font-bold text-white">Admin Login</h1>
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
@@ -266,7 +266,7 @@ export default function AdminPage() {
               autoComplete="current-password"
               className={inputCls} />
             {authError && <p className="text-sm text-red-400">{authError}</p>}
-            <button type="submit" disabled={pending} className="rounded-xl bg-blue-accent py-3 font-semibold text-white hover:bg-blue-mid disabled:opacity-60">
+            <button type="submit" disabled={pending} className="focus-ring pressable rounded-xl bg-blue-accent py-3 font-semibold text-navy hover:brightness-95 disabled:opacity-60">
               {pending ? "Checking…" : "Login"}
             </button>
           </form>
@@ -275,14 +275,14 @@ export default function AdminPage() {
     );
   }
   return (
-    <div className="min-h-dvh px-4 py-6 page-gradient">
+    <div className="admin-surface px-4 py-6">
       <div className="admin-dashboard mx-auto max-w-2xl">
-        <h1 className="mb-4 text-2xl font-bold text-[#0F172A]">🛠 Admin Dashboard</h1>
+        <h1 className="mb-4 text-2xl font-bold text-white">🛠 Admin Dashboard</h1>
         {/* Tabs */}
         <div className="grid grid-cols-2 gap-2 mb-6">
           {(["gallery", "events", "verse", "prayer", "notify", "history", "content"] as const).map((t) => (
             <button key={t} onClick={() => setTab(t)}
-              className={`rounded-xl py-2 text-sm font-semibold transition ${tab === t ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}>
+              className={`rounded-xl py-2 text-sm font-semibold transition ${tab === t ? "bg-blue-accent text-navy" : "bg-blue-primary/40 text-blue-light/70"}`}>
               {t === "gallery" ? "🖼️ Gallery" : t === "events" ? "📅 Events" : t === "verse" ? "✨ Verse" : t === "prayer" ? "🙏 Prayer" : t === "notify" ? "🔔 Notify" : t === "content" ? "📚 Studies & Resources" : "📜 Notification History"}
             </button>
           ))}
@@ -357,7 +357,7 @@ export default function AdminPage() {
               {(["pending", "approved", "rejected"] as const).map((f) => (
                 <button key={f} onClick={() => setPrayerFilter(f)}
                   className={`flex-1 rounded-xl py-1.5 text-xs font-semibold transition ${
-                    prayerFilter === f ? "bg-blue-accent text-white" : "bg-blue-dark/40 text-blue-light/60"
+                    prayerFilter === f ? "bg-blue-accent text-navy" : "bg-blue-dark/40 text-blue-light/60"
                   }`}>
                   {f === "pending" ? `⏳ Pending (${prayers.filter(p => p.status === "pending").length})` :
                    f === "approved" ? `✅ Approved` : `❌ Rejected`}
@@ -558,7 +558,7 @@ export default function AdminPage() {
               <div className="flex gap-2">
                 {([["home", "🏠 Home"], ["events", "📅 Events"], ["verse", "✨ Verse"], ["custom", "🔗 Custom"]] as const).map(([mode, label]) => (
                   <button key={mode} type="button" onClick={() => setNotifForm((p) => ({ ...p, urlMode: mode }))}
-                    className={`flex-1 rounded-xl py-2 text-xs font-semibold transition ${notifForm.urlMode === mode ? "bg-blue-accent text-white" : "bg-blue-dark/40 text-blue-light/60"}`}>
+                    className={`flex-1 rounded-xl py-2 text-xs font-semibold transition ${notifForm.urlMode === mode ? "bg-blue-accent text-navy" : "bg-blue-dark/40 text-blue-light/60"}`}>
                     {label}
                   </button>
                 ))}

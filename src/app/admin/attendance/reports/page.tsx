@@ -274,8 +274,8 @@ export default function AttendanceReportsPage() {
           <p className="text-xs text-blue-light/50">تقرير حضور الأعضاء وتصدير البيانات</p>
         </div>
         <div className="flex gap-2">
-          <button type="button" onClick={() => setView("range")} className={`${subtleBtn} ${view === "range" ? "bg-blue-accent text-white" : ""}`}>📅 تقرير مجىء</button>
-          <button type="button" onClick={() => setView("meeting")} className={`${subtleBtn} ${view === "meeting" ? "bg-blue-accent text-white" : ""}`}>📋 تقرير اجتماع</button>
+          <button type="button" onClick={() => setView("range")} className={`${subtleBtn} ${view === "range" ? "bg-blue-accent text-navy" : ""}`}>📅 تقرير مجىء</button>
+          <button type="button" onClick={() => setView("meeting")} className={`${subtleBtn} ${view === "meeting" ? "bg-blue-accent text-navy" : ""}`}>📋 تقرير اجتماع</button>
           <Link href="/admin/attendance/dashboard" className={subtleBtn}>📊 لوحة الحضور</Link>
           <Link href="/admin/attendance/meetings" className={subtleBtn}>← الاجتماعات</Link>
         </div>

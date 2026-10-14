@@ -48,11 +48,11 @@ export default function RelatedContent({
   const refLabel = referenceLabel(reference, isAr);
 
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-blue-mid/30 bg-blue-dark/30 p-3">
-      <h2 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-blue-light/80">
-        <Icon name={icon} size={16} />
+    <section className="flex flex-col gap-3 rounded-2xl border border-navy/10 bg-cream p-3">
+      <h2 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-navy">
+        <Icon name={icon} size={16} className="text-coral" />
         {heading}
-        {refLabel && <span className="text-xs font-normal text-blue-light/50">· {refLabel}</span>}
+        {refLabel && <span className="text-xs font-normal text-navy/50">· {refLabel}</span>}
       </h2>
       <div className="flex flex-col gap-3">
         {items.map((item) => (

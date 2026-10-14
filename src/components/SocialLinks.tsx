@@ -42,7 +42,7 @@ export default function SocialLinks({ className = "" }: { className?: string }) 
       {siteConfig.social.map(({ name, url }) => (
         <Link key={name} href={url} target="_blank" rel="noopener noreferrer"
           aria-label={name}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-blue-mid/40 bg-blue-primary/40 text-white transition hover:bg-blue-accent hover:border-blue-accent active:scale-95">
+          className="focus-ring pressable flex h-10 w-10 items-center justify-center rounded-full border border-navy/10 bg-white text-navy shadow-sm transition hover:bg-coral hover:border-coral hover:text-navy active:scale-95">
           {ICONS[name] ?? null}
         </Link>
       ))}

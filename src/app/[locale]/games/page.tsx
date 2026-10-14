@@ -37,7 +37,7 @@ export default function GamesPage() {
     return (
       <div className="fixed inset-0 z-50 flex flex-col bg-navy">
         <ConfettiBurst trigger={confetti} />
-        <div className="flex items-center gap-3 bg-blue-dark px-4 py-3 shrink-0">
+        <div className="flex items-center gap-3 bg-navy-2 px-4 py-3 shrink-0">
           <button onClick={() => { setOpen(false); setIframeWindow(null); }} aria-label={t("back")} className="focus-ring flex h-11 w-11 items-center justify-center text-white/80"><Icon name="arrow" className="rotate-180" /></button>
           <span className="text-sm font-semibold text-white">Verse Up Arena</span>
         </div>
@@ -59,15 +59,15 @@ export default function GamesPage() {
 
       <div className="flex flex-col items-center px-6 pt-8">
         <button onClick={() => setOpen(true)}
-          className="w-full max-w-sm rounded-3xl border border-yellow-400/30 bg-blue-primary/40 p-6 text-center backdrop-blur-sm transition hover:bg-blue-mid/50 active:scale-95 shadow-xl shadow-yellow-400/10">
+          className="focus-ring pressable w-full max-w-sm rounded-3xl border border-navy/10 bg-white p-6 text-center shadow-sm transition hover:bg-cream active:scale-95">
           <div className="relative mx-auto mb-4 h-48 w-48">
-            <Image src="/verse-up-logo.png" alt="Verse Up Arena" fill className="object-contain drop-shadow-2xl" />
+            <Image src="/verse-up-logo.png" alt="Verse Up Arena" fill className="object-contain drop-shadow-xl" />
           </div>
-          <p className="text-lg font-bold text-white">Verse Up Arena</p>
-          <p className="mt-1 text-sm text-blue-light/60">
+          <p className="text-lg font-bold text-navy">Verse Up Arena</p>
+          <p className="mt-1 text-sm text-navy/70">
             {t("challenge")}
           </p>
-          <span className="mt-4 inline-block rounded-full bg-yellow-400 px-6 py-2 text-sm font-bold text-blue-dark">
+          <span className="focus-ring pressable mt-4 inline-block rounded-full bg-yellow px-6 py-2 text-sm font-bold text-navy">
             {t("playNow")}
           </span>
         </button>

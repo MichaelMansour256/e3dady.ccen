@@ -84,15 +84,15 @@ export default function NotificationInboxLink() {
 
   return (
     <Link href={`/${locale}/more/notifications`}
-      className="flex items-center gap-4 rounded-2xl border border-blue-mid/40 bg-blue-primary/40 p-4 backdrop-blur-sm transition hover:bg-blue-mid/50 active:scale-95">
+      className="focus-ring pressable flex items-center gap-4 rounded-2xl border border-navy/10 bg-white p-4 shadow-sm transition hover:bg-cream active:scale-95">
       <Icon name="mail" className="text-coral" />
-      <span className="text-base font-semibold text-white">{t("inboxLabel")}</span>
+      <span className="text-base font-semibold text-navy">{t("inboxLabel")}</span>
       {unread !== null && unread > 0 ? (
-        <span className="ms-auto flex h-6 min-w-6 items-center justify-center rounded-full bg-blue-accent px-2 text-xs font-bold text-white">
+        <span className="ms-auto flex h-6 min-w-6 items-center justify-center rounded-full bg-coral px-2 text-xs font-bold text-navy">
           {unread > 9 ? "9+" : unread}
         </span>
       ) : (
-        <span className="ms-auto text-blue-light/50">›</span>
+        <span className="ms-auto text-navy/40">›</span>
       )}
     </Link>
   );
