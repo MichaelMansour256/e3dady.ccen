@@ -5,6 +5,10 @@ import { FormEvent, useState } from "react";
 type Source = { book: string; chapter: number; verse: string; text: string; score: number };
 const examples = ["آيات عن المحبة", "التسامح وغفران الإساءة", "السلام والاطمئنان في الضيقات"];
 
+function toEasternArabicNumerals(value: string | number): string {
+  return String(value).replace(/\d/g, (digit) => "٠١٢٣٤٥٦٧٨٩"[Number(digit)]);
+}
+
 export default function BibleRagSearch() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"ALL" | "OT" | "NT">("ALL");
@@ -75,7 +79,9 @@ export default function BibleRagSearch() {
       <div className="flex flex-col gap-4">
         {sources.map((source) => <article key={`${source.book}-${source.chapter}-${source.verse}`} className="rounded-3xl border border-blue-accent/25 bg-gradient-to-br from-blue-primary/60 to-blue-dark/80 p-5 shadow-lg">
           <div className="flex items-center justify-between gap-3">
-            <strong className="text-blue-light">{source.book} {source.chapter}:{source.verse}</strong>
+            <strong className="text-blue-light">
+              {toEasternArabicNumerals(source.book)} {toEasternArabicNumerals(source.chapter)}: {toEasternArabicNumerals(source.verse)}
+            </strong>
             <div className="flex gap-2">
               <button onClick={() => copy(source)} className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80">نسخ</button>
               <button onClick={() => share(source)} className="rounded-full bg-white/10 px-3 py-1 text-xs text-white/80">مشاركة</button>
