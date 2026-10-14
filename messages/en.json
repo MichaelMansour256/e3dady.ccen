@@ -97,6 +97,7 @@
   },
   "notifications": {
     "title": "Notifications",
+    "inboxLabel": "Inbox",
     "all": "All",
     "unread": "Unread",
     "read": "Read",

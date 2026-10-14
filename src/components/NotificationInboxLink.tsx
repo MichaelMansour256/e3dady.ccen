@@ -6,7 +6,7 @@ import { getReadNotificationIds, subscribeToReadChanges } from "@/lib/notificati
 import { peekSubscriberId, resolveSubscriberId } from "@/lib/onesignal-subscriber";
 
 /**
- * "Notifications" row for the More menu with a live unread badge (🔔 3).
+ * "Inbox" row for the More menu with a live unread badge (📥 3).
  *
  * Unread is computed as:
  *   • with a push subscription — the server's exact `unreadCount`
@@ -84,8 +84,8 @@ export default function NotificationInboxLink() {
   return (
     <Link href={`/${locale}/more/notifications`}
       className="flex items-center gap-4 rounded-2xl border border-blue-mid/40 bg-blue-primary/40 p-4 backdrop-blur-sm transition hover:bg-blue-mid/50 active:scale-95">
-      <span className="text-2xl">🔔</span>
-      <span className="text-base font-semibold text-white">{t("title")}</span>
+      <span className="text-2xl">📥</span>
+      <span className="text-base font-semibold text-white">{t("inboxLabel")}</span>
       {unread !== null && unread > 0 ? (
         <span className="ms-auto flex h-6 min-w-6 items-center justify-center rounded-full bg-blue-accent px-2 text-xs font-bold text-white">
           {unread > 9 ? "9+" : unread}

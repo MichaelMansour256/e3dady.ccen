@@ -97,6 +97,7 @@
   },
   "notifications": {
     "title": "الإشعارات",
+    "inboxLabel": "البوسطة",
     "all": "الكل",
     "unread": "غير مقروءة",
     "read": "مقروءة",
