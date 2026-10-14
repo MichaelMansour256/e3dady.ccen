@@ -43,15 +43,23 @@ export default function BottomNav({ locale }: { locale: string }) {
           </Link>
         );
       })}
-      <Link href={`/${locale}/games`}
+      <Link
+        href={`/${locale}/games`}
         aria-current={pathname.startsWith(`/${locale}/games`) ? "page" : undefined}
-        className={`focus-ring relative -mt-7 flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 text-xs ${
-          pathname.startsWith(`/${locale}/games`) ? "text-coral" : "text-navy"
+        className={`focus-ring flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs transition-colors ${
+          pathname.startsWith(`/${locale}/games`)
+            ? "font-bold text-coral"
+            : "text-navy/55 hover:text-navy"
+        }`}
+      >
+        <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${
+          pathname.startsWith(`/${locale}/games`)
+            ? "bg-coral/10 ring-2 ring-coral/40"
+            : ""
         }`}>
-        <span className="flex h-8 w-8 items-center justify-center rounded-xl">
-          <Icon name="play" size={25} />
+          <Icon name="play" />
         </span>
-        <span className="font-bold text-navy">{t("games")}</span>
+        <span>{t("games")}</span>
       </Link>
     </nav>
   );
