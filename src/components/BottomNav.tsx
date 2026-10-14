@@ -1,47 +1,53 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { bottomNavTabs, isFeatureEnabled } from "@/config";
+import { Icon, type IconName } from "@/components/Icon";
 
 /** Bottom tabs from the central navigation config (feature-gated). */
 const tabs = bottomNavTabs.filter((t) => isFeatureEnabled(t.feature));
+const iconByKey: Record<string, IconName> = {
+  home: "home",
+  events: "calendar",
+  bible: "book",
+  games: "play",
+  more: "user",
+};
 
 export default function BottomNav({ locale }: { locale: string }) {
   const t = useTranslations("nav");
   const pathname = usePathname();
-  const router = useRouter();
-
-  function toggleLocale() {
-    const next = locale === "ar" ? "en" : "ar";
-    const newPath = pathname.replace(`/${locale}`, `/${next}`);
-    router.push(newPath);
-  }
-
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-blue-mid/40 bg-blue-dark/95 backdrop-blur-sm"
+    <nav className="fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-w-2xl border-t border-black/10 bg-white/95 px-2 shadow-[0_-8px_24px_rgba(18,32,107,0.1)] backdrop-blur-sm"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-      {tabs.map(({ key, href, icon }) => {
+      {tabs.map(({ key, href }) => {
+        if (key === "games") return null;
         const fullHref = `/${locale}${href === "/" ? "" : href}`;
         const isActive = href === "/"
           ? pathname === `/${locale}` || pathname === `/${locale}/`
           : pathname.startsWith(`/${locale}${href}`);
         return (
           <Link key={key} href={fullHref}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs transition-colors ${
-              isActive ? "text-blue-accent" : "text-blue-light/60 hover:text-blue-light"
+            className={`focus-ring flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs transition-colors ${
+              isActive ? "font-bold text-coral" : "text-navy/55 hover:text-navy"
             }`}>
-            <span className="text-xl">{icon}</span>
+            <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${isActive ? "bg-coral/10" : ""}`}>
+              <Icon name={iconByKey[key]} />
+            </span>
             <span>{t(key)}</span>
           </Link>
         );
       })}
-      {/* Language toggle */}
-      <button onClick={toggleLocale}
-        className="flex flex-1 flex-col items-center gap-0.5 py-2 text-xs text-blue-light/60 hover:text-blue-light transition-colors">
-        <span className="text-xl">{locale === "ar" ? "🇬🇧" : "🇪🇬"}</span>
-        <span>{locale === "ar" ? "EN" : "عر"}</span>
-      </button>
+      <Link href={`/${locale}/games`}
+        className={`focus-ring relative -mt-7 flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 text-xs ${
+          pathname.startsWith(`/${locale}/games`) ? "text-coral" : "text-white"
+        }`}>
+        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-coral shadow-lg shadow-coral/30">
+          <Icon name="play" size={25} />
+        </span>
+        <span className="font-bold text-navy">{t("games")}</span>
+      </Link>
     </nav>
   );
 }

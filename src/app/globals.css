@@ -4,15 +4,25 @@
   /* Fallback copies of src/config/theme.ts — the live values are injected
      from the theme config as an inline <style> tag by the root layouts.
      Keep these in sync to avoid a first-paint flash of outdated colors. */
-  --blue-dark: #0f1f5c;
-  --blue-primary: #1a3a8f;
-  --blue-mid: #1e40af;
-  --blue-accent: #3b82f6;
-  --blue-light: #93c5fd;
+  --blue-dark: #fff6ec;
+  --blue-primary: #12206b;
+  --blue-mid: #1f3190;
+  --blue-accent: #ff6b5e;
+  --blue-light: #4a5a9a;
   --white: #ffffff;
-  --gradient-mid: #1a4db5;
-  --gradient-dark: #0f1f5c;
-  --gradient-deeper: #060d2e;
+  --gradient-mid: #fff6ec;
+  --gradient-dark: #fff6ec;
+  --gradient-deeper: #fadadd;
+  --navy: #12206b;
+  --navy-2: #1f3190;
+  --cream: #fff6ec;
+  --pink: #fadadd;
+  --sky: #cfe6fb;
+  --butter: #ffe9a8;
+  --mint: #ddefd6;
+  --yellow: #ffe08a;
+  --coral: #ff6b5e;
+  --success: #7bd389;
 }
 
 @theme inline {
@@ -21,6 +31,15 @@
   --color-blue-mid: var(--blue-mid);
   --color-blue-accent: var(--blue-accent);
   --color-blue-light: var(--blue-light);
+  --color-navy: var(--navy);
+  --color-coral: var(--coral);
+  --color-cream: var(--cream);
+  --color-pink: var(--pink);
+  --color-sky: var(--sky);
+  --color-butter: var(--butter);
+  --color-mint: var(--mint);
+  --color-yellow: var(--yellow);
+  --color-success: var(--success);
 }
 
 html[lang="ar"],
@@ -31,18 +50,44 @@ html[lang="ar"] body {
 
 html[lang="en"],
 html[lang="en"] body {
-  font-family: "Inter", sans-serif;
+  font-family: "Cairo", "Inter", sans-serif;
   direction: ltr;
 }
 
 body {
-  background: var(--blue-dark);
-  color: var(--white);
+  background: var(--cream);
+  color: var(--navy);
   min-height: 100dvh;
 }
 
 .pb-safe {
-  padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+}
+
+.app-shell {
+  width: min(100%, 680px);
+  margin-inline: auto;
+}
+
+.focus-ring:focus-visible {
+  outline: 3px solid var(--coral);
+  outline-offset: 3px;
+}
+
+.pressable {
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.pressable:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pressable,
+  .pressable:active {
+    transition: none;
+    transform: none;
+  }
 }
 
 /* Page background gradients — colors come from src/config/theme.ts. */

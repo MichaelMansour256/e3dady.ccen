@@ -4,7 +4,26 @@
     "events": "Events",
     "bible": "Bible",
     "games": "Games",
-    "more": "More"
+    "more": "Me"
+  },
+  "home": {
+    "meetingName": "E3dady Youth Meeting",
+    "morning": "Good morning, champion",
+    "afternoon": "Good afternoon, champion",
+    "evening": "Good evening, champion",
+    "streak": "{count} day streak",
+    "nextMeeting": "Next meeting",
+    "arriving": "I'm coming",
+    "rsvpDone": "Great, we'll see you!",
+    "verseTitle": "Verse of the week",
+    "shareVerse": "Share as an image",
+    "arenaTitle": "Verse Up Arena",
+    "arenaSubtitle": "Challenge yourself and grow your score",
+    "level": "Level {level}",
+    "xp": "{current}/100 XP",
+    "playNow": "Play now",
+    "language": "عربي",
+    "followUs": "Follow us"
   },
   "events": {
     "title": "Events",
@@ -13,7 +32,12 @@
     "olderInvitations": "Older Invitations",
     "upcomingEvents": "Upcoming",
     "empty": "No events yet",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "meetingLine": "Every Friday · 12:30 PM",
+    "nextMeeting": "Next meeting",
+    "rsvp": "I'm coming",
+    "rsvpDone": "Great, we'll see you!",
+    "close": "Close"
   },
   "bible": {
     "title": "Bible",

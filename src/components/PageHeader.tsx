@@ -1,8 +1,18 @@
+import { Icon, type IconName } from "@/components/Icon";
+
+const iconMap: Record<string, IconName> = {
+  "📅": "calendar", "📖": "book", "🎮": "play", "🔎": "sparkles",
+  "✨": "sparkles", "🗂️": "book", "📚": "book", "🖼️": "sparkles",
+  "📬": "mail", "✝️": "book", "🔔": "mail", "☰": "menu", "🙏": "user",
+};
+
 export default function PageHeader({ title, icon }: { title: string; icon: string }) {
   return (
-    <div className="flex items-center gap-3 border-b border-blue-mid/30 bg-blue-primary/30 px-4 py-4 backdrop-blur-sm">
-      <span className="text-2xl">{icon}</span>
-      <h1 className="text-xl font-bold text-white">{title}</h1>
+    <div className="app-shell flex items-center gap-3 border-b border-navy/10 px-4 py-5">
+      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-pink text-coral">
+        <Icon name={iconMap[icon] ?? "sparkles"} />
+      </span>
+      <h1 className="text-xl font-black text-navy">{title}</h1>
     </div>
   );
 }

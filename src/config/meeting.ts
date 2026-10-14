@@ -44,7 +44,7 @@ export const meetingConfig = {
     weekday: 5, // Friday
     time: "12:30",
     /** Weekly-meeting card line. */
-    labelAr: "كل جمعة · ١٢:٣٠ م",
+    labelAr: "كل جمعة · 12:30 م",
     labelEn: "Every Friday · 12:30 PM",
     /** Reminder/push text building blocks. */
     dayNameAr: "الجمعة",

@@ -4,7 +4,26 @@
     "events": "الفعاليات",
     "bible": "الكتاب",
     "games": "الألعاب",
-    "more": "المزيد"
+    "more": "أنا"
+  },
+  "home": {
+    "meetingName": "اجتماع شباب إعدادي",
+    "morning": "صباح الخير يا بطل",
+    "afternoon": "مساء الخير يا بطل",
+    "evening": "مساء النور يا بطل",
+    "streak": "{count} أيام ورا بعض",
+    "nextMeeting": "الاجتماع الجاي",
+    "arriving": "أنا جاي",
+    "rsvpDone": "تمام، هنستناك ✓",
+    "verseTitle": "آية الأسبوع",
+    "shareVerse": "شاركها كصورة",
+    "arenaTitle": "Verse Up Arena",
+    "arenaSubtitle": "اتحدى نفسك واجمع نقاط أكتر",
+    "level": "المستوى {level}",
+    "xp": "{current}/100 XP",
+    "playNow": "العب الآن",
+    "language": "EN",
+    "followUs": "تابعونا"
   },
   "events": {
     "title": "ميعاد الاجتماع",
@@ -13,7 +32,12 @@
     "olderInvitations": "دعوات سابقة",
     "upcomingEvents": "فعاليات قادمة",
     "empty": "لا توجد فعاليات حالياً",
-    "loading": "جاري التحميل…"
+    "loading": "جاري التحميل…",
+    "meetingLine": "كل جمعة · 12:30 م",
+    "nextMeeting": "الاجتماع الجاي",
+    "rsvp": "أنا جاي",
+    "rsvpDone": "تمام، هنستناك!",
+    "close": "إغلاق"
   },
   "bible": {
     "title": "الكتاب المقدس",

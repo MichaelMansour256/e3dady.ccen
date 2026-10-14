@@ -2,6 +2,7 @@
 import { useNextMeeting } from "@/hooks/useNextMeeting";
 import { useLocale } from "next-intl";
 import { meetingConfig } from "@/config";
+import { Icon } from "@/components/Icon";
 
 export default function WeeklyMeetingCard() {
   const { countdown, nextDate } = useNextMeeting();
@@ -13,13 +14,13 @@ export default function WeeklyMeetingCard() {
   });
 
   return (
-    <div className="mx-4 rounded-2xl border border-blue-accent/40 bg-gradient-to-br from-blue-primary/60 to-blue-dark/80 p-5 backdrop-blur-sm shadow-lg shadow-blue-accent/10">
+    <div className="mx-4 rounded-[28px] bg-navy p-5 text-white shadow-lg shadow-navy/20">
       {/* Header */}
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-xl">⛪</span>
+        <Icon name="calendar" className="text-yellow" />
         <div>
           <p className="text-sm font-bold text-white">{isAr ? "الاجتماع الأسبوعي" : "Weekly Meeting"}</p>
-          <p className="text-xs text-blue-light/70">
+          <p className="text-xs text-white/70">
             {isAr ? meetingConfig.schedule.labelAr : meetingConfig.schedule.labelEn}
           </p>
         </div>
@@ -41,11 +42,11 @@ export default function WeeklyMeetingCard() {
           { value: countdown.minutes, label: isAr ? "دقيقة" : "Mins" },
           { value: countdown.seconds, label: isAr ? "ثانية" : "Secs" },
         ].map(({ value, label }) => (
-          <div key={label} className="flex flex-col items-center rounded-xl bg-blue-dark/60 py-2">
-            <span className="text-xl font-bold text-white tabular-nums">
+          <div key={label} className="flex flex-col items-center rounded-xl bg-navy-2 py-2">
+            <span className="text-xl font-bold text-yellow tabular-nums">
               {String(value).padStart(2, "0")}
             </span>
-            <span className="text-xs text-blue-light/50">{label}</span>
+            <span className="text-xs text-white/70">{label}</span>
           </div>
         ))}
       </div>

@@ -5,51 +5,37 @@ import Image from "next/image";
 import PageHeader from "@/components/PageHeader";
 import WeeklyMeetingCard from "@/components/WeeklyMeetingCard";
 import { meetingConfig } from "@/config";
+import { Icon } from "@/components/Icon";
+import { setRsvp } from "@/lib/progress";
 
 type SpecialEvent = { id: string; title: string; titleAr: string; date: string; time: string; description?: string; descriptionAr?: string };
 type Invitation = { date: string; url: string; publicId: string; width: number; height: number };
 
-function DateStrip({ events, invitations, onInvitationTap }: {
-  events: SpecialEvent[];
-  invitations: Invitation[];
-  onInvitationTap: (url: string) => void;
+function latinDigits(value: string) {
+  return value.replace(/[٠-٩]/g, (digit) => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)));
+}
+
+function UpcomingMeetingDays({ locale, onSelect }: {
+  locale: string;
+  onSelect: (date: string) => void;
 }) {
   const today = new Date();
-  const days = Array.from({ length: 14 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    return d;
-  });
-
-  const eventDates = new Set(events.map((e) => e.date));
-  const invitationMap = new Map(invitations.map((i) => [i.date, i.url]));
+  const days: Date[] = [];
+  const cursor = new Date(today);
+  while (days.length < 3) {
+    if (cursor.getDay() === meetingConfig.schedule.weekday && cursor >= today) days.push(new Date(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
 
   return (
     <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-none">
       {days.map((d) => {
-        const iso = d.toISOString().split("T")[0];
-        const isToday = iso === today.toISOString().split("T")[0];
-        const hasEvent = eventDates.has(iso);
-        const meetingDay = d.getDay() === meetingConfig.schedule.weekday;
-        const invUrl = invitationMap.get(iso);
-
+        const iso = d.toISOString().slice(0, 10);
+        const label = latinDigits(d.toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", { weekday: "short", day: "numeric", month: "short" }));
         return (
-          <button key={iso} onClick={() => invUrl && onInvitationTap(invUrl)}
-            className={`flex shrink-0 flex-col items-center rounded-xl px-3 py-2 w-12 transition ${
-              invUrl ? "ring-2 ring-yellow-400/60" : ""
-            } ${
-              isToday ? "bg-blue-accent text-white" :
-              meetingDay ? "bg-blue-primary/60 text-white border border-blue-accent/40" :
-              "bg-blue-primary/20 text-blue-light/60"
-            }`}>
-            <span className="text-xs">{d.toLocaleDateString("en", { weekday: "short" })}</span>
-            <span className="text-base font-bold">{d.getDate()}</span>
-            <span className={`mt-0.5 h-1.5 w-1.5 rounded-full ${
-              invUrl ? "bg-yellow-400" :
-              hasEvent ? "bg-yellow-400/60" :
-              meetingDay ? "bg-blue-accent/60" :
-              "opacity-0"
-            }`} />
+          <button key={iso} onClick={() => onSelect(iso)}
+            className={`focus-ring pressable flex min-h-14 shrink-0 items-center gap-2 rounded-2xl px-4 text-sm font-bold ${days[0] === d ? "bg-yellow text-navy" : "bg-white text-navy/70 shadow-sm"}`}>
+            <Icon name="calendar" size={18} /> {label}
           </button>
         );
       })}
@@ -65,6 +51,7 @@ export default function EventsPage() {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [fullscreenImg, setFullscreenImg] = useState<string | null>(null);
+  const [rsvped, setRsvped] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -83,14 +70,24 @@ export default function EventsPage() {
   // getInvitations returns records newest first, based on their meeting date.
   const latestInvitation = invitations[0];
   const olderInvitations = invitations.slice(1);
+  const rsvp = () => {
+    setRsvped(true);
+    setRsvp(new Date().toISOString().slice(0, 10));
+  };
 
   return (
-    <div className="min-h-dvh page-gradient">
+    <div className="app-shell min-h-dvh bg-cream pb-6 text-navy">
       <PageHeader title={t("title")} icon="📅" />
 
       <div className="pt-4 pb-2">
         <WeeklyMeetingCard />
       </div>
+      <section className="mx-4 rounded-[28px] bg-navy p-5 text-white">
+        <div className="flex items-center justify-between"><div><p className="text-sm text-white/70">{t("meetingLine")}</p><h2 className="text-3xl font-black">{t("nextMeeting")}</h2></div><Icon name="calendar" className="text-yellow" size={32} /></div>
+        <button onClick={rsvp} disabled={rsvped} className={`focus-ring pressable mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl font-black ${rsvped ? "bg-success text-navy" : "bg-coral text-white"}`}>
+          {rsvped ? <Icon name="check" /> : null}{rsvped ? t("rsvpDone") : t("rsvp")}
+        </button>
+      </section>
 
       {/* Latest invitation */}
       {latestInvitation && (
@@ -102,21 +99,21 @@ export default function EventsPage() {
         </button>
       )}
 
-      <DateStrip events={events} invitations={invitations} onInvitationTap={setFullscreenImg} />
+      <UpcomingMeetingDays locale={locale} onSelect={() => undefined} />
 
       {olderInvitations.length > 0 && (
         <section className="px-4 pb-4">
           <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-blue-light/50">
             {t("olderInvitations")}
           </p>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3">
             {olderInvitations.map((inv) => (
               <button key={inv.publicId} onClick={() => setFullscreenImg(inv.url)}
-                className="relative overflow-hidden rounded-xl border border-blue-mid/30 bg-black/10 p-1 active:scale-95 transition">
+                className="focus-ring pressable relative aspect-[3/4] overflow-hidden rounded-2xl bg-white shadow-sm">
                 <Image src={inv.url} alt={inv.date} width={inv.width} height={inv.height}
-                  className="h-auto max-h-32 w-full object-contain" sizes="(max-width: 640px) 30vw, 160px" />
-                <div className="absolute bottom-0 left-0 right-0 bg-black/60 py-0.5 text-center text-xs text-white/80">
-                  {inv.date}
+                  className="h-full w-full object-contain" sizes="(max-width: 640px) 45vw, 280px" />
+                <div className="absolute bottom-0 left-0 right-0 bg-navy/85 py-2 text-center text-xs text-white">
+                  {latinDigits(new Date(inv.date).toLocaleDateString(locale === "ar" ? "ar-EG" : "en-US", { day: "numeric", month: "long" }))}
                 </div>
               </button>
             ))}
@@ -125,7 +122,7 @@ export default function EventsPage() {
       )}
 
       {loading ? (
-        <div className="flex justify-center pt-10 text-blue-light/50 text-sm">{t("loading")}</div>
+        <div className="grid grid-cols-2 gap-3 px-4 pt-4">{[1, 2].map((item) => <div key={item} className="h-48 animate-pulse rounded-2xl bg-navy/10" />)}</div>
       ) : (
         <div className="px-4 pb-4">
           {upcoming.length > 0 && (
@@ -141,7 +138,7 @@ export default function EventsPage() {
 
           {upcoming.length === 0 && invitations.length === 0 && (
             <div className="flex flex-col items-center pt-8 text-blue-light/40 gap-2">
-              <span className="text-4xl">📅</span>
+              <Icon name="calendar" size={40} />
               <p className="text-sm">{t("empty")}</p>
             </div>
           )}
@@ -152,7 +149,7 @@ export default function EventsPage() {
       {fullscreenImg && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95"
           onClick={() => setFullscreenImg(null)}>
-          <button className="absolute top-4 right-4 text-white/70 text-2xl">✕</button>
+          <button aria-label={t("close")} onClick={() => setFullscreenImg(null)} className="focus-ring absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white"><Icon name="x" /></button>
           <Image src={fullscreenImg} alt="invitation" width={1200} height={1600}
             className="max-h-[90dvh] max-w-full object-contain rounded-xl" />
         </div>
@@ -168,12 +165,12 @@ function EventCard({ event, isAr, invitation, onInvitationTap }: {
 }) {
   const title = isAr ? event.titleAr : event.title;
   const desc = isAr ? event.descriptionAr : event.description;
-  const date = new Date(event.date).toLocaleDateString(isAr ? "ar-EG" : "en-US", {
+  const date = latinDigits(new Date(event.date).toLocaleDateString(isAr ? "ar-EG" : "en-US", {
     weekday: "long", year: "numeric", month: "long", day: "numeric",
-  });
+  }));
 
   return (
-    <div className="rounded-2xl border border-yellow-400/30 bg-yellow-400/5 overflow-hidden backdrop-blur-sm">
+    <div className="overflow-hidden rounded-[28px] border border-navy/10 bg-white shadow-sm">
       {invitation && (
         <button onClick={() => onInvitationTap(invitation.url)} className="w-full">
           <Image src={invitation.url} alt={invitation.date}
@@ -182,11 +179,11 @@ function EventCard({ event, isAr, invitation, onInvitationTap }: {
         </button>
       )}
       <div className="flex items-start gap-3 p-4">
-        <span className="text-2xl mt-0.5">✨</span>
+        <Icon name="sparkles" className="mt-0.5 text-coral" />
         <div className="flex-1">
-          <p className="font-bold text-white">{title}</p>
-          <p className="text-xs text-blue-light/60 mt-0.5">{date} · {event.time}</p>
-          {desc && <p className="text-sm text-blue-light/80 mt-1">{desc}</p>}
+          <p className="font-bold text-navy">{title}</p>
+          <p className="mt-0.5 text-xs text-navy/60">{date} · {event.time}</p>
+          {desc && <p className="mt-1 text-sm text-navy/70">{desc}</p>}
         </div>
       </div>
     </div>
