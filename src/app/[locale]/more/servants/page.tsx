@@ -10,7 +10,7 @@ export default function ServantsPage() {
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title={t("servants")} icon="🙏" />
+      <PageHeader title={t("servants")} icon="user" />
 
       <div className="grid grid-cols-2 gap-4 p-4">
         {servants.map(({ file, name, nameAr }) => (

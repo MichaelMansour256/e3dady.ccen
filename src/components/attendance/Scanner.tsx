@@ -13,6 +13,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { extractCheckinToken } from "@/lib/checkin-token";
 import { Banner, primaryBtn, subtleBtn } from "./ui";
+import { Icon } from "@/components/Icon";
 
 type CameraState = "idle" | "starting" | "running" | "denied" | "unavailable" | "error";
 
@@ -365,9 +366,7 @@ export default function QrScanner({
 
         {state !== "running" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center">
-            <div className="text-4xl" aria-hidden>
-              📷
-            </div>
+            <Icon name="camera" size={36} className="text-blue-light/70" />
             <p className="px-6 text-sm text-blue-light/70">
               {state === "starting" ? "جارٍ تشغيل الكاميرا…" : "الكاميرا متوقفة"}
             </p>
@@ -380,13 +379,13 @@ export default function QrScanner({
 
       {state === "running" && (
         <p className="text-center text-xs text-blue-light/50" aria-live="polite">
-          📷 الكاميرا تعمل ·{" "}
+          <Icon name="camera" size={14} /> الكاميرا تعمل ·{" "}
           {decoder === "failed" ? (
             <>❌ القارئ: تعذّر تشغيله — استخدم الإدخال اليدوي أو أعد تحميل الصفحة</>
           ) : (
             <>
-              🔍 القارئ: {decoder === "native" ? "BarcodeDetector" : "jsQR"} ·{" "}
-              {paused ? "⏸ متوقف مؤقتًا — أكّد التسجيل أو اضغط إلغاء" : "📡 جارٍ البحث عن رمز…"}
+              <Icon name="search" size={14} /> القارئ: {decoder === "native" ? "BarcodeDetector" : "jsQR"} ·{" "}
+              {paused ? "متوقف مؤقتًا — أكّد التسجيل أو اضغط إلغاء" : "جارٍ البحث عن رمز…"}
             </>
           )}
         </p>
@@ -397,7 +396,7 @@ export default function QrScanner({
       <div className="flex flex-wrap gap-2">
         {state === "running" ? (
           <button type="button" onClick={stop} className={subtleBtn}>
-            ⏹️ إيقاف الكاميرا
+            إيقاف الكاميرا
           </button>
         ) : (
           <button
@@ -406,14 +405,13 @@ export default function QrScanner({
             disabled={state === "starting"}
             className={primaryBtn}
           >
-            {state === "starting" ? "جارٍ التشغيل…" : "▶️ تشغيل الكاميرا"}
+            {state === "starting" ? "جارٍ التشغيل…" : "تشغيل الكاميرا"}
           </button>
         )}
         <button type="button" onClick={switchCamera} className={subtleBtn}>
-          🔄 {facing === "environment" ? "الكاميرا الأمامية" : "الكاميرا الخلفية"}
+          <Icon name="refresh" size={16} /> {facing === "environment" ? "الكاميرا الأمامية" : "الكاميرا الخلفية"}
         </button>
       </div>
     </div>
   );
 }
-

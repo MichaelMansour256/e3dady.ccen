@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Icon } from "@/components/Icon";
 
 /**
  * Explicit push opt-in bell. Lives in the More page so users can
@@ -97,7 +98,7 @@ export default function PushBell({ locale }: { locale: string }) {
   if (state === "loading") {
     return (
       <div className={box}>
-        <span className="text-2xl">🔔</span>
+        <Icon name="mail" className="text-coral" />
         <span className="text-base font-semibold text-white">
           {isAr ? "الإشعارات" : "Notifications"}
         </span>
@@ -109,7 +110,7 @@ export default function PushBell({ locale }: { locale: string }) {
   if (state === "unsupported") {
     return (
       <div className={box}>
-        <span className="text-2xl">🔕</span>
+        <Icon name="mail" className="text-navy/50" />
         <div>
           <p className="text-base font-semibold text-white">
             {isAr ? "الإشعارات غير مدعومة" : "Notifications not supported"}
@@ -127,14 +128,14 @@ export default function PushBell({ locale }: { locale: string }) {
   if (state === "blocked") {
     return (
       <div className={`${box} border-red-400/40`}>
-        <span className="text-2xl">🚫</span>
+        <Icon name="x" className="text-coral" />
         <div>
           <p className="text-base font-semibold text-white">
             {isAr ? "الإشعارات محظورة" : "Notifications blocked"}
           </p>
           <p className="text-xs text-blue-light/60">
             {isAr
-              ? "افتح ⚙️ إعدادات المتصفح ← الإشعارات ← سماح، ثم ارجع هنا"
+              ? "افتح إعدادات المتصفح ← الإشعارات ← سماح، ثم ارجع هنا"
               : "Open browser settings → Notifications → Allow, then come back"}
           </p>
         </div>
@@ -144,14 +145,14 @@ export default function PushBell({ locale }: { locale: string }) {
 
   return (
     <button onClick={state === "on" ? refresh : enable} disabled={busy} className={`${box} w-full text-start active:scale-95 transition`}>
-      <span className="text-2xl">{state === "on" ? "🔔" : "🔕"}</span>
+      <Icon name="mail" className={state === "on" ? "text-success" : "text-coral"} />
       <span className="flex-1">
         <span className="block text-base font-semibold text-white">
           {state === "on"
             ? isAr ? "الإشعارات مفعّلة ✅" : "Notifications on ✅"
             : busy
               ? isAr ? "جاري التفعيل…" : "Enabling…"
-              : isAr ? "فعّل إشعارات الاجتماع 🔔" : "Enable meeting notifications 🔔"}
+              : isAr ? "فعّل إشعارات الاجتماع" : "Enable meeting notifications"}
         </span>
         {state !== "on" && (
           <span className="block text-xs text-blue-light/60">

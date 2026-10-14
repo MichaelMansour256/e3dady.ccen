@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import PageHeader from "@/components/PageHeader";
+import { Icon } from "@/components/Icon";
 import {
   getReadNotificationIds,
   markAllNotificationsRead,
@@ -246,7 +247,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title={t("title")} icon="🔔" />
+      <PageHeader title={t("title")} icon="mail" />
 
       <div className="flex flex-col gap-4 px-4 py-4 max-w-lg mx-auto">
         {/* Filter chips + mark-all-as-read */}
@@ -269,7 +270,7 @@ export default function NotificationsPage() {
               aria-label={t("markAllRead")}
               className="rounded-xl bg-blue-dark/40 px-3 py-2 text-xs font-semibold text-blue-accent transition hover:bg-blue-mid/40 disabled:opacity-40"
             >
-              ✅
+              <Icon name="check" />
             </button>
           </div>
         )}
@@ -291,7 +292,7 @@ export default function NotificationsPage() {
         {/* Error state — friendly message + retry, never a raw API error */}
         {!loading && error && (
           <div className="flex flex-col items-center gap-3 rounded-2xl border border-red-400/30 bg-red-400/10 p-6 text-center">
-            <span className="text-3xl">📡</span>
+            <Icon name="mail" className="text-coral" />
             <p className="text-sm text-white/80">{t("error")}</p>
             <button onClick={() => fetchPage(0, sidRef.current)}
               className="rounded-xl bg-blue-accent px-4 py-2 text-xs font-semibold text-white hover:bg-blue-mid transition">
@@ -303,13 +304,13 @@ export default function NotificationsPage() {
         {/* Empty states */}
         {!loading && !error && items.length === 0 && (
           <div className="flex flex-col items-center pt-10 gap-2 text-blue-light/40">
-            <span className="text-4xl">🔕</span>
+            <Icon name="mail" className="text-navy/40" />
             <p className="text-sm">{t("empty")}</p>
           </div>
         )}
         {!loading && !error && items.length > 0 && visible.length === 0 && (
           <div className="flex flex-col items-center pt-10 gap-2 text-blue-light/40">
-            <span className="text-4xl">🔔</span>
+            <Icon name="mail" className="text-coral" />
             <p className="text-sm">{t("emptyFiltered")}</p>
           </div>
         )}

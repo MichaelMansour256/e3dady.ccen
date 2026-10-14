@@ -29,7 +29,7 @@ export default function VerseOfWeekPage() {
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title={t("title")} icon="✨" />
+      <PageHeader title={t("title")} icon="sparkles" />
 
       <div className="flex flex-col items-center px-5 pt-8 pb-6 max-w-lg mx-auto">
         {loading ? (

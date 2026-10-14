@@ -4,6 +4,8 @@ const iconMap: Record<string, IconName> = {
   "📅": "calendar", "📖": "book", "🎮": "play", "🔎": "sparkles",
   "✨": "sparkles", "🗂️": "book", "📚": "book", "🖼️": "sparkles",
   "📬": "mail", "✝️": "book", "🔔": "mail", "☰": "menu", "🙏": "user",
+  calendar: "calendar", book: "book", play: "play", search: "search",
+  sparkles: "sparkles", menu: "menu", user: "user", share: "share", mail: "mail",
 };
 
 export default function PageHeader({ title, icon }: { title: string; icon: string }) {

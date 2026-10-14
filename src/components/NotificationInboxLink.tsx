@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { getReadNotificationIds, subscribeToReadChanges } from "@/lib/notification-read-state";
 import { peekSubscriberId, resolveSubscriberId } from "@/lib/onesignal-subscriber";
+import { Icon } from "@/components/Icon";
 
 /**
  * "Inbox" row for the More menu with a live unread badge (📥 3).
@@ -84,7 +85,7 @@ export default function NotificationInboxLink() {
   return (
     <Link href={`/${locale}/more/notifications`}
       className="flex items-center gap-4 rounded-2xl border border-blue-mid/40 bg-blue-primary/40 p-4 backdrop-blur-sm transition hover:bg-blue-mid/50 active:scale-95">
-      <span className="text-2xl">📥</span>
+      <Icon name="mail" className="text-coral" />
       <span className="text-base font-semibold text-white">{t("inboxLabel")}</span>
       {unread !== null && unread > 0 ? (
         <span className="ms-auto flex h-6 min-w-6 items-center justify-center rounded-full bg-blue-accent px-2 text-xs font-bold text-white">

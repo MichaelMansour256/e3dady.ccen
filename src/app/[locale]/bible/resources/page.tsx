@@ -28,7 +28,7 @@ export default function ResourcesPage({
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title={t("resources")} icon="🗂️" />
+      <PageHeader title={t("resources")} icon="book" />
       <ContentLibrary
         key={reference ? `ref-${reference.book}-${reference.chapter ?? 0}` : "all"}
         kind="resource"
@@ -37,4 +37,3 @@ export default function ResourcesPage({
     </div>
   );
 }
-

@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useAttendanceApi } from "./AdminAuthProvider";
 import { genderLabel, gradeLabel, type MemberGender, type MemberGrade } from "@/lib/member-fields";
 import { Banner, Spinner, primaryBtn, subtleBtn } from "./ui";
+import { Icon } from "@/components/Icon";
 
 export interface QrDialogMember {
   id: string;
@@ -151,13 +152,13 @@ export default function QrDialog({
                 download={`${member.member_code}-qr.png`}
                 className={primaryBtn}
               >
-                ⬇️ تحميل
+                <Icon name="download" size={16} /> تحميل
               </a>
               <button type="button" onClick={printCard} className={subtleBtn}>
-                🖨️ طباعة
+                <Icon name="printer" size={16} /> طباعة
               </button>
               <button type="button" onClick={copyLink} className={subtleBtn}>
-                {copied ? "✅ تم النسخ" : "🔗 نسخ الرابط"}
+                {copied ? "تم النسخ" : "نسخ الرابط"}
               </button>
             </div>
           </>

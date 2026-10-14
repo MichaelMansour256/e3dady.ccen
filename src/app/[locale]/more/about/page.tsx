@@ -11,7 +11,7 @@ export default async function AboutPage() {
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title={isAr ? about.title.ar : about.title.en} icon="ℹ️" />
+      <PageHeader title={isAr ? about.title.ar : about.title.en} icon="sparkles" />
 
       <div className="flex flex-col items-center gap-6 px-5 py-6 max-w-lg mx-auto">
 

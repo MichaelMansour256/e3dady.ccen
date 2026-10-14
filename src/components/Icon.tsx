@@ -12,7 +12,13 @@ type IconName =
   | "check"
   | "sparkles"
   | "menu"
-  | "x";
+  | "x"
+  | "camera"
+  | "search"
+  | "pause"
+  | "refresh"
+  | "download"
+  | "printer";
 
 const paths: Record<IconName, React.ReactNode> = {
   home: <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />,
@@ -29,6 +35,12 @@ const paths: Record<IconName, React.ReactNode> = {
   sparkles: <><path d="m12 3 1.4 4.6L18 9l-4.6 1.4L12 15l-1.4-4.6L6 9l4.6-1.4z" /><path d="m19 15 .7 2.3L22 18l-2.3.7L19 21l-.7-2.3L16 18l2.3-.7z" /></>,
   menu: <path d="M4 6h16M4 12h16M4 18h16" />,
   x: <path d="m6 6 12 12M18 6 6 18" />,
+  camera: <><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3" /></>,
+  search: <><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 5 5" /></>,
+  pause: <><path d="M8 5v14M16 5v14" /></>,
+  refresh: <path d="M20 11a8 8 0 0 0-14.8-4L3 10m0 0V4m0 6h6M4 13a8 8 0 0 0 14.8 4L21 14m0 0v6m0-6h-6" />,
+  download: <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 20h16" />,
+  printer: <><path d="M6 9V3h12v6M6 17H4a1 1 0 0 1-1-1v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a1 1 0 0 1-1 1h-2" /><path d="M6 14h12v7H6z" /></>,
 };
 
 export function Icon({ name, size = 22, strokeWidth = 2, className = "" }: {

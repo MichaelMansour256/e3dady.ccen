@@ -32,7 +32,7 @@ export default function StudiesPage({
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title={t("studies")} icon="📚" />
+      <PageHeader title={t("studies")} icon="book" />
       <ContentLibrary
         key={reference ? `ref-${reference.book}-${reference.chapter ?? 0}` : "all"}
         kind="study"
@@ -41,4 +41,3 @@ export default function StudiesPage({
     </div>
   );
 }
-

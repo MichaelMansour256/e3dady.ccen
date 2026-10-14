@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import AdminLogo from "@/components/AdminLogo";
 import { Icon } from "@/components/Icon";
+import ConfettiBurst from "@/components/ConfettiBurst";
 import { meetingConfig, siteConfig } from "@/config";
 import { useNextMeeting } from "@/hooks/useNextMeeting";
 import { getProgress, progressInLevel, progressLevel, recordActivity, setRsvp, type ProgressState } from "@/lib/progress";
@@ -23,6 +24,7 @@ export default function HomeDashboard() {
   const { countdown, nextDate } = useNextMeeting();
   const [verse, setVerse] = useState<Verse>(null);
   const [progress, setProgress] = useState<ProgressState>(() => getProgress());
+  const [confetti, setConfetti] = useState(0);
 
   const meetingKey = nextDate?.toISOString().slice(0, 10) ?? "";
   useEffect(() => {
@@ -41,6 +43,7 @@ export default function HomeDashboard() {
   function rsvp() {
     if (!meetingKey) return;
     setProgress(setRsvp(meetingKey));
+    setConfetti((value) => value + 1);
   }
 
   async function shareVerse() {
@@ -75,6 +78,7 @@ export default function HomeDashboard() {
 
   return (
     <div className="app-shell min-h-dvh bg-cream px-4 pb-6 text-navy">
+      <ConfettiBurst trigger={confetti} />
       <header className="flex items-center justify-between gap-3 px-1 pb-4 pt-7">
         <div className="flex items-center gap-3">
           <AdminLogo src={siteConfig.assets.logo} alt={siteConfig.shortName} shortName={siteConfig.shortName} />

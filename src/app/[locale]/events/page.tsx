@@ -7,6 +7,8 @@ import WeeklyMeetingCard from "@/components/WeeklyMeetingCard";
 import { meetingConfig } from "@/config";
 import { Icon } from "@/components/Icon";
 import { setRsvp } from "@/lib/progress";
+import { getProgress } from "@/lib/progress";
+import ConfettiBurst from "@/components/ConfettiBurst";
 
 type SpecialEvent = { id: string; title: string; titleAr: string; date: string; time: string; description?: string; descriptionAr?: string };
 type Invitation = { date: string; url: string; publicId: string; width: number; height: number };
@@ -52,6 +54,7 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [fullscreenImg, setFullscreenImg] = useState<string | null>(null);
   const [rsvped, setRsvped] = useState(false);
+  const [confetti, setConfetti] = useState(0);
 
   useEffect(() => {
     Promise.all([
@@ -71,13 +74,16 @@ export default function EventsPage() {
   const latestInvitation = invitations[0];
   const olderInvitations = invitations.slice(1);
   const rsvp = () => {
+    const before = getProgress();
     setRsvped(true);
-    setRsvp(new Date().toISOString().slice(0, 10));
+    const after = setRsvp(new Date().toISOString().slice(0, 10));
+    if (after.xp !== before.xp) setConfetti((value) => value + 1);
   };
 
   return (
     <div className="app-shell min-h-dvh bg-cream pb-6 text-navy">
-      <PageHeader title={t("title")} icon="📅" />
+      <ConfettiBurst trigger={confetti} />
+      <PageHeader title={t("title")} icon="calendar" />
 
       <div className="pt-4 pb-2">
         <WeeklyMeetingCard />

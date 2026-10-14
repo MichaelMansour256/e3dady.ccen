@@ -11,7 +11,7 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title={t("title")} icon="📬" />
+      <PageHeader title={t("title")} icon="mail" />
 
       <div className="flex flex-col items-center gap-6 px-6 pt-8 text-center">
         {/* Church info */}

@@ -11,7 +11,7 @@ export default function BiblePage() {
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title={t("title")} icon="📖" />
+      <PageHeader title={t("title")} icon="book" />
       <div className="flex flex-col gap-3 p-4">
         {sections.map(({ key, href, icon }) => (
           <Link key={key} href={`/${locale}${href}`}

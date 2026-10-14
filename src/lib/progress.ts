@@ -1,49 +1,96 @@
 export type ProgressState = {
+  version: 2;
   xp: number;
   streak: number;
   lastActivity: string | null;
   rsvpDate: string | null;
+  rewardedActivities: Record<string, true>;
 };
 
-const KEY = "e3dady-progress";
-const initial: ProgressState = { xp: 0, streak: 0, lastActivity: null, rsvpDate: null };
+export type ActivityType = "daily-verse" | "rsvp" | "arena-round";
 
-function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+const KEY = "e3dady-progress";
+const initial: ProgressState = {
+  version: 2,
+  xp: 0,
+  streak: 0,
+  lastActivity: null,
+  rsvpDate: null,
+  rewardedActivities: {},
+};
+
+function localDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
-export function getProgress(): ProgressState {
-  if (typeof window === "undefined") return initial;
+function readStored(): Partial<ProgressState> | null {
+  if (typeof window === "undefined") return null;
   try {
-    return { ...initial, ...JSON.parse(window.localStorage.getItem(KEY) ?? "{}") };
+    const raw = window.localStorage.getItem(KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<ProgressState>;
+    return parsed && typeof parsed === "object" ? parsed : null;
   } catch {
-    return initial;
+    return null;
   }
 }
 
-export function saveProgress(next: ProgressState) {
-  window.localStorage.setItem(KEY, JSON.stringify(next));
-  window.dispatchEvent(new CustomEvent("e3dady-progress"));
+export function getProgress(): ProgressState {
+  const stored = readStored();
+  if (!stored) return { ...initial, rewardedActivities: {} };
+  return {
+    ...initial,
+    ...stored,
+    version: 2,
+    xp: typeof stored.xp === "number" && Number.isFinite(stored.xp) && stored.xp >= 0 ? stored.xp : 0,
+    streak: typeof stored.streak === "number" && Number.isFinite(stored.streak) && stored.streak >= 0 ? stored.streak : 0,
+    rewardedActivities: stored.rewardedActivities && typeof stored.rewardedActivities === "object"
+      ? stored.rewardedActivities
+      : {},
+  };
 }
 
-export function recordActivity(xp: number): ProgressState {
+export function saveProgress(next: ProgressState) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(next));
+    window.dispatchEvent(new CustomEvent("e3dady-progress"));
+  } catch {
+    // Progress is optional and must never break the app when storage is blocked.
+  }
+}
+
+function updateStreak(current: ProgressState, today: string) {
+  const yesterday = localDateKey(new Date(Date.now() - 86400000));
+  if (current.lastActivity === today) return current.streak;
+  return current.lastActivity === yesterday ? current.streak + 1 : 1;
+}
+
+export function awardActivity(type: ActivityType, activityKey: string, xp: number): ProgressState {
   const current = getProgress();
-  const today = todayKey();
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  const next = {
+  const key = `${type}:${activityKey}`;
+  if (current.rewardedActivities[key]) return current;
+  const today = localDateKey();
+  const next: ProgressState = {
     ...current,
-    xp: current.xp + xp,
-    streak: current.lastActivity === today ? current.streak : current.lastActivity === yesterday ? current.streak + 1 : 1,
+    xp: current.xp + Math.max(0, xp),
+    streak: updateStreak(current, today),
     lastActivity: today,
+    rewardedActivities: { ...current.rewardedActivities, [key]: true },
   };
   saveProgress(next);
   return next;
 }
 
-export function setRsvp(date: string): ProgressState {
-  const next = { ...getProgress(), rsvpDate: date };
-  saveProgress(next);
-  return recordActivity(10);
+export function recordActivity(xp: number) {
+  return awardActivity("daily-verse", localDateKey(), xp);
+}
+
+export function setRsvp(date: string) {
+  return awardActivity("rsvp", date, 10);
 }
 
 export function progressLevel(xp: number) {

@@ -29,7 +29,7 @@ export default function GalleryPage() {
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title={t("title")} icon="🖼️" />
+      <PageHeader title={t("title")} icon="share" />
 
       {/* Event filter tabs */}
       <div className="flex gap-2 overflow-x-auto px-4 py-3 scrollbar-none">

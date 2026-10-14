@@ -62,7 +62,7 @@ export default function PrayerWallPage() {
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title={t("title")} icon="✝️" />
+      <PageHeader title={t("title")} icon="book" />
 
       <div className="flex flex-col gap-4 px-4 py-4 max-w-lg mx-auto">
 

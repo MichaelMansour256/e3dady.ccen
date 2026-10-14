@@ -18,7 +18,7 @@ export default function MorePage() {
 
   return (
     <div className="min-h-dvh page-gradient">
-      <PageHeader title={t("title")} icon="☰" />
+      <PageHeader title={t("title")} icon="menu" />
       <div className="flex flex-col gap-2 p-4">
         {features.notifications && <NotificationInboxLink />}
         {features.notifications && <PushBell locale={locale} />}
