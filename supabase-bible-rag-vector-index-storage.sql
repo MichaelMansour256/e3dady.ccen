@@ -1,0 +1,23 @@
+-- Storage-relief proposal only. Do not run automatically.
+--
+-- This releases the IVFFlat index (approximately 244 MB in production) while
+-- preserving every verse and every embedding. Run as a standalone statement,
+-- outside an explicit transaction:
+--
+-- drop index concurrently if exists public.bible_verses_embedding_idx;
+--
+-- Rollback/recreate (requires enough quota headroom and a standalone statement):
+--
+-- create index concurrently bible_verses_embedding_idx
+--   on public.bible_verses using ivfflat (embedding vector_cosine_ops)
+--   with (lists = 100);
+--
+-- Validate after either operation:
+--
+-- select count(*) as total_verses,
+--        count(embedding) as verses_with_embeddings
+-- from public.bible_verses;
+--
+-- select indexname, indexdef
+-- from pg_indexes
+-- where schemaname = 'public' and tablename = 'bible_verses';
