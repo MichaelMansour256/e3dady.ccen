@@ -110,6 +110,15 @@ If the original RAG SQL was already applied, run
 It prevents exact Arabic keyword matches such as `المحبة` from being removed
 only because their dense similarity score is below the threshold.
 
+For production databases with a large vector index, apply
+[`supabase-bible-rag-two-stage.sql`](./supabase-bible-rag-two-stage.sql) in the
+Supabase SQL Editor. It bounds semantic nearest-neighbor retrieval before
+hybrid ranking, avoiding the unbounded composite sort that can time out.
+Until that SQL function is deployed, the API falls back to direct normalized
+Arabic text retrieval when the RPC fails, so exact keyword searches can still
+return verses. This is a degraded lexical path and does not replace deploying
+the optimized RPC for conceptual searches.
+
 With a local development server running, the live API checks can be run with:
 
 ```bash

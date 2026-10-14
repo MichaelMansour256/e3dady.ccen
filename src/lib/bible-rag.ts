@@ -200,11 +200,31 @@ export async function retrieveBibleSources(
     });
     return sources;
   }
-  const { count: vectorCount } = await supabase
+  const { count: vectorCount, error: vectorHealthError } = await supabase
     .from("bible_verses")
     .select("id", { count: "exact", head: true })
     .not("embedding", "is", null);
-  const embedding = vectorCount ? await createEmbedding(query) : null;
+  if (vectorHealthError) {
+    console.error("[bible/rag] unable to inspect Bible vectors", { message: vectorHealthError.message });
+    throw new BibleRagError("تعذر التحقق من تمثيلات فهرس الكتاب المقدس.", 503);
+  }
+  let embedding: number[] | null = null;
+  try {
+    embedding = vectorCount ? await createEmbedding(query) : null;
+  } catch (error) {
+    console.error("[bible/rag] embedding failed; trying direct lexical retrieval", {
+      message: error instanceof Error ? error.message : "unknown error",
+    });
+    const lexicalFallback = await retrieveLexicalSources(query, testamentFilter);
+    if (lexicalFallback.length) {
+      console.warn("[bible/rag] returning degraded lexical results after embedding failure", {
+        queryFingerprint: queryFingerprint(query),
+        candidateCount: lexicalFallback.length,
+      });
+      return lexicalFallback;
+    }
+    throw error;
+  }
   if (!vectorCount) {
     console.warn("[bible/rag] Bible index has no stored vectors; using normalized lexical retrieval");
   }
@@ -232,7 +252,25 @@ export async function retrieveBibleSources(
   let data = rpcResult.data;
   const error = rpcResult.error;
   if (error) {
-    console.error("[bible/rag] retrieval failed", { message: error.message });
+    console.error("[bible/rag] semantic RPC failed; trying direct lexical retrieval", {
+      code: error.code,
+      message: error.message,
+    });
+    try {
+      const lexicalFallback = await retrieveLexicalSources(query, testamentFilter);
+      if (lexicalFallback.length) {
+        console.warn("[bible/rag] returning degraded lexical results after RPC failure", {
+          queryFingerprint: queryFingerprint(query),
+          candidateCount: lexicalFallback.length,
+        });
+        return lexicalFallback;
+      }
+    } catch (lexicalError) {
+      console.error("[bible/rag] direct lexical fallback failed after RPC error", {
+        message: lexicalError instanceof Error ? lexicalError.message : "unknown error",
+      });
+      throw new BibleRagError("تعذر تنفيذ البحث في فهرس الكتاب المقدس.", 503);
+    }
     throw new BibleRagError("تعذر تنفيذ البحث في فهرس الكتاب المقدس.", 503);
   }
   // Older deployed SQL functions may still reject rows without vectors.
