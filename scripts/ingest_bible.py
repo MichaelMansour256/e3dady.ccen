@@ -165,8 +165,10 @@ def main() -> None:
                 "id": f"{row.get('book_nr', book)}-{chapter}-{verse}",
                 "book": book, "book_en": row.get("book_en"), "chapter": chapter, "verse": verse,
                 "testament": testament, "text_ar": text,
-                "text_ar_plain": row.get("text_plain") or plain_arabic(text), "embedding": vector,
+                "text_ar_plain": row.get("text_plain") or plain_arabic(text),
             }
+            if vector is not None:
+                record["embedding"] = vector
             if os.getenv("BIBLE_RAG_STORE_METADATA", "").lower() in {"1", "true", "yes"}:
                 record["embedding_model"] = model
                 record["embedding_dimensions"] = dimensions

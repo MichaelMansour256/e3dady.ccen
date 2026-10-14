@@ -84,6 +84,20 @@ vectors are 1536-dimensional before upserting. The API reports the stored
 vector count and uses lexical retrieval when vectors are absent, rather than
 claiming that semantic retrieval succeeded.
 
+For existing production rows, use
+[`supabase-bible-rag-embedding-metadata.sql`](./supabase-bible-rag-embedding-metadata.sql)
+to record embedding metadata without changing Bible text or vectors. The
+resumable backfill command is:
+
+```bash
+python scripts/backfill_bible_embeddings.py
+```
+
+Use `--limit 10` for a bounded test batch, `--verify` to inspect counts, and
+`--dry-run` to validate configuration without writing. The backfill reads only
+`embedding IS NULL`, validates 1536 dimensions, retries transient failures, and
+PATCHes each original verse ID only after its vector is generated successfully.
+
 The ingestion script creates `text_ar_plain` for lexical matching and stores
 `text_ar` plus `text_plain`-compatible metadata. The API combines cosine
 similarity with PostgreSQL full-text search, returns up to five sources, and
