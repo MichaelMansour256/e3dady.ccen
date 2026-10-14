@@ -74,10 +74,6 @@ body {
   outline-offset: 3px;
 }
 
-.nav-indicator {
-  will-change: transform;
-}
-
 .pressable {
   transition: transform 160ms ease, box-shadow 160ms ease;
 }
@@ -87,11 +83,6 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-indicator {
-    transition: none !important;
-    will-change: auto;
-  }
-
   .pressable,
   .pressable:active {
     transition: none;
