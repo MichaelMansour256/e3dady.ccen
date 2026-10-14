@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import PageHeader from "@/components/PageHeader";
+import { Icon } from "@/components/Icon";
 
 type Prayer = { id: string; name: string; request: string; pray_count: number; created_at: string };
 
@@ -69,7 +70,7 @@ export default function PrayerWallPage() {
         {/* Submit form */}
         {submitted ? (
           <div className="rounded-2xl border border-green-400/30 bg-green-400/10 p-5 text-center" dir="rtl">
-            <p className="text-2xl mb-2">🙏</p>
+            <Icon name="sparkles" className="mx-auto mb-2 text-coral" />
             <p className="font-semibold text-white">{t("thanks")}</p>
             <p className="text-sm text-blue-light/60 mt-1">{t("pending")}</p>
             <button onClick={() => setSubmitted(false)}
@@ -96,7 +97,7 @@ export default function PrayerWallPage() {
                 className="w-full rounded-xl bg-blue-dark/60 px-4 py-2 text-white placeholder-blue-light/40 outline-none ring-1 ring-blue-mid/40 focus:ring-blue-accent text-sm resize-none"
               />
               <button type="submit" disabled={submitting || !request.trim()}
-                className="rounded-xl bg-blue-accent py-2 text-sm font-semibold text-white hover:bg-blue-mid disabled:opacity-50 transition">
+                className="rounded-xl bg-blue-accent py-2 text-sm font-semibold text-navy hover:bg-blue-mid disabled:opacity-50 transition">
                 {submitting ? "…" : t("send")}
               </button>
             </div>
@@ -110,7 +111,7 @@ export default function PrayerWallPage() {
           </div>
         ) : prayers.length === 0 ? (
           <div className="flex flex-col items-center pt-8 gap-2 text-blue-light/40">
-            <span className="text-4xl">✝️</span>
+            <Icon name="book" size={36} className="text-coral" />
             <p className="text-sm">{t("empty")}</p>
           </div>
         ) : (
@@ -134,7 +135,7 @@ export default function PrayerWallPage() {
                           ? "bg-blue-accent/20 text-blue-accent cursor-default"
                           : "bg-blue-primary/60 text-blue-light/70 hover:bg-blue-accent/20 hover:text-blue-accent"
                       }`}>
-                      🙏 {prayer.pray_count}
+                      <Icon name="sparkles" size={14} /> {prayer.pray_count}
                     </button>
                   </div>
                   <p className="text-sm leading-relaxed text-white/80">{prayer.request}</p>

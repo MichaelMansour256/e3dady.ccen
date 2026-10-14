@@ -19,7 +19,7 @@ const initial: ProgressState = {
   rewardedActivities: {},
 };
 
-function localDateKey(date = new Date()) {
+export function localDateKey(date = new Date()) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -64,7 +64,9 @@ export function saveProgress(next: ProgressState) {
 }
 
 function updateStreak(current: ProgressState, today: string) {
-  const yesterday = localDateKey(new Date(Date.now() - 86400000));
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterday = localDateKey(yesterdayDate);
   if (current.lastActivity === today) return current.streak;
   return current.lastActivity === yesterday ? current.streak + 1 : 1;
 }
@@ -90,7 +92,11 @@ export function recordActivity(xp: number) {
 }
 
 export function setRsvp(date: string) {
-  return awardActivity("rsvp", date, 10);
+  const rewarded = awardActivity("rsvp", date, 10);
+  if (rewarded.rsvpDate === date) return rewarded;
+  const next = { ...rewarded, rsvpDate: date };
+  saveProgress(next);
+  return next;
 }
 
 export function progressLevel(xp: number) {

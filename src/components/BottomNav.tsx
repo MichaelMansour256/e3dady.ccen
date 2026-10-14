@@ -29,10 +29,11 @@ export default function BottomNav({ locale }: { locale: string }) {
           : pathname.startsWith(`/${locale}${href}`);
         return (
           <Link key={key} href={fullHref}
+            aria-current={isActive ? "page" : undefined}
             className={`focus-ring flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 py-2 text-xs transition-colors ${
               isActive ? "font-bold text-coral" : "text-navy/55 hover:text-navy"
             }`}>
-            <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${isActive ? "bg-coral/10" : ""}`}>
+            <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${isActive ? "bg-coral/10 ring-2 ring-coral/40" : ""}`}>
               <Icon name={iconByKey[key]} />
             </span>
             <span>{t(key)}</span>
@@ -40,10 +41,11 @@ export default function BottomNav({ locale }: { locale: string }) {
         );
       })}
       <Link href={`/${locale}/games`}
+        aria-current={pathname.startsWith(`/${locale}/games`) ? "page" : undefined}
         className={`focus-ring relative -mt-7 flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 text-xs ${
-          pathname.startsWith(`/${locale}/games`) ? "text-coral" : "text-white"
+          pathname.startsWith(`/${locale}/games`) ? "text-coral" : "text-navy"
         }`}>
-        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-coral shadow-lg shadow-coral/30">
+        <span className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-coral shadow-lg shadow-coral/30 ${pathname.startsWith(`/${locale}/games`) ? "ring-4 ring-coral/30" : ""}`}>
           <Icon name="play" size={25} />
         </span>
         <span className="font-bold text-navy">{t("games")}</span>

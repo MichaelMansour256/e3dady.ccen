@@ -1,6 +1,7 @@
 "use client";
 import { useLocale, useTranslations } from "next-intl";
 import ContentCard from "./ContentCard";
+import { Icon } from "@/components/Icon";
 import {
   referenceLabel,
   relatedItems,
@@ -43,13 +44,13 @@ export default function RelatedContent({
   if (items.length === 0) return null;
 
   const heading = kind === "study" ? t("relatedStudies") : t("relatedResources");
-  const icon = kind === "study" ? "📚" : "🗂️";
+  const icon = kind === "study" ? "book" : "menu";
   const refLabel = referenceLabel(reference, isAr);
 
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-blue-mid/30 bg-blue-dark/30 p-3">
       <h2 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-blue-light/80">
-        <span aria-hidden>{icon}</span>
+        <Icon name={icon} size={16} />
         {heading}
         {refLabel && <span className="text-xs font-normal text-blue-light/50">· {refLabel}</span>}
       </h2>

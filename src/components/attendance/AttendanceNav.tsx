@@ -2,27 +2,28 @@
  * Attendance navigation.
  *
  * Fits the existing admin navigation style (the tab row in src/app/admin/page.tsx)
- * and stays usable on a phone: one horizontally scrollable row, emoji + label,
+ * and stays usable on a phone: one horizontally scrollable row, icon + label,
  * current tab highlighted with the theme accent.
  */
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cardClass } from "./ui";
+import { Icon, type IconName } from "@/components/Icon";
 
 export interface AttendanceTab {
   key: string;
   label: string;
-  icon: string;
+  icon: IconName;
   href: string;
 }
 
 export const attendanceTabs: AttendanceTab[] = [
-  { key: "dashboard", label: "لوحة الحضور", icon: "📊", href: "/admin/attendance/dashboard" },
-  { key: "scan", label: "مسح QR", icon: "📷", href: "/admin/attendance/scan" },
-  { key: "members", label: "الأعضاء", icon: "👥", href: "/admin/attendance/members" },
-  { key: "meetings", label: "الاجتماعات", icon: "📅", href: "/admin/attendance/meetings" },
-  { key: "reports", label: "التقارير", icon: "📈", href: "/admin/attendance/reports" },
+  { key: "dashboard", label: "لوحة الحضور", icon: "calendar", href: "/admin/attendance/dashboard" },
+  { key: "scan", label: "مسح QR", icon: "camera", href: "/admin/attendance/scan" },
+  { key: "members", label: "الأعضاء", icon: "user", href: "/admin/attendance/members" },
+  { key: "meetings", label: "الاجتماعات", icon: "calendar", href: "/admin/attendance/meetings" },
+  { key: "reports", label: "التقارير", icon: "book", href: "/admin/attendance/reports" },
 ];
 
 /** True when `pathname` is the tab itself or one of its sub-pages. */
@@ -53,7 +54,7 @@ export default function AttendanceNav({ current }: { current?: string }) {
                 : "text-blue-light/70 hover:bg-blue-primary/60 hover:text-white"
             }`}
           >
-            <span aria-hidden>{tab.icon}</span>
+            <Icon name={tab.icon} size={18} />
             <span className="whitespace-nowrap">{tab.label}</span>
           </Link>
         );

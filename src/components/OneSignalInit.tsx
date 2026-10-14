@@ -2,9 +2,23 @@
 
 import Script from "next/script";
 
+type OneSignalClient = {
+  init: (options: Record<string, unknown>) => Promise<void>;
+  User?: {
+    PushSubscription?: {
+      id?: string | null;
+      optedIn?: boolean | null;
+      optIn: () => Promise<void>;
+    };
+  };
+  Slidedown: {
+    promptPush: (options: { force: boolean }) => Promise<void>;
+  };
+};
+
 declare global {
   interface Window {
-    OneSignalDeferred?: Array<(OneSignal: any) => void | Promise<void>>;
+    OneSignalDeferred?: Array<(OneSignal: OneSignalClient) => void | Promise<void>>;
     __oneSignalInitialized?: boolean;
     __oneSignalPromptPush?: () => Promise<"blocked" | "prompted" | "failed">;
   }
@@ -31,6 +45,9 @@ export default function OneSignalInit() {
     if (process.env.NODE_ENV === "development") {
       console.warn("[OneSignal] NEXT_PUBLIC_ONESIGNAL_APP_ID is missing — push init skipped.");
     }
+    return null;
+  }
+  if (typeof window !== "undefined" && ["localhost", "127.0.0.1"].includes(window.location.hostname)) {
     return null;
   }
 
@@ -96,4 +113,3 @@ export default function OneSignalInit() {
     />
   );
 }
-

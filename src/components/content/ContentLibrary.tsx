@@ -16,6 +16,7 @@ import {
 } from "@/lib/content-library";
 import ContentCard from "./ContentCard";
 import RelatedContent from "./RelatedContent";
+import { Icon, type IconName } from "@/components/Icon";
 
 type LoadStatus = "loading" | "ready" | "error";
 
@@ -109,7 +110,7 @@ export default function ContentLibrary({
         const display = categoryDisplay(value, kind, isAr);
         return display ? { value, ...display } : null;
       })
-      .filter((option): option is { value: string; label: string; icon: string } => option !== null);
+      .filter((option): option is { value: string; label: string; icon: IconName } => option !== null);
   }, [kindItems, kind, isAr]);
 
   /** Format chips (Resources only) — again only the formats in use. */
@@ -210,7 +211,7 @@ export default function ContentLibrary({
               onClick={() => setCategory(category === option.value ? null : option.value)}
               className={`${CHIP} ${category === option.value ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}
             >
-              {option.icon} {option.label}
+              <Icon name={option.icon} size={15} /> {option.label}
             </button>
           ))}
         </div>
@@ -233,7 +234,7 @@ export default function ContentLibrary({
               onClick={() => setFormat(format === option.value ? null : option.value)}
               className={`${CHIP} ${format === option.value ? "bg-blue-accent text-white" : "bg-blue-primary/40 text-blue-light/70"}`}
             >
-              {option.icon} {option.label}
+              <Icon name={option.icon} size={15} /> {option.label}
             </button>
           ))}
         </div>
@@ -241,13 +242,13 @@ export default function ContentLibrary({
       {/* ── Optional Bible reference filter ── */}
       {referenceText ? (
         <div className="flex items-center gap-2 rounded-xl border border-blue-accent/30 bg-blue-accent/10 px-3 py-2">
-          <span className="text-sm font-semibold text-blue-accent">📖 {referenceText}</span>
+          <span className="flex items-center gap-1 text-sm font-semibold text-blue-accent"><Icon name="book" size={15} /> {referenceText}</span>
           <button
             type="button"
             onClick={clearReference}
             className="ms-auto rounded-full bg-blue-dark/40 px-2.5 py-1 text-xs text-blue-light/70 transition hover:text-white"
           >
-            ✕ {t("clearReference")}
+            <Icon name="x" size={14} /> {t("clearReference")}
           </button>
         </div>
       ) : (
@@ -257,7 +258,7 @@ export default function ContentLibrary({
             onClick={() => setReferenceOpen((open) => !open)}
             className="self-start text-xs font-semibold text-blue-light/60 transition hover:text-white"
           >
-            📖 {t("reference")} {referenceOpen ? "▲" : "▼"}
+            <Icon name="book" size={15} /> {t("reference")} <Icon name={referenceOpen ? "arrow" : "arrow"} size={13} className={referenceOpen ? "rotate-90" : "-rotate-90"} />
           </button>
           {referenceOpen && (
             <div className="flex gap-2">
@@ -299,7 +300,7 @@ export default function ContentLibrary({
 
       {status === "error" && (
         <div className="flex flex-col items-center gap-3 py-10 text-blue-light/50">
-          <span className="text-3xl">⚠️</span>
+          <Icon name="x" size={30} className="text-coral" />
           <p className="text-sm">{t("error")}</p>
           <button
             type="button"
@@ -313,7 +314,7 @@ export default function ContentLibrary({
 
       {status === "ready" && visible.length === 0 && (
         <div className="flex flex-col items-center gap-2 py-10 text-center text-blue-light/40">
-          <span className="text-4xl">{kind === "study" ? "📚" : "🗂️"}</span>
+          <Icon name={kind === "study" ? "book" : "menu"} size={36} className="text-coral" />
           <p className="text-sm">{emptyMessage}</p>
           {filtersActive && (
             <button type="button" onClick={clearAllFilters} className="text-sm text-blue-accent underline">

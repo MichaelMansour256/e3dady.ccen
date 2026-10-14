@@ -57,12 +57,13 @@ export default function PushBell({ locale }: { locale: string }) {
   }
 
   useEffect(() => {
-    refresh();
+    const initialCheck = window.setTimeout(() => void refresh(), 0);
     // Re-check when the tab regains focus (user may have allowed in settings).
     const onFocus = () => refresh();
     window.addEventListener("focus", onFocus);
     const t = setInterval(refresh, 5000);
     return () => {
+      window.clearTimeout(initialCheck);
       window.removeEventListener("focus", onFocus);
       clearInterval(t);
     };
@@ -149,7 +150,7 @@ export default function PushBell({ locale }: { locale: string }) {
       <span className="flex-1">
         <span className="block text-base font-semibold text-white">
           {state === "on"
-            ? isAr ? "الإشعارات مفعّلة ✅" : "Notifications on ✅"
+            ? isAr ? "الإشعارات مفعّلة" : "Notifications on"
             : busy
               ? isAr ? "جاري التفعيل…" : "Enabling…"
               : isAr ? "فعّل إشعارات الاجتماع" : "Enable meeting notifications"}

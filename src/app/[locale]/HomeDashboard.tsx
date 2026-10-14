@@ -8,7 +8,7 @@ import { Icon } from "@/components/Icon";
 import ConfettiBurst from "@/components/ConfettiBurst";
 import { meetingConfig, siteConfig } from "@/config";
 import { useNextMeeting } from "@/hooks/useNextMeeting";
-import { getProgress, progressInLevel, progressLevel, recordActivity, setRsvp, type ProgressState } from "@/lib/progress";
+import { getProgress, localDateKey, progressInLevel, progressLevel, recordActivity, setRsvp, type ProgressState } from "@/lib/progress";
 
 type Verse = { text: string; bookName: string; chapter: number; verse: number } | null;
 
@@ -23,16 +23,29 @@ export default function HomeDashboard() {
   const isAr = locale === "ar";
   const { countdown, nextDate } = useNextMeeting();
   const [verse, setVerse] = useState<Verse>(null);
-  const [progress, setProgress] = useState<ProgressState>(() => getProgress());
+  const [progress, setProgress] = useState<ProgressState>(() => ({
+    version: 2, xp: 0, streak: 0, lastActivity: null, rsvpDate: null, rewardedActivities: {},
+  }));
+  const [progressHydrated, setProgressHydrated] = useState(false);
   const [confetti, setConfetti] = useState(0);
 
-  const meetingKey = nextDate?.toISOString().slice(0, 10) ?? "";
+  const meetingKey = nextDate ? localDateKey(nextDate) : "";
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setProgress(getProgress());
+      setProgressHydrated(true);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
   useEffect(() => {
     fetch("/api/verse").then((response) => response.json()).then((data: Verse) => {
       setVerse(data);
-      if (data?.text) setProgress(recordActivity(5));
     }).catch(() => undefined);
   }, []);
+  useEffect(() => {
+    if (!progressHydrated || !verse?.text) return;
+    queueMicrotask(() => setProgress(recordActivity(5)));
+  }, [progressHydrated, verse]);
   const rsvped = meetingKey ? progress.rsvpDate === meetingKey : false;
 
   const dateLabel = useMemo(() => nextDate?.toLocaleDateString(isAr ? "ar-EG" : "en-US", {
@@ -106,7 +119,7 @@ export default function HomeDashboard() {
             </div>
           ))}
         </div>
-        <button onClick={rsvp} disabled={rsvped} className={`focus-ring pressable mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl font-black ${rsvped ? "bg-success text-navy" : "bg-coral text-white"}`}>
+        <button onClick={rsvp} disabled={rsvped} className={`focus-ring pressable mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl font-black ${rsvped ? "bg-success text-navy" : "bg-coral text-navy"}`}>
           {rsvped ? <Icon name="check" /> : null}{rsvped ? t("rsvpDone") : t("arriving")}
         </button>
       </section>

@@ -12,6 +12,7 @@ import {
   resourceTypeDisplay,
   type ContentItem,
 } from "@/lib/content-library";
+import { Icon } from "@/components/Icon";
 
 /**
  * One card in the Studies / Resources listing.
@@ -67,7 +68,7 @@ export default function ContentCard({
 
       <div className="flex flex-col gap-3 p-4">
         <div className="flex items-start gap-3">
-          <span className="text-2xl leading-none">{format?.icon ?? category?.icon ?? (item.type === "study" ? "📚" : "🗂️")}</span>
+          <Icon name={format?.icon ?? category?.icon ?? (item.type === "study" ? "book" : "menu")} size={24} />
           <div className="min-w-0 flex-1">
             <h2 className="text-base font-semibold leading-snug text-white">{title}</h2>
             {description && (
@@ -80,12 +81,12 @@ export default function ContentCard({
           <div className="flex flex-wrap items-center gap-1.5">
             {category && (
               <span className="rounded-full bg-blue-dark/40 px-2.5 py-1 text-xs text-blue-light/70">
-                {category.icon} {category.label}
+                <Icon name={category.icon} size={14} /> {category.label}
               </span>
             )}
             {format && (
               <span className="rounded-full bg-blue-dark/40 px-2.5 py-1 text-xs text-blue-light/70">
-                {format.icon} {format.label}
+                <Icon name={format.icon} size={14} /> {format.label}
               </span>
             )}
             {refLabel && showReferenceLink && reference && (
@@ -94,12 +95,12 @@ export default function ContentCard({
                 title={isAr ? `شاهد ${siblingSection === "studies" ? "الدراسات" : "الموارد"} المتعلقة بـ ${refLabel}` : `Show ${siblingSection === "studies" ? "studies" : "resources"} for ${refLabel}`}
                 className="rounded-full bg-blue-accent/15 px-2.5 py-1 text-xs font-semibold text-blue-accent transition hover:bg-blue-accent/25"
               >
-                📖 {refLabel} ›
+                <Icon name="book" size={14} /> {refLabel} <Icon name="arrow" size={14} />
               </Link>
             )}
             {refLabel && !showReferenceLink && (
               <span className="rounded-full bg-blue-accent/15 px-2.5 py-1 text-xs font-semibold text-blue-accent">
-                📖 {refLabel}
+                <Icon name="book" size={14} /> {refLabel}
               </span>
             )}
             {relatedStudy && (
@@ -110,7 +111,7 @@ export default function ContentCard({
                 title={isAr ? "افتح الدراسة المرتبطة" : "Open the related study"}
                 className="rounded-full bg-yellow-400/10 px-2.5 py-1 text-xs text-yellow-300/90 transition hover:bg-yellow-400/20"
               >
-                📚 {t("relatedStudy")}: {contentTitle(relatedStudy, isAr)}
+                <Icon name="book" size={14} /> {t("relatedStudy")}: {contentTitle(relatedStudy, isAr)}
               </a>
             )}
           </div>
@@ -123,7 +124,7 @@ export default function ContentCard({
           title={t("openInNewTab")}
           className="flex items-center justify-center gap-2 rounded-xl bg-blue-accent py-2.5 text-sm font-semibold text-white transition hover:bg-blue-mid active:scale-[0.98]"
         >
-          <span aria-hidden>{format?.icon ?? "↗"}</span>
+          <Icon name={format?.icon ?? "arrow"} size={16} />
           {action}
           <span aria-hidden className="text-xs opacity-80">↗</span>
         </a>

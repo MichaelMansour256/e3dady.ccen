@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import PageHeader from "@/components/PageHeader";
+import { Icon } from "@/components/Icon";
 import Slideshow from "@/components/Slideshow";
 
 type Photo = { id: string; url: string; width: number; height: number };
@@ -66,7 +67,7 @@ export default function GalleryPage() {
         <div className="flex justify-center pt-20 text-blue-light/50">{t("loading")}</div>
       ) : displayedPhotos.length === 0 ? (
         <div className="flex flex-col items-center pt-20 text-blue-light/50 gap-2">
-          <span className="text-5xl">🖼️</span>
+          <Icon name="sparkles" size={44} className="text-coral" />
           <p className="text-sm">{t("empty")}</p>
         </div>
       ) : (

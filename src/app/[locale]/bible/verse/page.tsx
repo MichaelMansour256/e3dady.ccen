@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import PageHeader from "@/components/PageHeader";
+import { Icon } from "@/components/Icon";
 import BibleReference from "@/components/BibleReference";
 
 type Verse = {
@@ -34,12 +35,12 @@ export default function VerseOfWeekPage() {
       <div className="flex flex-col items-center px-5 pt-8 pb-6 max-w-lg mx-auto">
         {loading ? (
           <div className="flex flex-col items-center gap-3 pt-20 text-blue-light/50">
-            <span className="text-4xl animate-pulse">✨</span>
+            <Icon name="sparkles" size={36} className="animate-pulse text-coral" />
             <p className="text-sm">{t("loading")}</p>
           </div>
         ) : !verse || !verse.text ? (
           <div className="flex flex-col items-center gap-3 pt-20 text-blue-light/40">
-            <span className="text-5xl">📖</span>
+            <Icon name="book" size={44} className="text-coral" />
             <p className="text-sm">{t("empty")}</p>
           </div>
         ) : (

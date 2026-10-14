@@ -17,6 +17,7 @@
  * (book, chapter, verse) and the resource → study link are OPTIONAL.
  */
 import { BIBLE_BOOKS } from "./bibleBooks";
+import type { IconName } from "@/components/Icon";
 
 /** The two content types stored in `content_library.type`. */
 export type ContentKind = "study" | "resource";
@@ -66,7 +67,7 @@ export interface ContentPreset {
   id: string;
   ar: string;
   en: string;
-  icon: string;
+  icon: IconName;
   /** Only on RESOURCE_TYPES: the label of the card's call-to-action button. */
   actionAr?: string;
   actionEn?: string;
@@ -74,11 +75,11 @@ export interface ContentPreset {
 
 /** Studies are grouped by what the study is about. */
 export const STUDY_CATEGORIES: ContentPreset[] = [
-  { id: "bible-studies", ar: "دراسات كتابية", en: "Bible Studies", icon: "📖" },
-  { id: "characters", ar: "شخصيات", en: "Characters", icon: "🧑" },
-  { id: "books", ar: "أسفار", en: "Books", icon: "📚" },
-  { id: "topics", ar: "موضوعات", en: "Topics", icon: "🗂️" },
-  { id: "spiritual-life", ar: "حياة روحية", en: "Spiritual Life", icon: "🕊️" },
+  { id: "bible-studies", ar: "دراسات كتابية", en: "Bible Studies", icon: "book" },
+  { id: "characters", ar: "شخصيات", en: "Characters", icon: "user" },
+  { id: "books", ar: "أسفار", en: "Books", icon: "book" },
+  { id: "topics", ar: "موضوعات", en: "Topics", icon: "menu" },
+  { id: "spiritual-life", ar: "حياة روحية", en: "Spiritual Life", icon: "sparkles" },
 ];
 
 /**
@@ -87,12 +88,12 @@ export const STUDY_CATEGORIES: ContentPreset[] = [
  * duplicate each other.
  */
 export const RESOURCE_CATEGORIES: ContentPreset[] = [
-  { id: "bible-references", ar: "مراجع كتابية", en: "Bible References", icon: "🔖" },
-  { id: "books", ar: "كتب", en: "Books", icon: "📕" },
-  { id: "study-guides", ar: "أدلة دراسة", en: "Study Guides", icon: "🧭" },
-  { id: "hymns", ar: "ترانيم وتسبيح", en: "Hymns", icon: "🎵" },
-  { id: "useful-links", ar: "روابط مفيدة", en: "Useful Links", icon: "🔗" },
-  { id: "general", ar: "عام", en: "General", icon: "📦" },
+  { id: "bible-references", ar: "مراجع كتابية", en: "Bible References", icon: "book" },
+  { id: "books", ar: "كتب", en: "Books", icon: "book" },
+  { id: "study-guides", ar: "أدلة دراسة", en: "Study Guides", icon: "search" },
+  { id: "hymns", ar: "ترانيم وتسبيح", en: "Hymns", icon: "sparkles" },
+  { id: "useful-links", ar: "روابط مفيدة", en: "Useful Links", icon: "share" },
+  { id: "general", ar: "عام", en: "General", icon: "menu" },
 ];
 
 /**
@@ -101,14 +102,14 @@ export const RESOURCE_CATEGORIES: ContentPreset[] = [
  * new type is immediately usable.
  */
 export const RESOURCE_TYPES: ContentPreset[] = [
-  { id: "pdf", ar: "PDF", en: "PDF", icon: "📄", actionAr: "فتح الـ PDF", actionEn: "Open PDF" },
-  { id: "video", ar: "فيديو", en: "Video", icon: "🎬", actionAr: "شاهد الفيديو", actionEn: "Watch video" },
-  { id: "audio", ar: "صوت", en: "Audio", icon: "🎧", actionAr: "استمع", actionEn: "Listen" },
-  { id: "presentation", ar: "عرض تقديمي", en: "Presentation", icon: "📊", actionAr: "عرض التقديم", actionEn: "View slides" },
-  { id: "book", ar: "كتاب", en: "Book", icon: "📕", actionAr: "فتح الكتاب", actionEn: "Open book" },
-  { id: "link", ar: "رابط", en: "Link", icon: "🔗", actionAr: "فتح الرابط", actionEn: "Open link" },
-  { id: "document", ar: "مستند", en: "Document", icon: "📝", actionAr: "فتح المستند", actionEn: "Open document" },
-  { id: "other", ar: "أخرى", en: "Other", icon: "📎", actionAr: "فتح", actionEn: "Open" },
+  { id: "pdf", ar: "PDF", en: "PDF", icon: "book", actionAr: "فتح الـ PDF", actionEn: "Open PDF" },
+  { id: "video", ar: "فيديو", en: "Video", icon: "play", actionAr: "شاهد الفيديو", actionEn: "Watch video" },
+  { id: "audio", ar: "صوت", en: "Audio", icon: "share", actionAr: "استمع", actionEn: "Listen" },
+  { id: "presentation", ar: "عرض تقديمي", en: "Presentation", icon: "calendar", actionAr: "عرض التقديم", actionEn: "View slides" },
+  { id: "book", ar: "كتاب", en: "Book", icon: "book", actionAr: "فتح الكتاب", actionEn: "Open book" },
+  { id: "link", ar: "رابط", en: "Link", icon: "share", actionAr: "فتح الرابط", actionEn: "Open link" },
+  { id: "document", ar: "مستند", en: "Document", icon: "book", actionAr: "فتح المستند", actionEn: "Open document" },
+  { id: "other", ar: "أخرى", en: "Other", icon: "menu", actionAr: "فتح", actionEn: "Open" },
 ];
 
 /**
@@ -179,22 +180,22 @@ export function categoryDisplay(
   value: string | null | undefined,
   kind: ContentKind,
   isAr: boolean
-): { label: string; icon: string } | null {
+): { label: string; icon: IconName } | null {
   const raw = value?.trim();
   if (!raw) return null;
   const list = kind === "study" ? STUDY_CATEGORIES : RESOURCE_CATEGORIES;
   const preset = list.find((p) => p.id === raw);
-  return { label: presetLabel(preset, isAr) ?? raw, icon: preset?.icon ?? "🏷️" };
+  return { label: presetLabel(preset, isAr) ?? raw, icon: preset?.icon ?? "menu" };
 }
 
 /** Format chip + call-to-action for a resource ("PDF", "🎬 Watch video"). */
 export function resourceTypeDisplay(
   item: ContentItem,
   isAr: boolean
-): { id: string; label: string; icon: string; action: string } {
+): { id: string; label: string; icon: IconName; action: string } {
   const preset = RESOURCE_TYPES.find((p) => p.id === item.resource_type);
   if (!preset) {
-    return { id: "other", label: isAr ? "مادة" : "Material", icon: "📎", action: isAr ? "فتح" : "Open" };
+    return { id: "other", label: isAr ? "مادة" : "Material", icon: "menu", action: isAr ? "فتح" : "Open" };
   }
   return {
     id: preset.id,

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useCallback, useState } from "react";
 import Image from "next/image";
+import { Icon } from "@/components/Icon";
 
 type Photo = { id: string; url: string; width: number; height: number };
 
@@ -43,7 +44,10 @@ export default function Slideshow({
   const onTouchEnd = (e: React.TouchEvent) => {
     if (touchStart === null) return;
     const diff = touchStart - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) diff > 0 ? next() : prev();
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) next();
+      else prev();
+    }
     setTouchStart(null);
   };
 
@@ -56,9 +60,9 @@ export default function Slideshow({
         <div className="flex gap-3">
           <button onClick={() => setPlaying((p) => !p)}
             className="rounded-full bg-white/10 px-3 py-1 text-xs text-white">
-            {playing ? "⏸ Pause" : "▶ Play"}
+            <Icon name={playing ? "pause" : "play"} size={16} /> {playing ? "Pause" : "Play"}
           </button>
-          <button onClick={onClose} className="text-white/80 text-xl">✕</button>
+          <button onClick={onClose} aria-label="Close" className="focus-ring text-white/80"><Icon name="x" /></button>
         </div>
       </div>
 

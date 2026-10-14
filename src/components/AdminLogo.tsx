@@ -54,7 +54,7 @@ export default function AdminLogo({
 
   return (
     <div
-      className="relative h-40 w-40 select-none touch-manipulation"
+      className="relative aspect-square h-16 w-16 shrink-0 select-none touch-manipulation"
       onPointerDown={startPress}
       onPointerMove={trackPress}
       onPointerUp={cancelPress}

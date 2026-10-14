@@ -409,10 +409,10 @@ export default function ContentManager() {
               <option value="">Category — none</option>
               {categoryOptions.map((preset) => (
                 <option key={preset.id} value={preset.id}>
-                  {preset.icon} {preset.en}
+                  {preset.en}
                 </option>
               ))}
-              <option value={CUSTOM_CATEGORY}>✏️ Custom category…</option>
+              <option value={CUSTOM_CATEGORY}>Custom category…</option>
             </select>
             {draft.category === CUSTOM_CATEGORY && (
               <input
@@ -434,7 +434,7 @@ export default function ContentManager() {
               <option value="">Type — not specified</option>
               {RESOURCE_TYPES.map((preset) => (
                 <option key={preset.id} value={preset.id}>
-                  {preset.icon} {preset.en}
+                  {preset.en}
                 </option>
               ))}
             </select>
@@ -442,7 +442,7 @@ export default function ContentManager() {
 
           {/* Optional Bible relationship — never required */}
           <div className="flex flex-col gap-1 rounded-xl bg-blue-dark/40 p-3">
-            <span className={LABEL}>📖 Bible book (optional)</span>
+            <span className={LABEL}>Bible book (optional)</span>
             <div className="flex gap-2">
               <select
                 value={draft.book}

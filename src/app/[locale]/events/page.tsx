@@ -6,8 +6,7 @@ import PageHeader from "@/components/PageHeader";
 import WeeklyMeetingCard from "@/components/WeeklyMeetingCard";
 import { meetingConfig } from "@/config";
 import { Icon } from "@/components/Icon";
-import { setRsvp } from "@/lib/progress";
-import { getProgress } from "@/lib/progress";
+import { getProgress, localDateKey, setRsvp } from "@/lib/progress";
 import ConfettiBurst from "@/components/ConfettiBurst";
 
 type SpecialEvent = { id: string; title: string; titleAr: string; date: string; time: string; description?: string; descriptionAr?: string };
@@ -55,6 +54,14 @@ export default function EventsPage() {
   const [fullscreenImg, setFullscreenImg] = useState<string | null>(null);
   const [rsvped, setRsvped] = useState(false);
   const [confetti, setConfetti] = useState(0);
+  const meetingDate = new Date();
+  while (meetingDate.getDay() !== meetingConfig.schedule.weekday) meetingDate.setDate(meetingDate.getDate() + 1);
+  const meetingKey = localDateKey(meetingDate);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setRsvped(getProgress().rsvpDate === meetingKey), 0);
+    return () => window.clearTimeout(timer);
+  }, [meetingKey]);
 
   useEffect(() => {
     Promise.all([
@@ -76,7 +83,7 @@ export default function EventsPage() {
   const rsvp = () => {
     const before = getProgress();
     setRsvped(true);
-    const after = setRsvp(new Date().toISOString().slice(0, 10));
+    const after = setRsvp(meetingKey);
     if (after.xp !== before.xp) setConfetti((value) => value + 1);
   };
 
@@ -90,7 +97,7 @@ export default function EventsPage() {
       </div>
       <section className="mx-4 rounded-[28px] bg-navy p-5 text-white">
         <div className="flex items-center justify-between"><div><p className="text-sm text-white/70">{t("meetingLine")}</p><h2 className="text-3xl font-black">{t("nextMeeting")}</h2></div><Icon name="calendar" className="text-yellow" size={32} /></div>
-        <button onClick={rsvp} disabled={rsvped} className={`focus-ring pressable mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl font-black ${rsvped ? "bg-success text-navy" : "bg-coral text-white"}`}>
+        <button onClick={rsvp} disabled={rsvped} className={`focus-ring pressable mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl font-black ${rsvped ? "bg-success text-navy" : "bg-coral text-navy"}`}>
           {rsvped ? <Icon name="check" /> : null}{rsvped ? t("rsvpDone") : t("rsvp")}
         </button>
       </section>
