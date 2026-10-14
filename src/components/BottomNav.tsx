@@ -48,7 +48,7 @@ export default function BottomNav({ locale }: { locale: string }) {
         className={`focus-ring relative -mt-7 flex min-h-16 flex-1 flex-col items-center justify-center gap-0.5 text-xs ${
           pathname.startsWith(`/${locale}/games`) ? "text-coral" : "text-navy"
         }`}>
-        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-coral shadow-lg shadow-coral/30">
+        <span className="flex h-8 w-8 items-center justify-center rounded-xl">
           <Icon name="play" size={25} />
         </span>
         <span className="font-bold text-navy">{t("games")}</span>
