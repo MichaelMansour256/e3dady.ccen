@@ -94,7 +94,7 @@ export default function HomeDashboard() {
     context.fillText(line, 540, y);
     context.font = "700 34px Cairo";
     context.fillText(
-      `${verse.bookName} ${toHindiDigits(verse.chapter)}:${toHindiDigits(verse.verse)}`,
+      `${verse.bookName} ${toHindiDigits(verse.chapter)}: ${toHindiDigits(verse.verse)}`,
       540,
       1100,
     );
