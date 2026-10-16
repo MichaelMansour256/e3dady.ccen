@@ -134,7 +134,7 @@ export default function EventsPage() {
         </section>
       )}
 
-      {loading ? (
+      {/*{loading ? (
         <div className="grid grid-cols-2 gap-3 px-4 pt-4">{[1, 2].map((item) => <div key={item} className="h-48 animate-pulse rounded-2xl bg-navy/10" />)}</div>
       ) : (
         <div className="px-4 pb-4">
@@ -156,7 +156,7 @@ export default function EventsPage() {
             </div>
           )}
         </div>
-      )}
+      )}*/}
 
       {/* Fullscreen image viewer */}
       {fullscreenImg && (
