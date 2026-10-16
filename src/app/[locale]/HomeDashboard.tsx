@@ -17,6 +17,11 @@ function greetingKey() {
   return hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
 }
 
+/** Convert Arabic numerals to Arabic-Indic (Hindi) digits ٠١٢٣٤٥٦٧٨٩. */
+function toHindiDigits(n: number) {
+  return String(n).replace(/\d/g, (d) => String.fromCharCode(0x0660 + Number(d)));
+}
+
 export default function HomeDashboard() {
   const locale = useLocale();
   const t = useTranslations("home");
@@ -66,11 +71,21 @@ export default function HomeDashboard() {
     const context = canvas.getContext("2d");
     if (!context) return;
     context.fillStyle = "#FADADD"; context.fillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = "#12206B"; context.font = "700 52px Cairo"; context.textAlign = "center";
-    context.fillText("E3dady", 540, 170);
+    context.fillStyle = "#12206B"; context.textAlign = "center";
+
+    // Draw the e3dady logo at the top of the generated verse image.
+    const logo = new Image();
+    logo.src = "/e3dady-logo-vector.svg";
+    await new Promise<void>((resolve) => {
+      logo.onload = () => resolve();
+      logo.onerror = () => resolve();
+    });
+    const logoSize = 560;
+    context.drawImage(logo, (canvas.width - logoSize) / 2, 30, logoSize, logoSize);
+
     context.font = "500 42px Cairo";
     const words = verse.text.split(" ");
-    let line = ""; let y = 480;
+    let line = ""; let y = 620;
     for (const word of words) {
       const next = `${line} ${word}`.trim();
       if (context.measureText(next).width > 850) { context.fillText(line, 540, y); y += 70; line = word; }
@@ -78,7 +93,11 @@ export default function HomeDashboard() {
     }
     context.fillText(line, 540, y);
     context.font = "700 34px Cairo";
-    context.fillText(`${verse.bookName} ${verse.chapter}:${verse.verse}`, 540, 1100);
+    context.fillText(
+      `${verse.bookName} ${toHindiDigits(verse.chapter)}:${toHindiDigits(verse.verse)}`,
+      540,
+      1100,
+    );
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
     if (!blob) return;
     const file = new File([blob], "e3dady-verse.png", { type: "image/png" });
