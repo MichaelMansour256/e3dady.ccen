@@ -86,7 +86,7 @@ export default function HomeDashboard() {
     // "e3dady" word below the logo (English — left-to-right).
     context.font = "700 48px Cairo";
     context.direction = "ltr";
-    context.fillText("E3dady", 540, 600);
+    context.fillText("E3dady", 540, 570);
 
     // Arabic verse text — RTL direction fixes punctuation placement.
     context.font = "500 42px Cairo";
