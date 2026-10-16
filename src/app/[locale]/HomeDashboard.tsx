@@ -83,9 +83,16 @@ export default function HomeDashboard() {
     const logoSize = 560;
     context.drawImage(logo, (canvas.width - logoSize) / 2, 30, logoSize, logoSize);
 
+    // "e3dady" word below the logo (English — left-to-right).
+    context.font = "700 48px Cairo";
+    context.direction = "ltr";
+    context.fillText("e3dady", 540, 625);
+
+    // Arabic verse text — RTL direction fixes punctuation placement.
     context.font = "500 42px Cairo";
+    context.direction = "rtl";
     const words = verse.text.split(" ");
-    let line = ""; let y = 620;
+    let line = ""; let y = 690;
     for (const word of words) {
       const next = `${line} ${word}`.trim();
       if (context.measureText(next).width > 850) { context.fillText(line, 540, y); y += 70; line = word; }
@@ -94,9 +101,9 @@ export default function HomeDashboard() {
     context.fillText(line, 540, y);
     context.font = "700 34px Cairo";
     context.fillText(
-      `${verse.bookName} ${toHindiDigits(verse.chapter)}: ${toHindiDigits(verse.verse)}`,
+      `${verse.bookName} ${toHindiDigits(verse.chapter)}:${toHindiDigits(verse.verse)}`,
       540,
-      1100,
+      1150,
     );
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
     if (!blob) return;
@@ -147,7 +154,7 @@ export default function HomeDashboard() {
         <div className="flex items-center justify-between"><h2 className="text-lg font-black">{t("verseTitle")}</h2><Icon name="sparkles" /></div>
         <p className="mt-4 text-lg font-bold leading-loose">{verse.text}</p>
         <div className="mt-3 flex items-center justify-between gap-3 text-sm font-bold text-navy/65">
-          <span>{verse.bookName} {verse.chapter}:{verse.verse}</span>
+          <span>{verse.bookName} {toHindiDigits(verse.chapter)}:{toHindiDigits(verse.verse)}</span>
           <button onClick={shareVerse} className="focus-ring pressable flex min-h-11 items-center gap-2 rounded-xl bg-white/70 px-3"><Icon name="share" size={18} /> {t("shareVerse")}</button>
         </div>
       </section>}
